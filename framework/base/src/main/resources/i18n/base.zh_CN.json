@@ -1,0 +1,10 @@
+[
+  {
+    "original": "The operator name cannot be empty.",
+    "translation": "操作符名称不能为空！"
+  },
+  {
+    "original": "The operator {0} does not exist.",
+    "translation": "操作符 {0} 不存在。"
+  }
+]
