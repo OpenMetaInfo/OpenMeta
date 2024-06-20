@@ -12,7 +12,7 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
  * Expression calculation tool class.
  * Definition of static methods, and imported to calculation engine.
  */
-public class Toolkit {
+public class CronUtils {
     private static final CronParser cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
     private static final CronDescriptor descriptor = CronDescriptor.instance(BaseConstant.DEFAULT_LANGUAGE);
 

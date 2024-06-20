@@ -67,7 +67,7 @@ public abstract class ComputeUtils {
             ENGINE.importFunctions(LocalDateTime.class);
             ENGINE.importFunctions(DateTimeFormatter.class);
             ENGINE.importFunctions(StringTools.class);
-            ENGINE.importFunctions(Toolkit.class);
+            ENGINE.importFunctions(CronUtils.class);
         } catch (IllegalAccessException | NoSuchMethodException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
