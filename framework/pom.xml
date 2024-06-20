@@ -16,5 +16,6 @@
 
     <modules>
         <module>base</module>
+        <module>orm</module>
     </modules>
 </project>
