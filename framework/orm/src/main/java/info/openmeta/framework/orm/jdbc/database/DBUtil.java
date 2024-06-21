@@ -9,13 +9,8 @@ import info.openmeta.framework.orm.enums.DatabaseType;
 import info.openmeta.framework.orm.jdbc.database.dialect.DialectInterface;
 import info.openmeta.framework.orm.jdbc.database.dialect.MySQLDialect;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.sql.DataSource;
-import java.sql.Connection;
 
 /**
  * Database utility class
@@ -27,31 +22,33 @@ public class DBUtil {
 
     private static DialectInterface dbDialect;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
     @Value("${sql.hint.read-primary:!readPrimary=true}")
     private String readPrimarySqlHint;
+
+    @Value("${spring.datasource.url}")
+    private String jdbcUrl;
 
     /**
      * Initialize static constants, such as database dialect and assign values to dbDialect
      */
     @PostConstruct
-    public synchronized void initDBType() throws Exception {
+    public synchronized void initDBType() {
         READ_PRIMARY_SQL_HINT = readPrimarySqlHint;
-        DataSource dataSource = jdbcTemplate.getDataSource();
-        if (dataSource == null) {
-            throw new ConfigurationException("Failed to obtain the database connection during system startup!");
-        }
-        try (Connection conn = dataSource.getConnection()) {
-            String dbName = conn.getMetaData().getDatabaseProductName();
-            DatabaseType databaseType = DatabaseType.valueOf(dbName.toUpperCase());
-            if (databaseType == DatabaseType.MYSQL) {
-                dbDialect = new MySQLDialect();
-            } else {
-                throw new ConfigurationException("Dialects of database {0} are not currently supported!", databaseType.getType());
+        if (jdbcUrl != null && jdbcUrl.startsWith("jdbc:")) {
+            String withoutJdbc = jdbcUrl.substring(5);
+            int colonIndex = withoutJdbc.indexOf(":");
+            if (colonIndex > 0) {
+                String dbType = withoutJdbc.substring(0, colonIndex);
+                DatabaseType databaseType = DatabaseType.valueOf(dbType.toUpperCase());
+                if (databaseType == DatabaseType.MYSQL) {
+                    dbDialect = new MySQLDialect();
+                } else {
+                    throw new ConfigurationException("Dialects of database {0} are not currently supported!", databaseType.getType());
+                }
+                return;
             }
         }
+        throw new ConfigurationException("The 'spring.datasource.url' configuration is invalid because of missing database type!");
     }
 
     /**
