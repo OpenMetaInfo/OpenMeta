@@ -1,0 +1,6 @@
+[
+  {
+    "original": "The default value is incorrectly configured for fieldType {0}:{1}.",
+    "translation": "字段类型 {0} 的默认值配置异常：{1}！"
+  }
+]
