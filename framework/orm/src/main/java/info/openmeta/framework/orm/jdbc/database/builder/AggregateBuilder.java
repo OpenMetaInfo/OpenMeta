@@ -76,7 +76,9 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
         // excluding cascading query fields (a.b.c), non-stored fields,
         // numeric fields that are excluded will be aggregated by `sum()`,
         // and other fields will be filled in the return value format.
-        List<String> storedFields = selectFields.stream().filter(f -> ModelManager.existField(mainModelName, f) && ModelManager.isStored(mainModelName, f)).collect(Collectors.toList());
+        List<String> storedFields = selectFields.stream()
+                .filter(f -> ModelManager.existField(mainModelName, f) && ModelManager.isStored(mainModelName, f))
+                .collect(Collectors.toList());
         sqlWrapper.select(this.parseLogicFields(storedFields));
         // Numeric fields, automatically add `sum(t.field) as field`, the alias here cannot add table alias
         if (!CollectionUtils.isEmpty(numericFields)) {
@@ -105,7 +107,7 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
             String field = aggFunctionField.getField();
             sqlWrapper.accessModelField(this.mainModelName, field);
             MetaField metaField = ModelManager.getModelField(this.mainModelName, field);
-            Assert.notTrue(metaField.getNonStored(),
+            Assert.notTrue(metaField.isDynamic(),
                     "Field {0} of model {1} is not a stored field, and cannot be used for aggregate function queries!",
                     field, this.mainModelName);
             // Verify that the field type matches the aggregate function type

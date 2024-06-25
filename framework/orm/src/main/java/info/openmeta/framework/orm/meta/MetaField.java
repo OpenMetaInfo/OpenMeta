@@ -83,7 +83,7 @@ public class MetaField implements Serializable {
     // Memory compute attribute: The dependent field of the expression.
     private List<String> dependentFields;
 
-    private Boolean nonStored;
+    private boolean dynamic;
 
     private Boolean encrypted;
 

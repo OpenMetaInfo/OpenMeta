@@ -31,8 +31,8 @@ public class XToOneGroupProcessor extends BaseProcessor {
 
     /**
      * Cascaded fields depending on the same OneToOne/ManyToOne field, added by XToOneGroupProcessorFactory.
-     * READ: calculate and return the cascaded fields of `stored = false`.
-     * CREATE/UPDATE: calculate and store the cascaded fields of `stored = true`.
+     * READ: calculate and return the dynamic cascaded fields.
+     * CREATE/UPDATE: calculate the stored cascaded fields.
      */
     private final List<MetaField> cascadedFields = new ArrayList<>(0);
     // The fields of the related model that need to be expanded through the OneToOne/ManyToOne field.
@@ -82,7 +82,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
     public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
         if (!cascadedFields.isEmpty()) {
             Map<Serializable, Map<String, Object>> relatedRowMap = getRelatedModelRowMap(rows);
-            // Calculate the `stored = true` cascaded field first.
+            // Calculate the stored cascaded field first.
             cascadedFields.forEach(field -> batchProcessOutputRowsCascaded(field, rows, relatedRowMap));
         }
         XToOneProcessor xToOneField = new XToOneProcessor(metaField);
@@ -104,7 +104,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
             processRelatedTimeLineModelDisplayName(rows);
         } else {
             Map<Serializable, Map<String, Object>> relatedRowMap = getRelatedModelRowMap(rows);
-            // Before expand the ManyToOne/OneToOne field, calculate the non-stored cascaded field first.
+            // Before expand the ManyToOne/OneToOne field, calculate the dynamic cascaded field first.
             cascadedFields.forEach(sf -> batchProcessOutputRowsCascaded(sf, rows, relatedRowMap));
             XToOneProcessor xToOneField = new XToOneProcessor(metaField, flexQuery);
             // Expand the ManyToOne/OneToOne field with displayName, or related model row according to subQuery.
@@ -137,8 +137,8 @@ public class XToOneGroupProcessor extends BaseProcessor {
 
     /**
      * Batch process the Value of the cascadedFields.
-     * READ: `stored = true` cascaded fields.
-     * CREATE/UPDATE: `stored = false` cascaded fields.
+     * READ: the stored cascaded fields.
+     * CREATE/UPDATE: the dynamic cascaded fields.
      *
      * @param cascadedField Cascaded field object
      * @param rows Data list

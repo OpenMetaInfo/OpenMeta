@@ -63,7 +63,7 @@ public class RecomputeModelFieldHandler implements AsyncTaskHandler<RecomputeHan
         if (!CollectionUtils.isEmpty(taskParams.getFields())) {
             taskParams.getFields().forEach(field -> {
                 MetaField metaField = ModelManager.getModelField(taskParams.getModel(), field);
-                Assert.isTrue(!metaField.getNonStored() && (metaField.getComputed() || StringUtils.isNotBlank(metaField.getCascadedField())),
+                Assert.isTrue(!metaField.isDynamic() && (metaField.isComputed() || StringUtils.isNotBlank(metaField.getCascadedField())),
                         "Asynchronous task {0} model {1} field {2} is not a stored computed field!",
                         getAsyncTaskHandlerCode(), taskParams.getModel(), field);
             });
@@ -110,7 +110,7 @@ public class RecomputeModelFieldHandler implements AsyncTaskHandler<RecomputeHan
         }
         // Get the dependent fields for stored cascaded and computed fields
         Set<String> dependedFields = new HashSet<>();
-        metaFields.stream().filter(metaField -> !metaField.getNonStored()).forEach(sysField -> {
+        metaFields.stream().filter(metaField -> !metaField.isDynamic()).forEach(sysField -> {
             if (StringUtils.isNotBlank(sysField.getCascadedField())) {
                 dependedFields.add(StringUtils.split(sysField.getCascadedField(), ".")[0]);
             } else if (Boolean.TRUE.equals(sysField.getComputed())) {
