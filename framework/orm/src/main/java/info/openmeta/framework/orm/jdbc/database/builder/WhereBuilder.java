@@ -269,7 +269,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
         if (filterUnit.getValue() == null) {
             return;
         }
-        if (Boolean.TRUE.equals(metaField.getEncrypted())) {
+        if (metaField.isEncrypted()) {
             // If the current field is an encrypted field, encrypt the search value,
             // and reset the operator to "=" or "!=", for accurate search.
             Operator operator = filterUnit.getOperator();

@@ -18,7 +18,7 @@ public class EncryptProcessorFactory implements FieldProcessorFactory {
     @Override
     public FieldProcessor createProcessor(MetaField metaField) {
         FieldType fieldType = metaField.getFieldType();
-        if (FieldType.STRING.equals(fieldType) && (metaField.getEncrypted())) {
+        if (FieldType.STRING.equals(fieldType) && metaField.isEncrypted()) {
             return new EncryptedProcessor(metaField);
         }
         return null;

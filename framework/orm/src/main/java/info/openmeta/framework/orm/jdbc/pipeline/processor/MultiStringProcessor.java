@@ -23,7 +23,7 @@ public class MultiStringProcessor extends BaseProcessor {
      */
     @Override
     protected void checkRequired(Map<String, Object> row) {
-        if (Boolean.TRUE.equals(metaField.getRequired()) && StringUtils.isBlank((String) row.get(fieldName))) {
+        if (metaField.isRequired() && StringUtils.isBlank((String) row.get(fieldName))) {
             throw new IllegalArgumentException("Model required field {0}:{1} cannot be empty!", metaField.getModelName(), fieldName);
         }
     }

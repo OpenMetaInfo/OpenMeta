@@ -22,7 +22,7 @@ public class FilterProcessor extends BaseProcessor {
      */
     @Override
     protected void checkRequired(Map<String, Object> row) {
-        if (Boolean.TRUE.equals(metaField.getRequired()) && StringUtils.isBlank((String) row.get(fieldName))) {
+        if (metaField.isRequired() && StringUtils.isBlank((String) row.get(fieldName))) {
             throw new IllegalArgumentException("Model field {0}:{1} value cannot be empty!", metaField.getModelName(), fieldName);
         }
     }

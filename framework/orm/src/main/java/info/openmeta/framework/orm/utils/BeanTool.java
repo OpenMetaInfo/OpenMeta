@@ -173,17 +173,21 @@ public class BeanTool {
         BeanMap beanMap = BeanMap.create(bean);
         row.forEach((field, value) -> {
             Class<?> fieldTypeClass = beanMap.getPropertyType(field);
+            if (fieldTypeClass == null) {
+                if (ignoreNotExist) {
+                    log.warn("Entity class {} does not contain attribute {}!", entityClass.getSimpleName(), field);
+                    return;
+                } else {
+                    throw new IllegalArgumentException("Entity class {} does not contain attribute {}!", entityClass.getSimpleName(), field);
+                }
+            }
             if (value instanceof String) {
                 // Convert the string value to the object property type
-                if (fieldTypeClass == null) {
-                    if (!ignoreNotExist) {
-                        log.warn("The {} attribute does not exist in the entity class {}!", entityClass.getSimpleName(), field);
-                    }
-                    return;
-                }
                 value = convertStringValue(fieldTypeClass, value);
             } else if (value instanceof Integer && Long.class.isAssignableFrom(fieldTypeClass)) {
                 value = ((Integer) value).longValue();
+            } else if (value == null && fieldTypeClass.equals(boolean.class)) {
+                value = false;
             }
             try {
                 beanMap.put(field, value);

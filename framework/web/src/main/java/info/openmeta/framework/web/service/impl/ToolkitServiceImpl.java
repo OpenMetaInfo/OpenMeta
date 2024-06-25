@@ -49,7 +49,7 @@ public class ToolkitServiceImpl implements ToolkitService {
         metaFields.stream().filter(metaField -> !metaField.isDynamic()).forEach(sysField -> {
             if (StringUtils.isNotBlank(sysField.getCascadedField())) {
                 dependedFields.add(StringUtils.split(sysField.getCascadedField(), ".")[0]);
-            } else if (Boolean.TRUE.equals(sysField.getComputed())) {
+            } else if (sysField.isComputed()) {
                 dependedFields.addAll(sysField.getDependentFields());
             }
         });
@@ -101,7 +101,7 @@ public class ToolkitServiceImpl implements ToolkitService {
     public Long fixUnencryptedData(String modelName, String fieldName) {
         // TODO: Asynchronous task processing
         MetaField metaField = ModelManager.getModelField(modelName, fieldName);
-        Assert.isTrue(metaField.getEncrypted(), "The field {0} of model {1} is not an encrypted field!", fieldName, modelName);
+        Assert.isTrue(metaField.isEncrypted(), "The field {0} of model {1} is not an encrypted field!", fieldName, modelName);
         long fixedCount = 0L;
         // Construct query to read required fields for pagination
         Set<String> readFields = ModelManager.isTimelineModel(modelName) ? Sets.newHashSet(ModelConstant.ID, ModelConstant.SLICE_ID) : Sets.newHashSet(ModelConstant.ID);

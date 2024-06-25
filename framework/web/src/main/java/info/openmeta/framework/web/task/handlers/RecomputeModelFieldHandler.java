@@ -113,7 +113,7 @@ public class RecomputeModelFieldHandler implements AsyncTaskHandler<RecomputeHan
         metaFields.stream().filter(metaField -> !metaField.isDynamic()).forEach(sysField -> {
             if (StringUtils.isNotBlank(sysField.getCascadedField())) {
                 dependedFields.add(StringUtils.split(sysField.getCascadedField(), ".")[0]);
-            } else if (Boolean.TRUE.equals(sysField.getComputed())) {
+            } else if (sysField.isComputed()) {
                 dependedFields.addAll(sysField.getDependentFields());
             }
         });

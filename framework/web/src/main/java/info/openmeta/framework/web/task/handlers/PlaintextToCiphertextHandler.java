@@ -66,7 +66,7 @@ public class PlaintextToCiphertextHandler implements AsyncTaskHandler<PlaintextT
                 getAsyncTaskHandlerCode(), taskParams.getIds());
         for (String field : taskParams.getFields()) {
             MetaField metaField = ModelManager.getModelField(taskParams.getModel(), field);
-            Assert.isTrue(metaField.getEncrypted(),
+            Assert.isTrue(metaField.isEncrypted(),
                     "Field {0} of model {1} is not an encrypted field!", field, taskParams.getModel());
         }
     }
