@@ -6,14 +6,18 @@ import info.openmeta.framework.base.context.Context;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.context.UserInfo;
 import info.openmeta.framework.base.context.UserPermission;
+import info.openmeta.framework.base.utils.JsonMapper;
+import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.framework.web.service.CacheService;
 import info.openmeta.framework.web.utils.CookieUtils;
+import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -28,7 +32,7 @@ import java.util.TimeZone;
  */
 @Slf4j
 @Component
-public class ContextInterceptorImpl extends ContextInterceptor {
+public class ContextInterceptorImpl implements ContextInterceptor {
 
     @Autowired
     private CacheService cacheService;
@@ -49,7 +53,9 @@ public class ContextInterceptorImpl extends ContextInterceptor {
      * @return boolean indicating whether the request should proceed further
      */
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@Nonnull HttpServletRequest request,
+                             @Nonnull HttpServletResponse response,
+                             @Nonnull Object handler) {
         String sessionId = CookieUtils.getCookie(request, BaseConstant.SESSION_ID);
         if (sessionId == null) {
             // If sessionId is not found in cookies, get it from the request header
@@ -105,28 +111,32 @@ public class ContextInterceptorImpl extends ContextInterceptor {
         Context context = new Context();
         HttpHeaders headers = exchange.getRequest().getHeaders();
         String language = headers.getFirst("Accept-Language");
-        if (StringUtils.hasText(language)) {
+        if (!StringUtils.hasText(language)) {
             language = exchange.getRequest().getQueryParams().getFirst("language");
         }
-        if (!StringUtils.hasText(language)) {
-            context.setLanguage(new Locale(language));
+        if (StringUtils.hasText(language)) {
+            context.setLanguage(Locale.forLanguageTag(language));
         }
-
         String timezone = headers.getFirst("X-Timezone");
-        if (!StringUtils.hasText(timezone)) {
+        if (StringUtils.hasText(timezone)) {
             context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(timezone)));
         }
         ContextHolder.setContext(context);
     }
 
     /**
-     * Redirects to the configured login URL.
+     * Set response as a json response body that contains redirection information to login,
+     * enabling client custom redirection.
      *
      * @param response the HTTP response
      */
     private void redirectLogin(HttpServletResponse response) {
         try {
-            response.sendRedirect(loginUrl);
+            ApiResponse<String> redirectResponse = ApiResponse.redirect(loginUrl);
+            String jsonResponse = JsonMapper.objectToString(redirectResponse);
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.getWriter().write(jsonResponse);
         } catch (IOException e) {
             log.error("ContextInterceptorImpl.redirectLogin", e);
         }
@@ -141,7 +151,10 @@ public class ContextInterceptorImpl extends ContextInterceptor {
      * @param e        exception
      */
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
+    public void afterCompletion(@Nonnull HttpServletRequest request,
+                                @Nonnull HttpServletResponse response,
+                                @Nonnull Object handler,
+                                Exception e) {
         ContextHolder.removeContext();
     }
 }

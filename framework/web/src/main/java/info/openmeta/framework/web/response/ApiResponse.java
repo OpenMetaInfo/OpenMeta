@@ -73,4 +73,16 @@ public class ApiResponse<T> {
         return new ApiResponse<>(code, message, data, null);
     }
 
+    /**
+     * Return redirect response to trigger client-side redirection.
+     *
+     * @param url redirect url
+     * @return redirect response
+     */
+    public static ApiResponse<String> redirect(String url) {
+        Integer code = ResponseCode.REDIRECT.getCode();
+        String message = ResponseCode.REDIRECT.getMessage();
+        return new ApiResponse<>(code, message, url, null);
+    }
+
 }

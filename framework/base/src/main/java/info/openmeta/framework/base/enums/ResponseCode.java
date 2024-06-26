@@ -10,6 +10,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ResponseCode {
 
+    REDIRECT(302, "Redirect"),
+
     SUCCESS(2000, "Success"),
 
     /** Client Exception */
