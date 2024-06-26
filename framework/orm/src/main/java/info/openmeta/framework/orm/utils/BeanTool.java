@@ -174,11 +174,9 @@ public class BeanTool {
         row.forEach((field, value) -> {
             Class<?> fieldTypeClass = beanMap.getPropertyType(field);
             if (fieldTypeClass == null) {
-                if (ignoreNotExist) {
+                if (!ignoreNotExist) {
                     log.warn("Entity class {} does not contain attribute {}!", entityClass.getSimpleName(), field);
                     return;
-                } else {
-                    throw new IllegalArgumentException("Entity class {} does not contain attribute {}!", entityClass.getSimpleName(), field);
                 }
             }
             if (value instanceof String) {

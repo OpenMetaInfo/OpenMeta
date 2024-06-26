@@ -24,9 +24,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static java.lang.Boolean.TRUE;
-
-
 /**
  * Model Manager, maintaining model metadata and field metadata in memory.
  */
@@ -85,7 +82,7 @@ public class ModelManager {
                 // For OneToOne/ManyToOne fields, the `relatedField` is default to id.
                 field.setRelatedField(ModelConstant.ID);
             }
-            if (TRUE.equals(field.isComputed())) {
+            if (field.isComputed()) {
                 Assert.notBlank(field.getExpression(), "The formula of computed field {0}:{1} cannot be empty!",
                         field.getModelName(), field.getFieldName());
                 try {
@@ -174,7 +171,7 @@ public class ModelManager {
      * @param metaModel model metadata object
      */
     private static void validateSoftDeleted(MetaModel metaModel) {
-        if (TRUE.equals(metaModel.isSoftDelete())) {
+        if (metaModel.isSoftDelete()) {
             Assert.isTrue(existField(metaModel.getModelName(), ModelConstant.SOFT_DELETED_FIELD),
                     "Model {0} `softDelete = true`, but field `disabled` does not exist!", metaModel.getLabelName());
         }
@@ -257,7 +254,7 @@ public class ModelManager {
      * @param metaModel model metadata object
      */
     private static void validateMultiTenant(MetaModel metaModel) {
-        if (TRUE.equals(metaModel.isMultiTenant())) {
+        if (metaModel.isMultiTenant()) {
             Assert.isTrue(MODEL_FIELDS.get(metaModel.getModelName()).containsKey(ModelConstant.TENANT_ID),
                     "The multi-tenant model {0} must contain the `tenantId` field!", metaModel.getModelName());
         }
@@ -269,7 +266,7 @@ public class ModelManager {
      * @param metaModel model metadata object
      */
     private static void validateVersionField(MetaModel metaModel) {
-        if (TRUE.equals(metaModel.isVersionLock())) {
+        if (metaModel.isVersionLock()) {
             Assert.isTrue(MODEL_FIELDS.get(metaModel.getModelName()).containsKey(ModelConstant.VERSION),
                     "The model {0} must contain the `version` field when using optimistic lock control!",
                     metaModel.getModelName());
@@ -363,12 +360,12 @@ public class ModelManager {
      */
     private static void verifyReadonlyAttribute(MetaField metaField) {
         if (ModelConstant.CLIENT_READONLY_FIELDS.contains(metaField.getFieldName())) {
-            metaField.setReadonly(TRUE);
+            metaField.setReadonly(true);
         } else if (metaField.isComputed() || StringUtils.isNotBlank(metaField.getCascadedField())) {
-            metaField.setReadonly(TRUE);
+            metaField.setReadonly(true);
         } else if (ModelConstant.ID.equals(metaField.getFieldName())
                 && !IdStrategy.EXTERNAL_ID.equals(MODEL_MAP.get(metaField.getModelName()).getIdStrategy())) {
-            metaField.setReadonly(TRUE);
+            metaField.setReadonly(true);
         }
     }
 
@@ -380,7 +377,7 @@ public class ModelManager {
      */
     private static void verifyDynamicAttribute(MetaField metaField) {
         if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
-            metaField.setDynamic(TRUE);
+            metaField.setDynamic(true);
         }
     }
 
@@ -745,7 +742,7 @@ public class ModelManager {
      * @return true or false
      */
     public static boolean isSoftDeleted(String modelName) {
-        return TRUE.equals(ModelManager.getModel(modelName).isSoftDelete());
+        return ModelManager.getModel(modelName).isSoftDelete();
     }
 
     /**
@@ -755,8 +752,7 @@ public class ModelManager {
      * @return true or false
      */
     public static boolean isVersionControl(String modelName) {
-        validateModel(modelName);
-        return TRUE.equals(MODEL_MAP.get(modelName).isVersionLock());
+        return ModelManager.getModel(modelName).isVersionLock();
     }
 
     /**
@@ -766,8 +762,7 @@ public class ModelManager {
      * @return true or false
      */
     public static boolean isMultiTenant(String modelName) {
-        validateModel(modelName);
-        return TenantConfig.isEnableMultiTenant() && TRUE.equals(MODEL_MAP.get(modelName).isMultiTenant());
+        return TenantConfig.isEnableMultiTenant() && ModelManager.getModel(modelName).isMultiTenant();
     }
 
     /**
