@@ -37,6 +37,19 @@ public class ApiResponse<T> {
     private String error;
 
     /**
+     * Generate a response body for the API, with the provided status code, message, and data.
+     *
+     * @param code response code
+     * @param message message of the response.
+     * @param data data of the response.
+     * @return ApiResponse<T>
+     * @param <T> The type of the data in the response.
+     */
+    public static <T> ApiResponse<T> result(Integer code, String message, T data) {
+        return new ApiResponse<>(code, message, data, null);
+    }
+
+    /**
      * Generate exception response body, with the provided responseCode object and error message.
      *
      * @param responseCode response code object.
