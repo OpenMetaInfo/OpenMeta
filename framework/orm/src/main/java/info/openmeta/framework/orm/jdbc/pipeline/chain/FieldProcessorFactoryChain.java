@@ -81,7 +81,7 @@ public class FieldProcessorFactoryChain {
         MetaField customCascadedField = new MetaField();
         customCascadedField.setFieldName(fieldName);
         customCascadedField.setCascadedField(fieldName);
-        customCascadedField.setNonStored(true);
+        customCascadedField.setDynamic(true);
         // Use the type of the last field as the actual value type.
         MetaField lastField = ModelManager.getLastFieldOfCascaded(modelName, fieldName);
         customCascadedField.setFieldType(lastField.getFieldType());

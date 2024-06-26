@@ -45,7 +45,7 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
     public FieldProcessor createProcessor(MetaField metaField) {
         FieldType fieldType = metaField.getFieldType();
         if (AccessType.READ.equals(accessType)) {
-            if (StringUtils.isNotBlank(metaField.getCascadedField()) && !metaField.getNonStored()) {
+            if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                 // READ scenario: calculate dynamic cascaded field
                 return this.updateRelatedFields(metaField);
             } else if (FieldType.TO_ONE_TYPES.contains(fieldType) && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
@@ -60,7 +60,7 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
                     return xToOneGroupProcessor;
                 }
             }
-        } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.getNonStored()) {
+        } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && !metaField.isDynamic()) {
             // CREATE/UPDATE scenario: calculate stored cascaded field
             return this.updateRelatedFields(metaField);
         }

@@ -58,7 +58,7 @@ public class WebExceptionHandler {
      * @return ResponseEntity
      */
     private ResponseEntity<ApiResponse<String>> wrapResponse(ResponseCode responseCode, String exceptionMessage) {
-        ApiResponse<String> response = ApiResponse.result(responseCode, exceptionMessage);
+        ApiResponse<String> response = ApiResponse.exception(responseCode, exceptionMessage);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -208,9 +208,9 @@ public class WebExceptionHandler {
      * @return ResponseEntity
      */
     @ExceptionHandler(value = BusinessException.class)
-    public ResponseEntity<ApiResponse<Object>> handleException(BusinessException e) {
-        ApiResponse<Object> response;
-        response = ApiResponse.result(e.getResponseCode(), e.getMessage());
+    public ResponseEntity<ApiResponse<String>> handleException(BusinessException e) {
+        ApiResponse<String> response;
+        response = ApiResponse.exception(e.getResponseCode(), e.getMessage());
         log.warn("BusinessException: {}", e.getMessage(), e);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

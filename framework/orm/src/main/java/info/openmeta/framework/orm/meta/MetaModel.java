@@ -40,13 +40,13 @@ public class MetaModel implements Serializable {
 
     private String description;
 
-    private Boolean timeline;
+    private boolean timeline;
 
-    private Boolean softDelete;
+    private boolean softDelete;
 
-    private Boolean versionLock;
+    private boolean versionLock;
 
-    private Boolean multiTenant;
+    private boolean multiTenant;
 
     private IdStrategy idStrategy;
 

@@ -61,7 +61,9 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
         flexQuery.setFields(selectFields);
         // Only SELECT the stored fields of the current model, excluding cascaded fields (a.b.c), non-stored fields,
         // and the excluded fields will be filled in the return value formatting.
-        List<String> storedFields = selectFields.stream().filter(f -> ModelManager.existField(mainModelName, f) && ModelManager.isStored(mainModelName, f)).collect(Collectors.toList());
+        List<String> storedFields = selectFields.stream()
+                .filter(f -> ModelManager.existField(mainModelName, f) && ModelManager.isStored(mainModelName, f))
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(storedFields)) {
             // Get at least the ID field when all selectFields are non-stored fields
             storedFields.add(ModelConstant.ID);
@@ -93,10 +95,10 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                 dependentFields.add(xToOneField);
             } else {
                 MetaField metaField = ModelManager.getModelField(mainModelName, field);
-                if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.getNonStored()) {
+                if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                     // The dependent fields of dynamic cascaded fields
                     dependentFields.add(StringUtils.split(metaField.getCascadedField(), ".")[0]);
-                } else if (metaField.getComputed() && metaField.getNonStored()) {
+                } else if (metaField.isComputed() && metaField.isDynamic()) {
                     // The dependent fields of computed fields
                     dependentFields.addAll(metaField.getDependentFields());
                 } else if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
@@ -126,7 +128,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                     && ModelManager.isTimelineModel(metaField.getRelatedModel())) {
                 // ManyToOne/OneToOne fields, the associated model is a timeline model
                 ModelManager.getFieldDisplayName(metaField).forEach(displayField -> cascadedFields.add(field + "." + displayField));
-            } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.getNonStored()) {
+            } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                 // Get dynamic cascaded fields
                 String[] fieldArray = StringUtils.split(metaField.getCascadedField(), ".");
                 MetaField casMetaField = ModelManager.getModelField(mainModelName, fieldArray[0]);

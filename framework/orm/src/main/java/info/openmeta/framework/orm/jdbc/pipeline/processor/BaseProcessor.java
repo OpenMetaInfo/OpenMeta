@@ -41,9 +41,9 @@ public abstract class BaseProcessor implements FieldProcessor {
      * The readonly field cannot be assigned a value.
      */
     protected void checkReadonly(Map<String, Object> row) {
-        if (metaField.getReadonly()
+        if (metaField.isReadonly()
                 && row.containsKey(fieldName)
-                && !metaField.getComputed()
+                && !metaField.isComputed()
                 && StringUtils.isBlank(metaField.getCascadedField())) {
             throw new IllegalArgumentException("Model field {0}:{1} is a readonly field and cannot be assigned!",
                     metaField.getModelName(), fieldName);
@@ -54,7 +54,7 @@ public abstract class BaseProcessor implements FieldProcessor {
      * The required field cannot be assigned a null value.
      */
     protected void checkRequired(Map<String, Object> row) {
-        if (metaField.getRequired() && row.get(fieldName) == null) {
+        if (metaField.isRequired() && row.get(fieldName) == null) {
             throw new IllegalArgumentException("Model field {0}:{1} is a required field and cannot be null!",
                     metaField.getModelName(), fieldName);
         }

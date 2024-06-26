@@ -24,9 +24,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static java.lang.Boolean.TRUE;
-
-
 /**
  * Model Manager, maintaining model metadata and field metadata in memory.
  */
@@ -85,7 +82,7 @@ public class ModelManager {
                 // For OneToOne/ManyToOne fields, the `relatedField` is default to id.
                 field.setRelatedField(ModelConstant.ID);
             }
-            if (TRUE.equals(field.getComputed())) {
+            if (field.isComputed()) {
                 Assert.notBlank(field.getExpression(), "The formula of computed field {0}:{1} cannot be empty!",
                         field.getModelName(), field.getFieldName());
                 try {
@@ -156,13 +153,13 @@ public class ModelManager {
                 validateCascadedField(metaField);
             }
             // Check if the computed field is valid
-            if (Boolean.TRUE.equals(metaField.getComputed())) {
+            if (metaField.isComputed()) {
                 validateComputedField(metaField);
             }
             // Verify and update the `readonly` attribute of field
             verifyReadonlyAttribute(metaField);
-            // Verify and update the `nonStored` attribute of field
-            verifyNonStoredAttribute(metaField);
+            // Verify and update the `dynamic` attribute of field
+            verifyDynamicAttribute(metaField);
         }
     }
 
@@ -174,7 +171,7 @@ public class ModelManager {
      * @param metaModel model metadata object
      */
     private static void validateSoftDeleted(MetaModel metaModel) {
-        if (TRUE.equals(metaModel.getSoftDelete())) {
+        if (metaModel.isSoftDelete()) {
             Assert.isTrue(existField(metaModel.getModelName(), ModelConstant.SOFT_DELETED_FIELD),
                     "Model {0} `softDelete = true`, but field `disabled` does not exist!", metaModel.getLabelName());
         }
@@ -257,7 +254,7 @@ public class ModelManager {
      * @param metaModel model metadata object
      */
     private static void validateMultiTenant(MetaModel metaModel) {
-        if (TRUE.equals(metaModel.getMultiTenant())) {
+        if (metaModel.isMultiTenant()) {
             Assert.isTrue(MODEL_FIELDS.get(metaModel.getModelName()).containsKey(ModelConstant.TENANT_ID),
                     "The multi-tenant model {0} must contain the `tenantId` field!", metaModel.getModelName());
         }
@@ -269,7 +266,7 @@ public class ModelManager {
      * @param metaModel model metadata object
      */
     private static void validateVersionField(MetaModel metaModel) {
-        if (TRUE.equals(metaModel.getVersionLock())) {
+        if (metaModel.isVersionLock()) {
             Assert.isTrue(MODEL_FIELDS.get(metaModel.getModelName()).containsKey(ModelConstant.VERSION),
                     "The model {0} must contain the `version` field when using optimistic lock control!",
                     metaModel.getModelName());
@@ -333,7 +330,7 @@ public class ModelManager {
                 "The field {0} of model {1} is an audit field and cannot be defined as a computed field!",
                 metaField.getFieldName(), metaField.getModelName());
         validateModelFields(metaField.getModelName(), metaField.getDependentFields());
-        if (!metaField.getNonStored()) {
+        if (!metaField.isDynamic()) {
             // Stored computed field, must depend on stored fields.
             validateStoredFields(metaField.getModelName(), metaField.getDependentFields());
         }
@@ -346,9 +343,10 @@ public class ModelManager {
      * @param fields field name list
      */
     public static void validateStoredFields(String modelName, List<String> fields) {
-        Set<String> nonStoredFields = fields.stream().filter(f -> !isStored(modelName, f)).collect(Collectors.toSet());
-        Assert.isTrue(CollectionUtils.isEmpty(nonStoredFields),
-                "Not all fields {1} of model {0} are stored fields!", nonStoredFields, modelName);
+        Set<String> dynamicFields = fields.stream().filter(f -> getModelField(modelName, f).isDynamic())
+                .collect(Collectors.toSet());
+        Assert.isTrue(CollectionUtils.isEmpty(dynamicFields),
+                "Not all fields {1} of model {0} are stored fields!", dynamicFields, modelName);
     }
 
     /**
@@ -362,24 +360,24 @@ public class ModelManager {
      */
     private static void verifyReadonlyAttribute(MetaField metaField) {
         if (ModelConstant.CLIENT_READONLY_FIELDS.contains(metaField.getFieldName())) {
-            metaField.setReadonly(TRUE);
-        } else if (metaField.getComputed() || StringUtils.isNotBlank(metaField.getCascadedField())) {
-            metaField.setReadonly(TRUE);
+            metaField.setReadonly(true);
+        } else if (metaField.isComputed() || StringUtils.isNotBlank(metaField.getCascadedField())) {
+            metaField.setReadonly(true);
         } else if (ModelConstant.ID.equals(metaField.getFieldName())
                 && !IdStrategy.EXTERNAL_ID.equals(MODEL_MAP.get(metaField.getModelName()).getIdStrategy())) {
-            metaField.setReadonly(TRUE);
+            metaField.setReadonly(true);
         }
     }
 
     /**
-     * Verify and update the `nonStored` attribute of the field.
-     * If the field is a OneToMany/ManyToMany field, set `nonStored = true`.
+     * Verify and update the `dynamic` attribute of the field.
+     * If the field is a OneToMany/ManyToMany field, set `dynamic = true`.
      *
      * @param metaField field metadata object
      */
-    private static void verifyNonStoredAttribute(MetaField metaField) {
+    private static void verifyDynamicAttribute(MetaField metaField) {
         if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
-            metaField.setNonStored(TRUE);
+            metaField.setDynamic(true);
         }
     }
 
@@ -497,13 +495,13 @@ public class ModelManager {
      * Get the cascaded fields of the model.
      *
      * @param modelName model name
-     * @param nonStored nonStored attribute
+     * @param dynamic dynamic attribute
      * @return cascaded fields
      */
-    public static List<MetaField> getModelCascadedFields(String modelName, Boolean nonStored){
+    public static List<MetaField> getModelCascadedFields(String modelName, Boolean dynamic){
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> StringUtils.isNotBlank(metaField.getCascadedField())
-                        && Objects.equals(metaField.getNonStored(), nonStored))
+                        && Objects.equals(metaField.isDynamic(), dynamic))
                 .collect(Collectors.toList());
     }
 
@@ -511,12 +509,12 @@ public class ModelManager {
      * Get the computed fields of the model.
      *
      * @param modelName model name
-     * @param nonStored nonStored attribute
+     * @param dynamic dynamic attribute
      * @return computed fields
      */
-    public static List<MetaField> getModelComputedFields(String modelName, Boolean nonStored){
+    public static List<MetaField> getModelComputedFields(String modelName, Boolean dynamic){
         return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> metaField.getComputed() && Objects.equals(metaField.getNonStored(), nonStored))
+                .filter(metaField -> metaField.isComputed() && Objects.equals(metaField.isDynamic(), dynamic))
                 .collect(Collectors.toList());
     }
 
@@ -529,7 +527,7 @@ public class ModelManager {
      */
     public static Set<String> getModelEncryptedFields(String modelName){
         return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> metaField.getEncrypted() && metaField.getFieldType().equals(FieldType.STRING))
+                .filter(metaField -> metaField.isEncrypted() && metaField.getFieldType().equals(FieldType.STRING))
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
     }
 
@@ -557,7 +555,7 @@ public class ModelManager {
     public static Set<String> getModelDefaultReadFields(String modelName){
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> !FieldType.TO_MANY_TYPES.contains(metaField.getFieldType()) || metaField.getAutoBindMany())
+                .filter(metaField -> !FieldType.TO_MANY_TYPES.contains(metaField.getFieldType()) || metaField.isAutoBindMany())
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
     }
 
@@ -583,7 +581,7 @@ public class ModelManager {
     public static Set<String> getModelUpdatableFieldsWithoutXToMany(String modelName){
         validateModel(modelName);
         return getModelFieldsWithoutXToMany(modelName).stream()
-                .filter(field -> !getModelField(modelName, field).getReadonly())
+                .filter(field -> !getModelField(modelName, field).isReadonly())
                 .collect(Collectors.toSet());
     }
 
@@ -597,13 +595,13 @@ public class ModelManager {
     public static Set<String> getModelUpdatableFields(String modelName){
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> !metaField.getReadonly())
+                .filter(metaField -> !metaField.isReadonly())
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
     }
 
     /**
      * Get the stored fields of the model.
-     * Excluding OneToMany/ManyToMany fields, `nonStored` cascaded fields and `nonStored` computed fields.
+     * Excluding OneToMany/ManyToMany fields, `dynamic` cascaded fields and `dynamic` computed fields.
      *
      * @param modelName model name
      * @return stored field list
@@ -611,7 +609,7 @@ public class ModelManager {
     public static List<String> getModelStoredFields(String modelName){
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> !metaField.getNonStored())
+                .filter(metaField -> !metaField.isDynamic())
                 .map(MetaField::getFieldName).collect(Collectors.toList());
     }
 
@@ -642,7 +640,7 @@ public class ModelManager {
     }
 
     /**
-     * Get the numeric fields of the model, including stored and non-stored fields.
+     * Get the numeric fields of the model, including stored and dynamic fields.
      *
      * @param modelName model name
      * @return numeric field set
@@ -665,7 +663,7 @@ public class ModelManager {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(f -> FieldType.NUMERIC_TYPES.contains(f.getFieldType())
-                        && !f.getNonStored()
+                        && !f.isDynamic()
                         && !ModelConstant.AUDIT_FIELDS.contains(f.getFieldName()))
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
     }
@@ -691,7 +689,7 @@ public class ModelManager {
                         "The field {0} in custom cascaded field {1} must be ManyToOne/OneToOne field!",
                         metaField.getFieldName(), fullFieldName);
             } else {
-                Assert.notTrue(metaField.getNonStored(),
+                Assert.notTrue(metaField.isDynamic(),
                         "The last field {0} in custom cascaded field {1} must be a stored field in model {2}!",
                         metaField.getFieldName(), fullFieldName, metaField.getModelName());
             }
@@ -713,7 +711,7 @@ public class ModelManager {
     }
 
     /**
-     * Determine whether the model field is stored in the database. `nonStored = true` is not stored in the database,
+     * Determine whether the model field is stored in the database. `dynamic = true` is not stored in the database,
      * including OneToMany/ManyToMany fields, dynamic cascaded field and dynamic computed field.
      *
      * @param modelName model name
@@ -723,7 +721,7 @@ public class ModelManager {
     public static boolean isStored(String modelName, String fieldName){
         validateModelField(modelName, fieldName);
         MetaField metaField = MODEL_FIELDS.get(modelName).get(fieldName);
-        return !metaField.getNonStored();
+        return !metaField.isDynamic();
     }
 
     /**
@@ -734,7 +732,7 @@ public class ModelManager {
      */
     public static boolean isTimelineModel(String modelName) {
         validateModel(modelName);
-        return MODEL_MAP.get(modelName).getTimeline();
+        return MODEL_MAP.get(modelName).isTimeline();
     }
 
     /**
@@ -744,7 +742,7 @@ public class ModelManager {
      * @return true or false
      */
     public static boolean isSoftDeleted(String modelName) {
-        return TRUE.equals(ModelManager.getModel(modelName).getSoftDelete());
+        return ModelManager.getModel(modelName).isSoftDelete();
     }
 
     /**
@@ -754,8 +752,7 @@ public class ModelManager {
      * @return true or false
      */
     public static boolean isVersionControl(String modelName) {
-        validateModel(modelName);
-        return TRUE.equals(MODEL_MAP.get(modelName).getVersionLock());
+        return ModelManager.getModel(modelName).isVersionLock();
     }
 
     /**
@@ -765,8 +762,7 @@ public class ModelManager {
      * @return true or false
      */
     public static boolean isMultiTenant(String modelName) {
-        validateModel(modelName);
-        return TenantConfig.isEnableMultiTenant() && TRUE.equals(MODEL_MAP.get(modelName).getMultiTenant());
+        return TenantConfig.isEnableMultiTenant() && ModelManager.getModel(modelName).isMultiTenant();
     }
 
     /**

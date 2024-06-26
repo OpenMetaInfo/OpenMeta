@@ -11,10 +11,11 @@ import lombok.NoArgsConstructor;
  *    {
  *      "code": 2000,
  *      "message": "Success",
- *      "data": [{...}]
+ *      "data": [{...}],
+ *      "error": ""
  *    }
  * The code represents the business status code of the response.
- * The message is a brief description of the response, or the title of warn and error popup.
+ * The message is a brief description of the response.
  * The data is the business result of the API.
  */
 @Data
@@ -26,11 +27,14 @@ public class ApiResponse<T> {
     @Schema(description = "Status Code")
     private Integer code;
 
-    @Schema(description = "Title Message")
+    @Schema(description = "Common Message")
     private String message;
 
     @Schema(description = "Result Data")
     private T data;
+
+    @Schema(description = "Error Message")
+    private String error;
 
     /**
      * Generate a response body for the API, with the provided status code, message, and data.
@@ -42,30 +46,20 @@ public class ApiResponse<T> {
      * @param <T> The type of the data in the response.
      */
     public static <T> ApiResponse<T> result(Integer code, String message, T data) {
-        return new ApiResponse<>(code, message, data);
+        return new ApiResponse<>(code, message, data, null);
     }
 
     /**
-     * Generate a response body, with the provided responseCode object and data.
+     * Generate exception response body, with the provided responseCode object and error message.
      *
      * @param responseCode response code object.
-     * @param data data of the response.
+     * @param error error message of the response.
      * @return ApiResponse<T>
-     * @param <T> The type of the data in the response.
      */
-    public static <T> ApiResponse<T> result(ResponseCode responseCode, T data) {
-        return result(responseCode.getCode(), responseCode.getMessage(), data);
-    }
-
-    /**
-     * Generate a response body, with the provided responseCode object.
-     *
-     * @param responseCode response code object.
-     * @return ApiResponse<T>
-     * @param <T> The type of the data in the response.
-     */
-    public static <T> ApiResponse<T> result(ResponseCode responseCode) {
-        return result(responseCode.getCode(), responseCode.getMessage(), null);
+    public static ApiResponse<String> exception(ResponseCode responseCode, String error) {
+        Integer code = responseCode.getCode();
+        String message = responseCode.getMessage();
+        return new ApiResponse<>(code, message, null, error);
     }
 
     /**
@@ -74,7 +68,9 @@ public class ApiResponse<T> {
      * @return ApiResponse<T>
      */
     public static <T> ApiResponse<T> success() {
-        return result(ResponseCode.SUCCESS);
+        Integer code = ResponseCode.SUCCESS.getCode();
+        String message = ResponseCode.SUCCESS.getMessage();
+        return new ApiResponse<>(code, message, null, null);
     }
 
     /**
@@ -85,7 +81,21 @@ public class ApiResponse<T> {
      * @param <T> The type of the data in the response.
      */
     public static <T> ApiResponse<T> success(T data) {
-        return result(ResponseCode.SUCCESS.getCode(), ResponseCode.SUCCESS.getMessage(), data);
+        Integer code = ResponseCode.SUCCESS.getCode();
+        String message = ResponseCode.SUCCESS.getMessage();
+        return new ApiResponse<>(code, message, data, null);
+    }
+
+    /**
+     * Return redirect response to trigger client-side redirection.
+     *
+     * @param url redirect url
+     * @return redirect response
+     */
+    public static ApiResponse<String> redirect(String url) {
+        Integer code = ResponseCode.REDIRECT.getCode();
+        String message = ResponseCode.REDIRECT.getMessage();
+        return new ApiResponse<>(code, message, url, null);
     }
 
 }

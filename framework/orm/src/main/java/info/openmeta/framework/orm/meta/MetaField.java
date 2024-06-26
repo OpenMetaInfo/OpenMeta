@@ -43,9 +43,9 @@ public class MetaField implements Serializable {
 
     private String inverseLinkField;
 
-    private Boolean autoBindMany;
+    private boolean autoBindMany;
 
-    private Boolean autoExpandMany;
+    private boolean autoExpandMany;
 
     private String cascadedField;
 
@@ -64,28 +64,28 @@ public class MetaField implements Serializable {
 
     private Integer scale;
 
-    private Boolean required;
+    private boolean required;
 
-    private Boolean readonly;
+    private boolean readonly;
 
-    private Boolean hidden;
+    private boolean hidden;
 
-    private Boolean translatable;
+    private boolean translatable;
 
-    private Boolean copyable;
+    private boolean copyable;
 
-    private Boolean searchable;
+    private boolean searchable;
 
-    private Boolean computed;
+    private boolean computed;
 
     private String expression;
 
     // Memory compute attribute: The dependent field of the expression.
     private List<String> dependentFields;
 
-    private Boolean nonStored;
+    private boolean dynamic;
 
-    private Boolean encrypted;
+    private boolean encrypted;
 
     private MaskingType maskingType;
 

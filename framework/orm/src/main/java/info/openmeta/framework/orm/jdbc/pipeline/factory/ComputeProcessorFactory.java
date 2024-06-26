@@ -28,10 +28,10 @@ public class ComputeProcessorFactory implements FieldProcessorFactory {
      */
     @Override
     public FieldProcessor createProcessor(MetaField metaField) {
-        if (metaField.getComputed()) {
-            if (AccessType.READ.equals(accessType) && metaField.getNonStored()) {
+        if (metaField.isComputed()) {
+            if (AccessType.READ.equals(accessType) && metaField.isDynamic()) {
                 return new ComputedProcessor(metaField);
-            } else if (!AccessType.READ.equals(accessType) && !metaField.getNonStored()) {
+            } else if (!AccessType.READ.equals(accessType) && !metaField.isDynamic()) {
                 return new ComputedProcessor(metaField);
             }
         }

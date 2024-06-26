@@ -223,7 +223,7 @@ public class ManyToManyProcessor extends BaseProcessor {
         String inverseLinkField = metaField.getInverseLinkField();
         List<Serializable> associatedIds = middleRows.stream().map(value -> (Serializable) value.get(inverseLinkField)).distinct().collect(Collectors.toList());
         String associatedModel = ModelManager.getModelField(metaField.getRelatedModel(), inverseLinkField).getRelatedModel();
-        if (subQuery == null && !metaField.getAutoExpandMany()) {
+        if (subQuery == null && !metaField.isAutoExpandMany()) {
             // When `subQuery == null` and `autoExpandMany = false`, get the displayNames of associated model directly.
             Map<Serializable, String> displayNames = ReflectTool.getDisplayNames(associatedModel, associatedIds, metaField.getDisplayName());
             // Update the `inverseLinkField` field of the middle model to {inverseLinkField: [id, displayName]}
