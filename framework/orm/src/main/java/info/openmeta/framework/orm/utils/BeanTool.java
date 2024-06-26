@@ -176,8 +176,8 @@ public class BeanTool {
             if (fieldTypeClass == null) {
                 if (!ignoreNotExist) {
                     log.warn("Entity class {} does not contain attribute {}!", entityClass.getSimpleName(), field);
-                    return;
                 }
+                return;
             }
             if (value instanceof String) {
                 // Convert the string value to the object property type
