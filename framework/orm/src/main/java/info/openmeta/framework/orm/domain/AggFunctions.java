@@ -20,10 +20,18 @@ import java.util.stream.Collectors;
  */
 @Data
 @NoArgsConstructor
-@Schema(name = "AggFunctions")
+@Schema(example = "[\"SUM\", \"amount\"]",
+        description = """
+                Support multiple aggregation queries:
+                * []
+                * ["SUM", "amount"]
+                * [["SUM", "amount"], ["COUNT", "id"]]
+                """
+)
 @JsonDeserialize(using = AggFunctionsDeserializer.class)
 public class AggFunctions {
 
+    @Schema(hidden = true)
     private final List<AggFunctionField> functionList = new ArrayList<>(2);
 
     public static AggFunctions of(AggFunctionType type, String field) {

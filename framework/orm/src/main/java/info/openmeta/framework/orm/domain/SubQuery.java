@@ -13,24 +13,22 @@ import java.util.Collection;
  *      1. ManyToOne, OneToOne: specify the field list to get.
  *      2. OneToMany, ManyToMany: specify the fields to get, filters, orders, pageNumber, pageSize.
  */
-@Schema(name = "SubQuery")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SubQuery {
-    @Schema(description = "Sub query fields[].")
+
+    @Schema(description = "Sub query fields.", example = "[\"id\", \"name\"]")
     private Collection<String> fields;
 
-    @Schema(description = "Sub query filters.")
     private Filters filters;
 
-    @Schema(description = "Sub query orders.")
     private Orders orders;
 
-    @Schema(description = "Sub query page number, default 1.")
+    @Schema(description = "Sub query page number, default 1.", example = "1")
     private Integer pageNumber;
 
-    @Schema(description = "Sub query page size, default 50.")
+    @Schema(description = "Sub query page size, default 50.", example = "50")
     private Integer pageSize;
 
     public SubQuery(Collection<String> fields) {
