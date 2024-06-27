@@ -517,7 +517,7 @@ public class ModelController<K extends Serializable> {
      * @param aggQuery  aggregation query parameters
      * @return PivotTable object
      */
-    @GetMapping(value = "/searchPivot")
+    @PostMapping(value = "/searchPivot")
     @Operation(summary = "searchPivot: Search pivot table data ",
             description = "Get the pivot table data based on the specified fields, filters, orders, groupBy, splitBy.")
     @DataMask
