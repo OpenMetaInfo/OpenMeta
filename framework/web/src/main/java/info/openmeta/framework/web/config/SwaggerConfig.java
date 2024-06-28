@@ -13,10 +13,10 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI().info(new Info()
-                .title("OpenAPI Documentation")
-                .description("OpenAPI Documentation")
-                .version("1.0")
+        return new OpenAPI().info(
+                new Info().title("OpenAPI Documentation")
+                        .description("OpenAPI Documentation")
+                        .version("1.0")
         );
     }
 }

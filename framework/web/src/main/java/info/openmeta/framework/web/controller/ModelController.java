@@ -13,6 +13,7 @@ import info.openmeta.framework.web.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -142,7 +143,7 @@ public class ModelController<K extends Serializable> {
     @GetMapping(value = "/readOne", params = { "id", "fields" })
     @Operation(summary = "readOne: Read one row", description = "Read one row by id.")
     @Parameters({
-            @Parameter(name = "id", description = "Data ID to be read."),
+            @Parameter(name = "id", description = "Data ID to be read.", schema = @Schema(type = "string")),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
@@ -583,7 +584,7 @@ public class ModelController<K extends Serializable> {
     @Operation(summary = "getUnmaskedField: Gets unmasked field value",
             description = "Get the original value for masking field.")
     @Parameters({
-            @Parameter(name = "id", description = "Data ID to be read"),
+            @Parameter(name = "id", required = true, description = "Data ID to be read"),
             @Parameter(name = "field", description = "The masking field name to get the original value"),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
