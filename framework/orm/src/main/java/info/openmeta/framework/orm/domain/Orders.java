@@ -7,6 +7,7 @@ import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.domain.serializer.OrdersDeserializer;
 import info.openmeta.framework.orm.domain.serializer.OrdersSerializer;
 import info.openmeta.framework.orm.utils.LambdaUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -18,19 +19,31 @@ import java.util.stream.Collectors;
 
 /**
  * Order conditions, support two input formats:
- * Pure string format: "name ASC, age DESC"
- * List object format: [["name", "ASC"], ["age", "DESC"]]
+ * Pure string format: "name ASC, sequence DESC"
+ * List object format: [["name", "ASC"], ["sequence", "DESC"]]
  */
 @Getter
 @NoArgsConstructor
 @JsonSerialize(using = OrdersSerializer.class)
 @JsonDeserialize(using = OrdersDeserializer.class)
+@Schema(example = "[\"name\", \"ASC\"]",
+        description = """
+                Support multiple order conditions:
+                * []
+                * ["name", "ASC"]
+                * [["name", "ASC"], ["sequence", "DESC"]]
+                * or string format: "name ASC, sequence DESC"
+                """
+)
 public class Orders {
     public static final String ASC = "ASC";
     public static final String DESC = "DESC";
     private static final String DEFAULT_ORDER = "ASC";
 
+    @Schema(hidden = true)
     private final Set<String> fields = new HashSet<>();
+
+    @Schema(hidden = true)
     private final List<List<String>> orderList = new ArrayList<>();
 
     /**
@@ -132,7 +145,7 @@ public class Orders {
 
     /**
      * Orders string parsing, remove leading and trailing spaces from the string
-     * @param ordersString Sorting string, such as "name ASC, age DESC"
+     * @param ordersString Sorting string, such as "name ASC, sequence DESC"
      * @return Orders object
      */
     public static Orders of(String ordersString) {
@@ -148,7 +161,7 @@ public class Orders {
 
     /**
      * Orders string list parsing
-     * @param orderList Sorting string list, such as [["name", "ASC"], ["age", "DESC"]]
+     * @param orderList Sorting string list, such as [["name", "ASC"], ["sequence", "DESC"]]
      * @return Orders object
      */
     public static Orders of(List<List<String>> orderList) {

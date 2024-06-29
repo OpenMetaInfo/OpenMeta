@@ -12,14 +12,14 @@ class OrdersTest {
 
     @Test
     void of() {
-        Orders orders = Orders.of("age desc, name, job asc, id desc");
+        Orders orders = Orders.of("sequence desc, name, job asc, id desc");
         assertEquals(4, orders.getOrderList().size());
         log.info("orders: {}", orders);
     }
 
     @Test
     void testSerialize() {
-        Orders orders = Orders.of("age desc, name, job asc, id desc");
+        Orders orders = Orders.of("sequence desc, name, job asc, id desc");
         String str = JsonMapper.objectToString(orders);
         Orders newOrders = JsonMapper.stringToObject(str, Orders.class);
         assertEquals(orders.toString(), Orders.of(newOrders.toString()).toString());

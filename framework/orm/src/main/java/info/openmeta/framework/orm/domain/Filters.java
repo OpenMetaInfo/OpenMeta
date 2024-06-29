@@ -16,6 +16,7 @@ import info.openmeta.framework.orm.domain.serializer.FiltersSerializer;
 import info.openmeta.framework.orm.enums.FilterType;
 import info.openmeta.framework.orm.enums.LogicOperator;
 import info.openmeta.framework.orm.utils.LambdaUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.CharStream;
@@ -54,12 +55,28 @@ import static info.openmeta.framework.orm.enums.FilterType.EMPTY;
 @NoArgsConstructor
 @JsonSerialize(using = FiltersSerializer.class)
 @JsonDeserialize(using = FiltersDeserializer.class)
+@Schema(example = "[\"name\", \"=\", \"Tom\"]",
+        description = """
+                Support nested filters, such as [a OR b] AND [c OR d OR [e AND f] OR g]
+                * []
+                * ["name", "=", "Tom"]
+                * [["name", "=", "Tom"], ["version", "=", "6"]]
+                * [["name", "=", "Tom"], "OR", ["code", "=", "A010"], "OR", ["version", "=", "2"]]
+                * [["name", "=", "Tom"], "OR", ["code", "=", "A010"]], "AND", ["version", "=", "2"]]
+                """
+)
 public class Filters {
 
+    @Schema(hidden = true)
     private FilterType type = EMPTY;
+
+    @Schema(hidden = true)
     private LogicOperator logicOperator;
+
+    @Schema(hidden = true)
     private List<Filters> children = new ArrayList<>();
 
+    @Schema(hidden = true)
     private FilterUnit filterUnit;
 
     /**
@@ -79,6 +96,7 @@ public class Filters {
             return ofSemantic(filterString);
         }
     }
+
     /**
      * Convert semantic query string to filters object.
      * @param semanticString String type filters, e.g.: name = "Test OR (code = "A01" AND version = 1)

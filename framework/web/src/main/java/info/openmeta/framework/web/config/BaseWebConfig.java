@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import info.openmeta.framework.base.constant.TimeConstant;
 import info.openmeta.framework.web.interceptor.ContextInterceptor;
-import jakarta.validation.constraints.NotNull;
+import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Configuration;
@@ -41,8 +41,9 @@ public class BaseWebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // Exclude Swagger resources and interfaces
         List<String> excludePathPatterns = Lists.newArrayList(
-                "/**/v3/api-docs",
+                "/**/v3/api-docs/**",
                 "/**/swagger-ui/**",
+                "/**/swagger-ui.html",
                 "/**/login"
         );
 
@@ -82,7 +83,7 @@ public class BaseWebConfig implements WebMvcConfigurer {
      * @param registry the formatter registry
      */
     @Override
-    public void addFormatters(@NotNull FormatterRegistry registry) {
+    public void addFormatters(@Nonnull FormatterRegistry registry) {
         DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
         registrar.setDateTimeFormatter(TimeConstant.DATETIME_FORMATTER);
         registrar.setDateFormatter(TimeConstant.DATE_FORMATTER);

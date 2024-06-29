@@ -44,7 +44,7 @@ public class ToolkitController {
      * @param modelField the model name and the field name for which historical data needs to be encrypted
      * @return the number of rows fixed
      */
-    @Operation(summary = "fixUnencryptedData: Fix Unencrypted Data", description = """
+    @Operation(summary = "fixUnencryptedData", description = """
             After changing field to encrypted field, call this API to encrypt historical plaintext data.
             The field name cannot be empty. Returns the number of rows fixed.""")
     @PostMapping("/fixUnencryptedData")

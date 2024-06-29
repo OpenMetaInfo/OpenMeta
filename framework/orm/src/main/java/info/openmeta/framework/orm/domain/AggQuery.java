@@ -18,28 +18,25 @@ import java.util.Set;
 @Data
 public class AggQuery {
 
-    @Schema(description = "Fields to get, empty means all fields.")
+    @Schema(description = "Fields to get, empty means all fields.", example = "[\"id\", \"name\"]")
     private Set<String> fields;
 
-    @Schema(description = "Filters, support nested filters.")
     private Filters filters;
 
-    @Schema(description = "Order conditions, support multiple fields separated by commas, default order by `id asc`.")
     private Orders orders;
 
-    @Schema(description = "Aggregation functions, support single or multiple fields aggregation [func, field, alias]")
     private AggFunctions aggFunctions;
 
-    @Schema(description = "Page number, start from 1, default 1.")
+    @Schema(description = "Page number, start from 1, default 1.", example = "1")
     private Integer pageNumber;
 
-    @Schema(description = "Page size, or limit size for searchList, default 50.")
+    @Schema(description = "Page size, or limit size for searchList, default 50.", example = "50")
     private Integer pageSize;
 
-    @Schema(description = "Fields to group by, empty means no grouping.")
+    @Schema(description = "Fields to group by, empty means no grouping.", example = "[]")
     private List<String> groupBy;
 
-    @Schema(description = "Pivot split field list.")
+    @Schema(description = "Pivot split field list.", example = "[]")
     private List<String> splitBy;
 
     @Schema(description = "Whether to return the summary result of numeric fields, empty means not return.")
@@ -48,7 +45,7 @@ public class AggQuery {
     @Schema(description = "Effective date, default is 'today'.")
     private LocalDate effectiveDate;
 
-    @Schema(description = "Sub queries for relational fields, ManyToOne, OneToOne, OneToMany, ManyToMany.")
+    @Schema(description = "Sub queries for relational fields: {fieldName: SubQuery}", example = "{}")
     private Map<String, SubQuery> subQueries;
 
 }

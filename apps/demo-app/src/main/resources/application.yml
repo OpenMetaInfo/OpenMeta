@@ -50,9 +50,12 @@ logging:
     root: info
 
 springdoc:
+  writer-with-order-by-keys: true
   api-docs:
     # Turn off in production environment
     enabled: true
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+    tagsSorter: alpha
+    operations-sorter: alpha

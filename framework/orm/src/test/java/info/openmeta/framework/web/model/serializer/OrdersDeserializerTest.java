@@ -19,7 +19,7 @@ class OrdersDeserializerTest {
 
     @Test
     void testSerializer() {
-        Orders orders = Orders.of("age desc, name, job asc, id desc");
+        Orders orders = Orders.of("sequence desc, name, job asc, id desc");
         ModelOrders mo = new ModelOrders();
         mo.setOrders(orders);
         String json = JsonMapper.objectToString(mo);
