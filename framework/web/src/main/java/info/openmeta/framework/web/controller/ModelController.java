@@ -72,7 +72,7 @@ public class ModelController<K extends Serializable> {
      * @return id
      */
     @PostMapping(value = "/createOne")
-    @Operation(summary = "createOne: Create one row", description = "Create a single row and return the id.")
+    @Operation(description = "Create one row and return the id.")
     @DataMask
     public ApiResponse<K> createOne(@PathVariable String modelName, @RequestBody Map<String, Object> row) {
         return ApiResponse.success(modelService.createOne(modelName, row));
@@ -87,8 +87,7 @@ public class ModelController<K extends Serializable> {
      * @return row data with id and other latest field values
      */
     @PostMapping(value = "/createOneAndReturn")
-    @Operation(summary = "createOneAndReturn: Create one row and return result",
-            description = "Create one row return the latest values from database.")
+    @Operation(description = "Create one row and return the latest values from database.")
     @DataMask
     public ApiResponse<Map<String, Object>> createOneAndReturn(@PathVariable String modelName,
                                                                @RequestBody Map<String, Object> row) {
@@ -104,7 +103,7 @@ public class ModelController<K extends Serializable> {
      * @return id list
      */
     @PostMapping("/createList")
-    @Operation(summary = "createList: Batch creation", description = "Create multiple rows and return the id list.")
+    @Operation(description = "Create multiple rows and return the ID list.")
     public ApiResponse<List<K>> createList(@PathVariable String modelName,
                                            @RequestBody List<Map<String, Object>> rows) {
         this.validateBatchSize(rows.size());
@@ -120,8 +119,7 @@ public class ModelController<K extends Serializable> {
      * @return row data list with id and other latest field values
      */
     @PostMapping("/createListAndReturn")
-    @Operation(summary = "createListAndReturn: Batch creation and return result",
-            description = "Create multiple rows and return the latest values from database.")
+    @Operation(description = "Create multiple rows and return the latest values from database.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> createListAndReturn(@PathVariable String modelName,
                                                                       @RequestBody List<Map<String, Object>> rows) {
@@ -141,9 +139,9 @@ public class ModelController<K extends Serializable> {
      * @return data row
      */
     @GetMapping(value = "/readOne", params = { "id", "fields" })
-    @Operation(summary = "readOne: Read one row", description = "Read one row by id.")
+    @Operation(description = "Read one row by ID.")
     @Parameters({
-            @Parameter(name = "id", description = "Data ID to be read.", schema = @Schema(type = "string")),
+            @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
@@ -169,7 +167,7 @@ public class ModelController<K extends Serializable> {
      * @return List<Map> of multiple data
      */
     @GetMapping(value = "/readList", params = { "ids", "fields" })
-    @Operation(summary = "readList: Read multiple rows", description = "Read multiple rows by ids.")
+    @Operation(description = "Read multiple rows by IDs.")
     @Parameters({
             @Parameter(name = "ids", description = "Data IDs to be read."),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
@@ -194,7 +192,7 @@ public class ModelController<K extends Serializable> {
      * @return true / Exception
      */
     @PostMapping(value = "/updateOne")
-    @Operation(summary = "updateOne: Update one row", description = "Update one row by id. Return true on success.")
+    @Operation(description = "Update one row by ID. Return true on success.")
     @DataMask
     public ApiResponse<Boolean> updateOne(@PathVariable String modelName,
                                           @RequestBody Map<String, Object> row) {
@@ -212,8 +210,7 @@ public class ModelController<K extends Serializable> {
      * @return map of updated row data with the latest field values
      */
     @PostMapping(value = "/updateOneAndReturn")
-    @Operation(summary = "updateOneAndReturn: Update one row and return",
-            description = "Update one row by id, and return the latest values from database.")
+    @Operation(description = "Update one row by ID, and return the latest values from database.")
     @DataMask
     public ApiResponse<Map<String, Object>> updateOneAndReturn(@PathVariable String modelName,
                                                                @RequestBody Map<String, Object> row) {
@@ -231,7 +228,7 @@ public class ModelController<K extends Serializable> {
      * @return true / Exception
      */
     @PostMapping(value = "/updateList")
-    @Operation(summary = "updateList: Batch update", description = "Update multiple rows by id. Return true on success.")
+    @Operation(description = "Update multiple rows by ID. Return true on success.")
     public ApiResponse<Boolean> updateList(@PathVariable String modelName,
                                            @RequestBody List<Map<String, Object>> rows) {
         Assert.notEmpty(rows, "The data to be updated cannot be empty!");
@@ -250,8 +247,7 @@ public class ModelController<K extends Serializable> {
      * @return updated rows with the latest field values
      */
     @PostMapping(value = "/updateListAndReturn")
-    @Operation(summary = "updateListAndReturn: Batch update and return",
-            description = "Update multiple rows by id, and return the latest values from database.")
+    @Operation(description = "Update multiple rows by ID, and return the latest values from database.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> updateListAndReturn(@PathVariable String modelName,
                                                                       @RequestBody List<Map<String, Object>> rows) {
@@ -270,8 +266,7 @@ public class ModelController<K extends Serializable> {
      * @return number of affected rows
      */
     @PostMapping(value = "/updateByFilter")
-    @Operation(summary = "updateByFilter: Batch edit",
-            description = "Update data according to the filters, within the current user's permission scope.")
+    @Operation(description = "Batch update data according to the filters, within the current user's permission scope.")
     @Parameters({
             @Parameter(name = "filters", description = "Data filter to update."),
     })
@@ -292,9 +287,8 @@ public class ModelController<K extends Serializable> {
      * @return true / Exception
      */
     @PostMapping(value = "/deleteOne")
-    @Operation(summary = "deleteOne: Delete one row",
-            description = "Delete one row by id. All slices related to this `id` will be deleted for timeline model.")
-    @Parameter(name = "id", description = "Data ID to be deleted")
+    @Operation(description = "Delete one row by ID. All slices related to this `ID` will be deleted for timeline model.")
+    @Parameter(name = "id", description = "Data ID to be deleted", schema = @Schema(type = "number"))
     public ApiResponse<Boolean> deleteOne(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
         return ApiResponse.success(modelService.deleteOne(modelName, id));
@@ -308,8 +302,7 @@ public class ModelController<K extends Serializable> {
      * @return True / Exception
      */
     @PostMapping(value = "/deleteSlice")
-    @Operation(summary = "deleteSlice: Delete one slice",
-            description = "Delete a slice of the timeline model by `sliceId`.")
+    @Operation(description = "Delete one slice of the timeline model by `sliceId`.")
     @Parameter(name = "sliceId", description = "`sliceId` of the timeline slice data to delete.")
     public ApiResponse<Boolean> deleteSlice(@PathVariable String modelName, @RequestParam K sliceId) {
         sliceId = IdUtils.formatId(modelName, ModelConstant.SLICE_ID, sliceId);
@@ -324,7 +317,7 @@ public class ModelController<K extends Serializable> {
      * @return True / Exception
      */
     @PostMapping(value = "/deleteList")
-    @Operation(summary = "deleteList: Batch delete", description = "Delete multiple rows by ids.")
+    @Operation(description = "Delete multiple rows by IDs.")
     @Parameter(name = "ids", description = "Data IDs to be deleted.")
     public ApiResponse<Boolean> deleteList(@PathVariable String modelName,
                                            @RequestParam(required = false) List<K> ids) {
@@ -341,9 +334,8 @@ public class ModelController<K extends Serializable> {
      * @return id of the new data
      */
     @PostMapping(value = "/copyOne")
-    @Operation(summary = "copyOne: Copy one row",
-            description = "Copy a single row based on id, and return the id of the new row.")
-    @Parameter(name = "id", description = "Data source ID to be copied.")
+    @Operation(description = "Copy one row based on ID, and return the ID of the new row.")
+    @Parameter(name = "id", description = "Data source ID to be copied.", schema = @Schema(type = "number"))
     @DataMask
     public ApiResponse<K> copyOne(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
@@ -359,9 +351,8 @@ public class ModelController<K extends Serializable> {
      * @return new row data
      */
     @PostMapping(value = "/copyOneAndReturn")
-    @Operation(summary = "copyOneAndReturn: Copy one row and return",
-            description = "Copy a single row based on id, and return the new row.")
-    @Parameter(name = "id", description = "Data source ID to be copied.")
+    @Operation(description = "Copy one row based on ID, and return the new row.")
+    @Parameter(name = "id", description = "Data source ID to be copied.", schema = @Schema(type = "number"))
     @DataMask
     public ApiResponse<Map<String, Object>> copyOneAndReturn(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
@@ -376,8 +367,7 @@ public class ModelController<K extends Serializable> {
      * @return ids of the new data
      */
     @PostMapping(value = "/copyList")
-    @Operation(summary = "copyList: Batch copy",
-            description = "Copy multiple rows based on ids, and return the new data ids.")
+    @Operation(description = "Copy multiple rows based on IDs, and return the new data IDs.")
     @Parameter(name = "ids", description = "Data source IDs to be copied.")
     @DataMask
     public ApiResponse<List<K>> copyList(@PathVariable String modelName, @RequestParam List<K> ids) {
@@ -395,8 +385,7 @@ public class ModelController<K extends Serializable> {
      * @return new rows data
      */
     @PostMapping(value = "/copyListAndReturn")
-    @Operation(summary = "copyListAndReturn: Batch copy and return",
-            description = "Copy multiple rows based on ids, and return the new rows.")
+    @Operation(description = "Copy multiple rows based on ids, and return the new rows.")
     @Parameter(name = "ids", description = "Data source IDs to be copied.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> copyListAndReturn(@PathVariable String modelName,
@@ -414,9 +403,8 @@ public class ModelController<K extends Serializable> {
      * @return map of copyable field values
      */
     @GetMapping("/copyWithoutCreate")
-    @Operation(summary = "copyWithoutCreate: Copy field values",
-            description = "Copy one row by id, only return the copyable field values, without inserting into database.")
-    @Parameter(name = "id", description = "Data source ID to be copied.")
+    @Operation(description = "Copy one row by ID, only return the copyable field values, without inserting into database.")
+    @Parameter(name = "id", description = "Data source ID to be copied.", schema = @Schema(type = "number"))
     @DataMask
     public ApiResponse<Map<String, Object>> copyWithoutCreate(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
@@ -433,8 +421,7 @@ public class ModelController<K extends Serializable> {
      * @return data list in the page
      */
     @PostMapping(value = "/searchPage")
-    @Operation(summary = "searchPage: Paging query",
-            description = "Paging aggregation query parameters, including fields, filters, orders, pageNumber, pageSize" +
+    @Operation(description = "Paging aggregation query parameters, including fields, filters, orders, pageNumber, pageSize" +
                     "groupBy, aggFunctions, subQueries, etc. Use the backend default value when not specified.")
     @DataMask
     public ApiResponse<Page<Map<String, Object>>> searchPage(@PathVariable String modelName,
@@ -463,8 +450,8 @@ public class ModelController<K extends Serializable> {
      * @return data list
      */
     @PostMapping(value = "/searchList")
-    @Operation(summary = "searchList: Query data list", description = "Get the data list based on the specified" +
-            "fields, filters, orders, limitSize, aggFunctions, and subQueries. Default limit to 50.")
+    @Operation(description = "Query the data list based on the specified fields, filters, orders, limitSize, " +
+            "aggFunctions, and subQueries. Default limit to 50.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> searchList(@PathVariable String modelName,
                                                              @RequestBody AggQuery aggQuery) {
@@ -497,9 +484,9 @@ public class ModelController<K extends Serializable> {
      * @return Result map.
      */
     @PostMapping(value = "/searchSimpleAgg")
-    @Operation(summary = "searchSimpleAgg: Simple aggregation query", description = """
-            Pure SUM, AVG, MIN, MAX, COUNT aggregate query, like `["SUM", "amount"]` or `[["SUM", "amount"], [], ...]`,
-            the return key is `sumAmount`.""")
+    @Operation(description = """
+            Simple aggregation query. Pure SUM, AVG, MIN, MAX, COUNT aggregate query, like `["SUM", "amount"]`
+            or `[["SUM", "amount"], [], ...]`, the return key is `sumAmount`.""")
     @DataMask
     public ApiResponse<Map<String, Object>> searchSimpleAgg(@PathVariable String modelName,
                                                             @RequestBody SimpleAggQuery simpleAggQuery) {
@@ -519,8 +506,7 @@ public class ModelController<K extends Serializable> {
      * @return PivotTable object
      */
     @PostMapping(value = "/searchPivot")
-    @Operation(summary = "searchPivot: Search pivot table data ",
-            description = "Get the pivot table data based on the specified fields, filters, orders, groupBy, splitBy.")
+    @Operation(description = "Get the pivot table data based on the specified fields, filters, orders, groupBy, splitBy.")
     @DataMask
     public ApiResponse<PivotTable> searchPivot(@PathVariable String modelName, @RequestBody AggQuery aggQuery) {
         ContextHolder.getContext().setEffectiveDate(aggQuery.getEffectiveDate());
@@ -545,8 +531,7 @@ public class ModelController<K extends Serializable> {
      * @return Group counting results.
      */
     @GetMapping(value = "/count")
-    @Operation(summary = "count: Count",
-            description = "Returns a count or group counting based on the specified `filter`, `groupBy`, and `orders`.")
+    @Operation(description = "Returns a count or group counting based on the specified `filter`, `groupBy`, and `orders`.")
     @Parameters({
             @Parameter(name = "filters", description = "Filters for data to be counted."),
             @Parameter(name = "groupBy", description = "Fields for group counts, Return the total count if not specified."),
@@ -581,10 +566,9 @@ public class ModelController<K extends Serializable> {
      * @return unmasked field value
      */
     @GetMapping("/getUnmaskedField")
-    @Operation(summary = "getUnmaskedField: Gets unmasked field value",
-            description = "Get the original value for masking field.")
+    @Operation(description = "Get the original value for masking field.")
     @Parameters({
-            @Parameter(name = "id", required = true, description = "Data ID to be read"),
+            @Parameter(name = "id", description = "Data ID to be read", schema = @Schema(type = "number")),
             @Parameter(name = "field", description = "The masking field name to get the original value"),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
@@ -606,10 +590,9 @@ public class ModelController<K extends Serializable> {
      * @return unmasked field values map, {fieldName: fieldValue}
      */
     @GetMapping("/getUnmaskedFields")
-    @Operation(summary = "getUnmaskedFields: Gets multiple unmasked field values",
-            description = "Get the original values for multiple masking fields.")
+    @Operation(description = "Get the original values for multiple masking fields.")
     @Parameters({
-            @Parameter(name = "id", description = "Data ID to be read"),
+            @Parameter(name = "id", description = "Data ID to be read", schema = @Schema(type = "number")),
             @Parameter(name = "fields", description = "The masking field list to get the original values"),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
