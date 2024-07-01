@@ -55,7 +55,8 @@ import static info.openmeta.framework.orm.enums.FilterType.EMPTY;
 @NoArgsConstructor
 @JsonSerialize(using = FiltersSerializer.class)
 @JsonDeserialize(using = FiltersDeserializer.class)
-@Schema(example = "[\"name\", \"=\", \"Tom\"]",
+@Schema(type = "array",
+        example = "[\"name\", \"=\", \"Tom\"]",
         description = """
                 Support nested filters, such as [a OR b] AND [c OR d OR [e AND f] OR g]
                 * []

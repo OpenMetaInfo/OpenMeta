@@ -29,7 +29,7 @@ public class ToolkitController {
      *
      * @param modelFields the model name and the list of fields to be recomputed
      */
-    @Operation(summary = "recompute", description = """
+    @Operation(description = """
             Recomputes the stored computed and cascaded fields for the specified model.
             If fields are not specified, all stored computed and cascaded fields are recomputed by default.""")
     @PostMapping("/recompute")
@@ -44,7 +44,7 @@ public class ToolkitController {
      * @param modelField the model name and the field name for which historical data needs to be encrypted
      * @return the number of rows fixed
      */
-    @Operation(summary = "fixUnencryptedData", description = """
+    @Operation(description = """
             After changing field to encrypted field, call this API to encrypt historical plaintext data.
             The field name cannot be empty. Returns the number of rows fixed.""")
     @PostMapping("/fixUnencryptedData")
