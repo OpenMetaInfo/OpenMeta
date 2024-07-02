@@ -17,11 +17,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum MaskingType {
-    ALL("All", "Masks all string"),
-    NAME("Name", "Masks name"),
-    EMAIL("Email", "Masks email"),
+    ALL("All", "Masks All Content"),
+    NAME("Name", "Masks Name"),
+    EMAIL("Email", "Masks Email"),
     PHONE_NUMBER("PhoneNumber", "Masks Phone Number"),
-    ID_NUMBER("IdNumber", "Masks Id Number"),
+    ID_NUMBER("IdNumber", "Masks ID Number"),
     CARD_NUMBER("CardNumber", "Masks Card Number");
 
     @JsonValue
