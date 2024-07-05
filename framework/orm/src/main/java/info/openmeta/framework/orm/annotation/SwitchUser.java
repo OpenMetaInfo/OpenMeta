@@ -18,7 +18,7 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface SwitchUser {
 
-    SystemUser value() default SystemUser.SUPER_ADMIN;
+    SystemUser value() default SystemUser.SYSTEM_USER;
 
     String alias() default "";
 }

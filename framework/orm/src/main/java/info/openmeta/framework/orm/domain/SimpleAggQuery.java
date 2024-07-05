@@ -21,7 +21,7 @@ public class SimpleAggQuery {
     @Schema(description = "Aggregation functions, support single or multiple fields aggregation [func, field, alias]")
     private AggFunctions aggFunctions;
 
-    @Schema(description = "Effective date, default is 'today'.")
+    @Schema(description = "Effective date, default is `Today`.")
     private LocalDate effectiveDate;
 
 }

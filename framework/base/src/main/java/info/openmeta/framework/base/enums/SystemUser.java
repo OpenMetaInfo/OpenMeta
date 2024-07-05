@@ -11,12 +11,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum SystemUser {
-    SUPER_ADMIN("SuperAdmin", "Super Admin User"),
-    CRON_USER("CronUser", "Cron Job User"),
-    BOOT_USER("BootUser", "System Boot User"),
-    INTEGRATION_USER("IntegrationUser", "Integration User"),
-    ANONYMOUS_USER("AnonymousUser", "Anonymous User"),
-    TEST_USER("TestUser", "Test User"),;
+    SUPER_ADMIN("SuperAdmin", "Super Admin"),
+    SYSTEM_USER("SystemUser", "System"),
+    CRON_USER("CronUser", "Schedule Job"),
+    INTEGRATION_USER("IntegrationUser", "Integration"),
+    ANONYMOUS_USER("AnonymousUser", "Anonymous"),
+    TEST_USER("TestUser", "Test"),;
 
     @JsonValue
     private final String code;
