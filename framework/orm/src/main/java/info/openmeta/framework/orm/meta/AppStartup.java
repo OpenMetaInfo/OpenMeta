@@ -1,7 +1,7 @@
 package info.openmeta.framework.orm.meta;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class AppStartupRunner implements CommandLineRunner {
+public class AppStartup implements InitializingBean {
 
     @Autowired
     ModelManager modelManager;
@@ -20,11 +20,10 @@ public class AppStartupRunner implements CommandLineRunner {
     OptionManager optionManager;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void afterPropertiesSet() {
         // 1. init model manager
         modelManager.init();
         // 2. init option manager
         optionManager.init();
     }
-
 }
