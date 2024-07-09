@@ -121,7 +121,7 @@ public class ChangeLogPublisher {
     private ChangeLog generateChangeLog(String model, AccessType accessType, Serializable id, @NotNull LocalDateTime updatedTime) {
         Context context = ContextHolder.getContext();
         ChangeLog changeLog = new ChangeLog();
-        changeLog.setRequestId(context.getRequestId());
+        changeLog.setTraceId(context.getTraceId());
         changeLog.setModel(model);
         changeLog.setRowId((Long) id);
         changeLog.setAccessType(accessType);

@@ -25,8 +25,8 @@ public class Context implements Serializable {
     private TimeZone timeZone;
 
     private Serializable tenantId;
-    private String requestId;
     private String token;
+    private String traceId;
 
     private UserInfo userInfo;
     private UserPermission userPermission;
@@ -66,18 +66,18 @@ public class Context implements Serializable {
     private boolean readPrimary;
 
     /**
-     * Default constructor, use UUID to fill in when requestId is not specified,
+     * Default constructor, use UUID to fill in when traceId is not specified,
      * used for scenarios such as cron tasks and integration
      */
     public Context() {
-        this.requestId = UUID.randomUUID().toString();
+        this.traceId = UUID.randomUUID().toString();
     }
 
     /**
-     * @param requestId Client passes requestID
+     * @param traceId passed by the client or upstream system
      */
-    public Context(String requestId) {
-        this.requestId = StringUtils.isBlank(requestId) ? UUID.randomUUID().toString() : requestId;
+    public Context(String traceId) {
+        this.traceId = StringUtils.isBlank(traceId) ? UUID.randomUUID().toString() : traceId;
     }
 
     public void setEffectiveDate(LocalDate effectiveDate) {
@@ -87,7 +87,7 @@ public class Context implements Serializable {
     }
 
     public Context copy() {
-        Context newContext = new Context(this.requestId);
+        Context newContext = new Context(this.traceId);
         newContext.setUserId(this.userId);
         newContext.setName(this.name);
         newContext.setLanguage(this.language);
