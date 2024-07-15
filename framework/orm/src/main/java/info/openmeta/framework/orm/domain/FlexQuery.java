@@ -193,10 +193,43 @@ public class FlexQuery {
         return this.subQueries.getOrDefault(relationField, null);
     }
 
-    public void setFields(Collection<String> fields) {
+    /**
+     * Add a field based on the lambda method reference
+     * @param method Field lambda method reference
+     * @return FlexQuery object
+     */
+    public <T, R> FlexQuery addField(SFunction<T, R> method) {
+        String field = LambdaUtils.getAttributeName(method);
+        if (this.fields != null) {
+            this.fields.add(field);
+        } else {
+            this.fields = new HashSet<>(Collections.singletonList(field));
+        }
+        return this;
+    }
+
+    /**
+     * Set the field list based on the lambda method reference
+     * @param lambdaMethods Field lambda method reference
+     */
+    @SafeVarargs
+    public final <T, R> FlexQuery setFields(SFunction<T, R>... lambdaMethods) {
+        List<String> fields = Arrays.stream(lambdaMethods).map(LambdaUtils::getAttributeName).toList();
         if (!CollectionUtils.isEmpty(fields)) {
             this.fields = new HashSet<>(fields);
         }
+        return this;
+    }
+
+    /**
+     * Set the field list
+     * @param fields Field list
+     */
+    public FlexQuery setFields(Collection<String> fields) {
+        if (!CollectionUtils.isEmpty(fields)) {
+            this.fields = new HashSet<>(fields);
+        }
+        return this;
     }
 
     public FlexQuery setGroupBy(List<String> groupBy) {
