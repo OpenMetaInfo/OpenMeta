@@ -53,7 +53,7 @@ public class ExceptionMessageHandler {
     private void appendUserAndTraceId(StringBuilder builder) {
         if (ContextHolder.getContext() != null) {
             builder.append(" ; User: ").append(ContextHolder.getContext().getName());
-            builder.append(" ; TraceID: ").append(ContextHolder.getContext().getRequestId());
+            builder.append(" ; TraceID: ").append(ContextHolder.getContext().getTraceId());
         } else {
             String traceId = request.getHeader("traceId");
             if (StringUtils.isNotBlank(traceId)) {

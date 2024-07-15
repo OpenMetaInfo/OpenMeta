@@ -23,7 +23,8 @@ public class SwitchUserAspect {
         Context originalContext = ContextHolder.getContext();
         try {
             Context clonedContext = ContextHolder.cloneContext();
-            clonedContext.setName(switchUser.value().getName());
+            String userName = switchUser.alias().isBlank() ? switchUser.value().getName() : switchUser.alias();
+            clonedContext.setName(userName);
             // Skip permission check for system level users.
             clonedContext.setSkipPermissionCheck(true);
             // Switch context

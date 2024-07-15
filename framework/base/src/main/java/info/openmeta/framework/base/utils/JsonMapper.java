@@ -42,6 +42,9 @@ public class JsonMapper {
      * @return JSON String
      */
     public static String objectToString(Object object) {
+        if (object instanceof String) {
+            return (String) object;
+        }
         try {
             return getMapper().writeValueAsString(object);
         } catch (JsonProcessingException e) {
@@ -55,6 +58,9 @@ public class JsonMapper {
      * @return JSON String
      */
     public static String objectToStringIgnoreNull(Object object) {
+        if (object instanceof String) {
+            return (String) object;
+        }
         try {
             ObjectMapper ignoreNullMapper = getMapper().copy().setSerializationInclusion(JsonInclude.Include.NON_NULL);
             return ignoreNullMapper.writeValueAsString(object);
@@ -70,6 +76,11 @@ public class JsonMapper {
      * @return object instance
      */
     public static <T> T stringToObject(String json, Class<T> tClass) {
+        if (json == null) {
+            return null;
+        } else if (tClass == String.class) {
+            return Cast.of(json);
+        }
         try {
             return getMapper().readValue(json, tClass);
         } catch (JsonProcessingException e) {
@@ -84,6 +95,11 @@ public class JsonMapper {
      * @return Map or List object
      */
     public static <T> T stringToObject(String json, TypeReference<T> valueTypeRef) {
+        if (json == null) {
+            return null;
+        } else if (valueTypeRef.getType().equals(String.class)) {
+            return Cast.of(json);
+        }
         try {
             return getMapper().readValue(json, valueTypeRef);
         } catch (JsonProcessingException e) {
