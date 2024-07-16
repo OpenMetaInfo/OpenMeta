@@ -4,30 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>apps</artifactId>
         <groupId>info.openmeta</groupId>
+        <artifactId>starters</artifactId>
         <version>0.1.8</version>
     </parent>
 
-    <artifactId>demo-app</artifactId>
-    <description>Demo application</description>
+    <artifactId>metadata-starter</artifactId>
+    <description>Metadata Management Starter</description>
 
     <dependencies>
         <dependency>
             <groupId>info.openmeta</groupId>
-            <artifactId>metadata-starter</artifactId>
-            <version>0.1.8</version>
+            <artifactId>web</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>
-
-    <build>
-        <finalName>demo-app</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

@@ -19,6 +19,7 @@
 
 	<modules>
 		<module>framework</module>
+		<module>starters</module>
 		<module>apps</module>
 	</modules>
 

@@ -62,10 +62,6 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.alibaba</groupId>
-                    <artifactId>fastjson</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>com.google.protobuf</groupId>
                     <artifactId>protobuf-java-util</artifactId>
                 </exclusion>
