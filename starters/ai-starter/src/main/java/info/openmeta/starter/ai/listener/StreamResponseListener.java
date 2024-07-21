@@ -31,10 +31,10 @@ public class StreamResponseListener extends EventSourceListener {
     // Merge streamed message for passing to the callback function for persistent processing
     protected StringBuffer mergedMessage = new StringBuffer();
 
-    // callback function
+    // Callback function for stream completion
     @Setter
     @Getter
-    protected Consumer<String> callback = s -> {};
+    protected Consumer<String> onComplete = s -> {};
 
     @Override
     public void onOpen(@NotNull EventSource eventSource, @NotNull Response response) {
@@ -57,7 +57,7 @@ public class StreamResponseListener extends EventSourceListener {
     public void onEvent(@NotNull EventSource eventSource, String id, String type, String data) {
         if (data.equals(AiConstant.STREAM_END_MESSAGE)) {
             // Finish the stream and send the merged message to the listener callback method.
-            callback.accept(mergedMessage.toString());
+            onComplete.accept(mergedMessage.toString());
             // Release eventSource resource
             eventSource.cancel();
             return;

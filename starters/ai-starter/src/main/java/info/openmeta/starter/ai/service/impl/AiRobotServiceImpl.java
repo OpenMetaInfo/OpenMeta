@@ -121,8 +121,8 @@ public class AiRobotServiceImpl extends EntityServiceImpl<AiRobot, Long> impleme
 
         // Listen for LLM response through SseStreamListener
         StreamResponseListener responseListener = new StreamResponseListener(sseEmitter);
-        // Set the callback function to persist the chat message
-        responseListener.setCallback(answer -> {
+        // Set the callback function to persist the chat message after the chat is completed
+        responseListener.setOnComplete(answer -> {
             // Close the SSE connection to the client
             sseEmitter.complete();
             // Count the tokens and save the chat message
