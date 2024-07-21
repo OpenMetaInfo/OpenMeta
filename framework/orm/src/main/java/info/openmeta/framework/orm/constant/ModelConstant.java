@@ -1,25 +1,14 @@
 package info.openmeta.framework.orm.constant;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * Model constant
  */
 public interface ModelConstant {
-
-    /** Version control model mapping relationship between design state and runtime state */
-    Map<String, String> VERSION_CONTROL_MODELS = ImmutableMap.<String, String>builder()
-            .put("DesignModel", "MetaModel")
-            .put("DesignField", "MetaField")
-            .put("DesignModelIndex", "SysModelIndex")
-            .put("DesignMenu", "SysMenu")
-            .put("DesignView", "SysView")
-            .build();
 
     /** Model attribute constants */
     String ID = "id";
