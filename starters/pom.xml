@@ -15,6 +15,7 @@
 
     <modules>
         <module>metadata-starter</module>
+        <module>ai-starter</module>
     </modules>
 
     <properties>
