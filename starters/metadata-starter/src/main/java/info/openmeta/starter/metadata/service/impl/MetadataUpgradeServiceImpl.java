@@ -1,12 +1,12 @@
 package info.openmeta.starter.metadata.service.impl;
 
-import com.google.common.collect.ImmutableMap;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.dto.MetadataUpgradePackage;
+import info.openmeta.starter.metadata.constant.MetadataConstant;
 import info.openmeta.starter.metadata.service.MetadataUpgradeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,13 +22,6 @@ import java.util.Map;
  */
 @Service
 public class MetadataUpgradeServiceImpl implements MetadataUpgradeService {
-
-    /** Version control model mapping relationship between design time and runtime */
-    Map<String, String> VERSION_CONTROL_MODELS = ImmutableMap.<String, String>builder()
-            .put("DesignModel", "SysModel")
-            .put("DesignField", "SysField")
-            .put("DesignModelIndex", "SysModelIndex")
-            .build();
 
     @Autowired
     private ModelService<Long> modelService;
@@ -48,7 +41,7 @@ public class MetadataUpgradeServiceImpl implements MetadataUpgradeService {
      * Validate if the model is enabled for version control.
      */
     private void validateRuntimeModel(String modelName) {
-        Assert.isTrue(VERSION_CONTROL_MODELS.containsValue(modelName),
+        Assert.isTrue(MetadataConstant.BASIC_METADATA_MODELS.containsValue(modelName),
                 "Model {0} is not enabled for version control, and the upgrade API cannot be invoked.", modelName);
     }
 
