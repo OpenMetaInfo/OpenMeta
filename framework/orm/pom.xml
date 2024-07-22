@@ -6,7 +6,7 @@
     <parent>
         <groupId>info.openmeta</groupId>
         <artifactId>framework</artifactId>
-        <version>0.1.8</version>
+        <version>0.2.0</version>
     </parent>
 
     <artifactId>orm</artifactId>
@@ -60,10 +60,6 @@
                 <exclusion>
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.alibaba</groupId>
-                    <artifactId>fastjson</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
