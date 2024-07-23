@@ -23,19 +23,19 @@ import java.util.List;
 public class SysCronController extends EntityController<SysCronService, SysCron, Long> {
 
     @Operation(summary = "Execute once now", description = "Immediately run the specified cron job for once.")
-    @PostMapping(value = "/runNow")
+    @PostMapping(value = "/executeNow")
     @Parameter(name = "id", description = "Cron Job ID")
-    public ApiResponse<Boolean> runNow(@RequestParam Long id) {
-        service.runNow(id);
+    public ApiResponse<Boolean> executeNow(@RequestParam Long id) {
+        service.executeNow(id);
         return ApiResponse.success(true);
     }
 
     @Operation(summary = "Execute multiple for once now",
             description = "Immediately run the specified multiple cron jobs for once.")
-    @PostMapping(value = "/runNow")
+    @PostMapping(value = "/executeMultipleNow")
     @Parameter(name = "ids", description = "Cron Job IDs")
-    public ApiResponse<Boolean> runNow(@RequestParam List<Long> ids) {
-        service.runNow(ids);
+    public ApiResponse<Boolean> executeMultipleNow(@RequestParam List<Long> ids) {
+        service.executeMultipleNow(ids);
         return ApiResponse.success(true);
     }
 }

@@ -53,29 +53,29 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
     }
 
     /**
-     * Run the specified cron job immediately
+     * Execute the specified cron job immediately
      *
      * @param cronId Cron job ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void runNow(Long cronId) {
+    public void executeNow(Long cronId) {
         SysCron sysCron = this.readOne(cronId);
         CronUtils.getCron(sysCron.getName(), sysCron.getCronExpression());
         cronScheduler.sendToMessageQueue(sysCron);
     }
 
     /**
-     * Run the specified multiple cron jobs immediately
+     * Execute the specified multiple cron jobs immediately
      *
      * @param cronIds Cron job IDs
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void runNow(List<Long> cronIds) {
+    public void executeMultipleNow(List<Long> cronIds) {
         List<SysCron> sysCronList = this.readList(cronIds);
         for (SysCron sysCron : sysCronList) {
-            this.runNow(sysCron.getId());
+            this.executeNow(sysCron.getId());
         }
     }
 

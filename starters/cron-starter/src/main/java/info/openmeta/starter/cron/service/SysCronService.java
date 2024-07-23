@@ -25,17 +25,17 @@ public interface SysCronService extends EntityService<SysCron, Long> {
     void activateCronList(List<Long> cronIds);
 
     /**
-     * Run the specified cron job immediately
+     * Execute the specified cron job immediately
      *
      * @param cronId Cron job ID
      */
-    void runNow(Long cronId);
+    void executeNow(Long cronId);
 
     /**
-     * Run the specified multiple cron jobs immediately
+     * Execute the specified multiple cron jobs immediately
      *
      * @param cronIds Cron job IDs
      */
-    void runNow(List<Long> cronIds);
+    void executeMultipleNow(List<Long> cronIds);
 
 }
