@@ -17,6 +17,7 @@
         <module>metadata-starter</module>
         <module>ai-starter</module>
         <module>cron-starter</module>
+        <module>flow-starter</module>
     </modules>
 
     <properties>

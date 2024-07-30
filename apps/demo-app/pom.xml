@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>info.openmeta</groupId>
-            <artifactId>metadata-starter</artifactId>
+            <artifactId>flow-starter</artifactId>
             <version>0.2.1</version>
         </dependency>
 
