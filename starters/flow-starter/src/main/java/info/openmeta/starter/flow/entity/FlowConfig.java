@@ -30,8 +30,8 @@ public class FlowConfig extends BaseModel {
     @Schema(description = "Flow Type")
     private FlowType flowType;
 
-    @Schema(description = "Trigger IDs")
-    private List<Long> triggerIds;
+    @Schema(description = "Flow Trigger")
+    private Long triggerId;
 
     @Schema(description = "Node List")
     private List<FlowNode> nodeList;

@@ -41,8 +41,8 @@ public class FlowTrigger extends BaseModel {
     @Schema(description = "Cron Job ID")
     private Long cronId;
 
-    @Schema(description = "Triggered Flows")
-    private List<Long> flowIds;
+    @Schema(description = "Triggered Flow")
+    private Long flowId;
 
     @Schema(description = "Disabled")
     private Boolean disabled;
