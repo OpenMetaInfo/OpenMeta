@@ -14,13 +14,16 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum IdStrategy {
-    DB_AUTO_ID("DbAutoId", "Database auto-increment ID"),
+    DB_AUTO_ID("DbAutoID", "DB Auto-increment ID"),
+    SNOWFLAKE_ID("SnowflakeID", "Snowflake ID"),
+    OBJECT_ID("ObjectID", "ObjectID"),
     SHORT_UUID("ShortUUID", "Short UUID"),
     UUID("UUID", "UUID"),
-    EXTERNAL_ID("ExternalId", "External ID");
+    EXTERNAL_ID("ExternalID", "External ID");
 
     @JsonValue
     private final String type;
 
     private final String name;
+
 }

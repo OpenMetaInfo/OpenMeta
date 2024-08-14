@@ -14,8 +14,7 @@ public class ChangeLog {
     // ChangeLog uuid
     private String uuid;
 
-    // Request uuid
-    private String requestId;
+    private String traceId;
 
     private String model;
     private Long rowId;

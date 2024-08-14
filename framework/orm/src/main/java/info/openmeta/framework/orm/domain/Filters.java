@@ -32,13 +32,13 @@ import java.util.stream.Collectors;
 import static info.openmeta.framework.orm.enums.FilterType.EMPTY;
 
 /**
- * Filters object combines multiple query conditions and consists of FilterUnit objects.
+ * `Filters` object combines multiple query conditions and consists of FilterUnit objects.
  * A FilterUnit is the smallest component of a filter, represented as a three-element list: [field, operator, value].
- * Support nested filters, such as [a OR b] AND [c OR d OR [e AND f] OR g], each element represents a FilterUnit object.
+ * Support nested filters, such as [a OR b] AND [c OR d OR [e AND f] OR g]; each element represents a FilterUnit object.
  * The nesting level is not limited for now, and each element is a FilterUnit.
  * So, there are 3 types of filters object: EMPTY, TREE, LEAF. Default type: EMPTY, equals to [].
  * The logic operator is AND by default, and the logic operator AND, OR is case-insensitive.
- * FilterUnit value cannot be null, when Operator is `IS SET` or `IS NOT SET`, the value will be ignored.
+ * FilterUnit value cannot be null, when the Operator is `IS SET` or `IS NOT SET`, the value will be ignored.
  * Examples:
  *      []
  *      ["name", "=", "Tom"]
@@ -47,7 +47,7 @@ import static info.openmeta.framework.orm.enums.FilterType.EMPTY;
  *      [["name", "=", "Tom"], "OR", ["code", "=", "A010"]], "AND", ["version", "=", "2"]]
  *  <p>
  *  Support value using @{fieldName} to reserve field name for field comparison.
- *  For example:
+ *  For example,
  *      ["updatedTime", ">", "@{createdTime}"] converts to sql: `updated_time > created_time`
  *  The reserved field name must be a field of the same model as the leftmost field name.
  */
@@ -55,7 +55,8 @@ import static info.openmeta.framework.orm.enums.FilterType.EMPTY;
 @NoArgsConstructor
 @JsonSerialize(using = FiltersSerializer.class)
 @JsonDeserialize(using = FiltersDeserializer.class)
-@Schema(example = "[\"name\", \"=\", \"Tom\"]",
+@Schema(type = "array",
+        example = "[\"name\", \"=\", \"Tom\"]",
         description = """
                 Support nested filters, such as [a OR b] AND [c OR d OR [e AND f] OR g]
                 * []

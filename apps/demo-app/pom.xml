@@ -6,7 +6,7 @@
     <parent>
         <artifactId>apps</artifactId>
         <groupId>info.openmeta</groupId>
-        <version>0.1.4</version>
+        <version>0.3.0</version>
     </parent>
 
     <artifactId>demo-app</artifactId>
@@ -15,8 +15,8 @@
     <dependencies>
         <dependency>
             <groupId>info.openmeta</groupId>
-            <artifactId>web</artifactId>
-            <version>${project.version}</version>
+            <artifactId>flow-starter</artifactId>
+            <version>0.3.0</version>
         </dependency>
 
     </dependencies>

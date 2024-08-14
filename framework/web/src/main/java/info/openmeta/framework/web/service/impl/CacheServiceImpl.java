@@ -1,6 +1,7 @@
 package info.openmeta.framework.web.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import info.openmeta.framework.base.constant.RedisConstant;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.web.service.CacheService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,28 +18,58 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * Cache service implementation.
+ * Support saving, searching, and deleting cache by key.
+ */
 @Service
 @Slf4j
 public class CacheServiceImpl implements CacheService {
 
+    /**
+     * Root key, such as: "openmeta:"
+     */
     @Value("${spring.data.redis.root-key:}")
     private String rootKey;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * Save cache, use default expiration time.
+     *
+     * @param key cache key
+     * @param object cache object
+     */
     @Override
     public void save(String key, Object object) {
-        String cacheKey = this.getKeyPath(key);
-        stringRedisTemplate.opsForValue().set(cacheKey, JsonMapper.objectToString(object), 24, TimeUnit.HOURS);
+        this.save(key, object, RedisConstant.DEFAULT_EXPIRE_SECONDS);
     }
 
+    /**
+     * Save cache, specify expiration time in seconds, 0 means permanent validity.
+     *
+     * @param key cache key
+     * @param object cache object
+     * @param expireSeconds expiration time in seconds
+     */
     @Override
-    public void save(String key, Object object, Long expireSeconds) {
+    public void save(String key, Object object, long expireSeconds) {
         String cacheKey = this.getKeyPath(key);
-        stringRedisTemplate.opsForValue().set(cacheKey, JsonMapper.objectToString(object), expireSeconds, TimeUnit.SECONDS);
+        String value = JsonMapper.objectToString(object);
+        if (expireSeconds < 0) {
+            log.warn("Invalid expiration time, use default expiration seconds: {}", RedisConstant.DEFAULT_EXPIRE_SECONDS);
+            expireSeconds = RedisConstant.DEFAULT_EXPIRE_SECONDS;
+        }
+        stringRedisTemplate.opsForValue().set(cacheKey, value, expireSeconds, TimeUnit.SECONDS);
     }
 
+    /**
+     * Search cache by key list.
+     *
+     * @param keys key list
+     * @return key-value map
+     */
     @Override
     public Map<String, Object> search(List<String> keys) {
         Map<String, Object> map = new HashMap<>();
@@ -49,7 +80,8 @@ public class CacheServiceImpl implements CacheService {
     }
 
     /**
-     * Get the full key path
+     * Get the full key path.
+     *
      * @param key cache key
      */
     @Override
@@ -57,6 +89,37 @@ public class CacheServiceImpl implements CacheService {
         return rootKey + key;
     }
 
+    /**
+     * Check if the key exists.
+     *
+     * @param key cache key
+     * @return true or false
+     */
+    @Override
+    public boolean hasKey(String key) {
+        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(key));
+    }
+
+    /**
+     * Get cache by key.
+     *
+     * @param key cache key
+     * @return cache
+     */
+    @Override
+    public String get(String key) {
+        String cacheKey = this.getKeyPath(key);
+        return stringRedisTemplate.opsForValue().get(cacheKey);
+    }
+
+    /**
+     * Get cache object by key, specify class for deserialization.
+     *
+     * @param key cache key
+     * @param tClass class
+     * @param <T> T
+     * @return cache object
+     */
     @Override
     public <T> T get(String key, Class<T> tClass) {
         String cacheKey = this.getKeyPath(key);
@@ -67,6 +130,14 @@ public class CacheServiceImpl implements CacheService {
         return null;
     }
 
+    /**
+     * Get cache object by key, specify TypeReference for deserialization.
+     *
+     * @param key cache key
+     * @param typeReference TypeReference
+     * @param <T> T
+     * @return cache object
+     */
     @Override
     public <T> T get(String key, TypeReference<T> typeReference) {
         String cacheKey = this.getKeyPath(key);
@@ -77,6 +148,15 @@ public class CacheServiceImpl implements CacheService {
         return null;
     }
 
+    /**
+     * Get cache object by key, specify TypeReference for deserialization, and return default value if not found.
+     *
+     * @param key cache key
+     * @param typeReference TypeReference
+     * @param defaultValue default value
+     * @param <T> T
+     * @return cache object
+     */
     @Override
     public <T> T get(String key, TypeReference<T> typeReference, T defaultValue) {
         String cacheKey = this.getKeyPath(key);
@@ -88,7 +168,9 @@ public class CacheServiceImpl implements CacheService {
     }
 
     /**
-     * Increment count
+     * Increment count.
+     * If the key does not exist, set the initial value and expiration time.
+     *
      * @param key cache key
      * @param expiredSeconds expired seconds
      * @return count
@@ -107,18 +189,20 @@ public class CacheServiceImpl implements CacheService {
     }
 
     /**
-     * Delete cache by key
+     * Delete cache by key.
+     *
      * @param key cache key
      * @return boolean
      */
     @Override
-    public Boolean delete(String key) {
+    public boolean delete(String key) {
         key = getKeyPath(key);
-        return stringRedisTemplate.delete(key);
+        return Boolean.TRUE.equals(stringRedisTemplate.delete(key));
     }
 
     /**
-     * Delete key list
+     * Delete key list.
+     *
      * @param keys key list
      * @return delete count
      */

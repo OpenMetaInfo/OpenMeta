@@ -13,7 +13,14 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
  * Definition of static methods, and imported to calculation engine.
  */
 public class CronUtils {
-    private static final CronParser cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
+
+    /**
+     * Uses the Quartz cron expression, consisting of 7 fields in the order:
+     * [seconds] [minutes] [hours] [day] [month] [week] [year (optional)]
+     */
+    public static final CronType CRON_FORMAT = CronType.QUARTZ;
+
+    private static final CronParser cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CRON_FORMAT));
     private static final CronDescriptor descriptor = CronDescriptor.instance(BaseConstant.DEFAULT_LANGUAGE);
 
     /**
@@ -46,4 +53,21 @@ public class CronUtils {
         return descriptor.describe(cron);
     }
 
+    /**
+     * Get the Cron object by the cron expression.
+     *
+     * @param cronName Cron name
+     * @param cronExpression Cron expression
+     * @return Cron object
+     */
+    public static Cron getCron(String cronName, String cronExpression) {
+        try {
+            Cron cron = cronParser.parse(cronExpression);
+            cron.validate();
+            return cron;
+        } catch (java.lang.IllegalArgumentException e) {
+            throw new IllegalArgumentException("The cron expression of {0}({1}) is invalid: {2}",
+                    cronName, cronExpression, e.getMessage());
+        }
+    }
 }

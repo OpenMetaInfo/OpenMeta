@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @JsonSerialize(using = OrdersSerializer.class)
 @JsonDeserialize(using = OrdersDeserializer.class)
-@Schema(example = "[\"name\", \"ASC\"]",
+@Schema(type = "array",
+        example = "[\"name\", \"ASC\"]",
         description = """
                 Support multiple order conditions:
                 * []

@@ -268,7 +268,7 @@ public class ModelController<K extends Serializable> {
     @PostMapping(value = "/updateByFilter")
     @Operation(description = "Batch update data according to the filters, within the current user's permission scope.")
     @Parameters({
-            @Parameter(name = "filters", description = "Data filter to update."),
+            @Parameter(name = "filters", description = "Data filter to update.", schema = @Schema(type = "array")),
     })
     public ApiResponse<Integer> updateByFilter(@PathVariable String modelName,
                                                @RequestParam(required = false) Filters filters,
@@ -303,7 +303,7 @@ public class ModelController<K extends Serializable> {
      */
     @PostMapping(value = "/deleteSlice")
     @Operation(description = "Delete one slice of the timeline model by `sliceId`.")
-    @Parameter(name = "sliceId", description = "`sliceId` of the timeline slice data to delete.")
+    @Parameter(name = "sliceId", description = "`sliceId` of the timeline slice data to delete.", schema = @Schema(type = "number"))
     public ApiResponse<Boolean> deleteSlice(@PathVariable String modelName, @RequestParam K sliceId) {
         sliceId = IdUtils.formatId(modelName, ModelConstant.SLICE_ID, sliceId);
         return ApiResponse.success(modelService.deleteSlice(modelName, sliceId));
@@ -533,9 +533,9 @@ public class ModelController<K extends Serializable> {
     @GetMapping(value = "/count")
     @Operation(description = "Returns a count or group counting based on the specified `filter`, `groupBy`, and `orders`.")
     @Parameters({
-            @Parameter(name = "filters", description = "Filters for data to be counted."),
+            @Parameter(name = "filters", description = "Filters for data to be counted.", schema = @Schema(type = "array")),
             @Parameter(name = "groupBy", description = "Fields for group counts, Return the total count if not specified."),
-            @Parameter(name = "orders", description = "The field order of the grouped results"),
+            @Parameter(name = "orders", description = "The field order of the grouped results", schema = @Schema(type = "array")),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
     @DataMask

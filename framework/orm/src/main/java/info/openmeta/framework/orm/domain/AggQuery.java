@@ -39,10 +39,10 @@ public class AggQuery {
     @Schema(description = "Pivot split field list.", example = "[]")
     private List<String> splitBy;
 
-    @Schema(description = "Whether to return the summary result of numeric fields, empty means not return.")
+    @Schema(description = "Whether to return the summary result of numeric fields, default no summary.")
     private Boolean summary;
 
-    @Schema(description = "Effective date, default is 'today'.")
+    @Schema(description = "Effective date, default is `Today`.")
     private LocalDate effectiveDate;
 
     @Schema(description = "Sub queries for relational fields: {fieldName: SubQuery}", example = "{}")
