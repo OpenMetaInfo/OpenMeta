@@ -1,6 +1,6 @@
-package info.openmeta.starter.metadata.message;
+package info.openmeta.framework.web.message;
 
-import info.openmeta.starter.metadata.message.dto.ReloadMetadataMessage;
+import info.openmeta.framework.web.message.dto.InnerBroadcastMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendCallback;
@@ -15,23 +15,23 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class ReloadMetadataProducer {
+public class InnerBroadcastProducer {
 
-    @Value("${rocketmq.topics.reload-metadata:}")
-    private String reloadMetadataTopic;
+    @Value("${rocketmq.topics.inner-broadcast:}")
+    private String innerBroadcastTopic;
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
 
     /**
-     * Send reload metadata message to MQ.
+     * Send an inner broadcast message to MQ.
      */
-    public void sendInnerBroadcast(ReloadMetadataMessage message) {
-        if (StringUtils.isBlank(reloadMetadataTopic)) {
-            log.warn("rocketmq.topics.reload-metadata not configured!");
+    public void sendInnerBroadcast(InnerBroadcastMessage message) {
+        if (StringUtils.isBlank(innerBroadcastTopic)) {
+            log.warn("rocketmq.topics.inner-broadcast not configured!");
             return;
         }
-        rocketMQTemplate.asyncSend(reloadMetadataTopic, message, new SendCallback() {
+        rocketMQTemplate.asyncSend(innerBroadcastTopic, message, new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
                 // Success
@@ -39,7 +39,7 @@ public class ReloadMetadataProducer {
 
             @Override
             public void onException(Throwable throwable) {
-                log.error("Failed to send reload metadata message to MQ!", throwable);
+                log.error("Failed to send inner broadcast message to MQ!", throwable);
             }
         });
     }

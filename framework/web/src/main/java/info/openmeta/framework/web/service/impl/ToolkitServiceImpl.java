@@ -2,6 +2,7 @@ package info.openmeta.framework.web.service.impl;
 
 import com.google.common.collect.Sets;
 import info.openmeta.framework.base.constant.BaseConstant;
+import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.FlexQuery;
@@ -10,8 +11,12 @@ import info.openmeta.framework.orm.encrypt.EncryptUtils;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
+import info.openmeta.framework.orm.meta.OptionManager;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.utils.ListUtils;
+import info.openmeta.framework.web.message.InnerBroadcastProducer;
+import info.openmeta.framework.web.message.dto.InnerBroadcastMessage;
+import info.openmeta.framework.web.message.enums.InnerBroadcastType;
 import info.openmeta.framework.web.service.ToolkitService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +34,15 @@ public class ToolkitServiceImpl implements ToolkitService {
 
     @Autowired
     private ModelService<?> modelService;
+
+    @Autowired
+    private ModelManager modelManager;
+
+    @Autowired
+    private OptionManager optionManager;
+
+    @Autowired
+    private InnerBroadcastProducer innerBroadcastProducer;
 
     /**
      * Get the dependent fields for stored cascaded and computed fields.
@@ -155,6 +169,23 @@ public class ToolkitServiceImpl implements ToolkitService {
             }
         }
         return 0;
+    }
+
+    /**
+     * Reload metadata.
+     * The current replica will be unavailable if an exception occurs during the reload,
+     * and the metadata needs to be fixed and reloaded.
+     */
+    @Override
+    public void reloadMetadata() {
+        // Reload the modelManager and optionManager
+        modelManager.init();
+        optionManager.init();
+        // Send an inner broadcast to reload the metadata of replica containers.
+        InnerBroadcastMessage message = new InnerBroadcastMessage();
+        message.setBroadcastType(InnerBroadcastType.RELOAD_METADATA);
+        message.setContext(ContextHolder.cloneContext());
+        innerBroadcastProducer.sendInnerBroadcast(message);
     }
 
 }
