@@ -35,12 +35,31 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
     }
 
     public void build() {
+        // SoftDelete filter processing
+        Filters filters = this.handleSoftDeleted(flexQuery.getFilters());
         // Multi-tenant model, add tenant filtering conditions
-        Filters filters = this.handleMultiTenant(flexQuery.getFilters());
+        filters = this.handleMultiTenant(flexQuery.getFilters());
         // filters
         if (!Filters.isEmpty(filters)) {
             sqlWrapper.where(handleFilters(filters));
         }
+    }
+
+    /**
+     * Update filters based on the softDelete config of the model.
+     * If the model is soft-deleted, and filters do not contain the `disabled` field,
+     * append the ["disable", "=", true] filtering condition to filters.
+     *
+     * @param filters original filters
+     * @return processed filters
+     */
+    private Filters handleSoftDeleted(Filters filters) {
+        if (ModelManager.isSoftDeleted(mainModelName) && !Filters.containsField(filters, ModelConstant.SOFT_DELETED_FIELD)) {
+            Filters deletedFilters = Filters.eq(ModelConstant.SOFT_DELETED_FIELD, true);
+            // Merge the original filters and the softDelete filters ["disable", "=", true]
+            return Filters.merge(filters, deletedFilters);
+        }
+        return filters;
     }
 
     /**

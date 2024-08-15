@@ -512,6 +512,30 @@ public class Filters {
     }
 
     /**
+     * Determine if the filters object contains the specified field.
+     *
+     * @param field field name
+     * @return contains or not
+     */
+    public boolean containsField(String field) {
+        return allFields().contains(field);
+    }
+
+    /**
+     * Determine if the filters object contains the specified field.
+     *
+     * @param filters filters object
+     * @param field field name
+     * @return contains or not
+     */
+    public static boolean containsField(Filters filters, String field) {
+        if (Filters.isEmpty(filters)) {
+            return false;
+        }
+        return filters.allFields().contains(field);
+    }
+
+    /**
      * Convert original list object to filters object. Trim field and operator.
      *
      * @param filterList the original list object to be converted.
