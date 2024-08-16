@@ -1,14 +1,11 @@
 package info.openmeta.framework.web.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import info.openmeta.framework.base.constant.TimeConstant;
-import info.openmeta.framework.web.interceptor.ContextInterceptor;
 import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -16,20 +13,16 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
 /**
- * Web Config
+ * Base Web Config
  */
 @Configuration
 public class BaseWebConfig implements WebMvcConfigurer {
-
-    @Autowired
-    private ContextInterceptor contextInterceptor;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -37,25 +30,8 @@ public class BaseWebConfig implements WebMvcConfigurer {
     @Autowired
     private MessageSource messageSource;
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        // Exclude Swagger resources and interfaces
-        List<String> excludePathPatterns = Lists.newArrayList(
-                "/**/v3/api-docs/**",
-                "/**/swagger-ui/**",
-                "/**/swagger-ui.html",
-                "/**/login"
-        );
-
-        // Add the Context interceptor to inject user environment variables
-        registry.addInterceptor(contextInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns(excludePathPatterns)
-                .order(Ordered.HIGHEST_PRECEDENCE);
-    }
-
     /**
-     * Define validation message as key and get the translation.
+     * Define the validation message as key and get the translation.
      */
     @Override
     public Validator getValidator() {
@@ -65,7 +41,7 @@ public class BaseWebConfig implements WebMvcConfigurer {
     }
 
     /**
-     * Serializes object using Jackson.
+     * Serializes objects using Jackson.
      *
      * @param converters converters
      */

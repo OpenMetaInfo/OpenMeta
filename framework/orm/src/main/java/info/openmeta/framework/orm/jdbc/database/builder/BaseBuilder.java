@@ -69,7 +69,7 @@ public abstract class BaseBuilder {
                 // Exclude OneToMany/ManyToMany fields of the cascade field, only retain OneToOne/ManyToOne for calculating the alias of the last field
                 Assert.isTrue(!FieldType.TO_MANY_TYPES.contains(fieldType), "Cannot read OneToMany/ManyToMany field by cascading, or sort by it {1}", logicField, fieldName);
                 if (i < cascadeFields.size() - 1) {
-                    // If current field is not the last field, then the alias of the current field associated table,
+                    // If the current field is not the last field, then the alias of the current field associated table
                     // is the leftAlias of the next level associated field.
                     String rightAlias = sqlWrapper.getRightTableAliasByFieldChain(fieldChain.toString());
                     sqlWrapper.leftJoin(metaField, lastAlias, rightAlias, flexQuery.isAcrossTimeline());
@@ -85,7 +85,7 @@ public abstract class BaseBuilder {
     }
 
     /**
-     * Parse simple field, may be a single field, or an alias of aggregation function query.
+     * Parse a simple field, may be a single field, or an alias of aggregation function query.
      *
      * @param simpleField simple field
      * @return field with alias, used for select ..., groupBy ..., orderBy ...

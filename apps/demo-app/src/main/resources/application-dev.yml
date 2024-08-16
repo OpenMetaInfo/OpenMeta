@@ -48,4 +48,4 @@ rocketmq:
     flow-async-task:
     flow-event:
     common-log:
-    reload-metadata:
+    inner-broadcast: openmeta-platform-inner-broadcast

@@ -1,4 +1,4 @@
-package info.openmeta.app.runtime;
+package info.openmeta.app.demo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
