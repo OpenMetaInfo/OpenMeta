@@ -3,6 +3,7 @@ package info.openmeta.app.demo.config;
 import com.google.common.collect.Lists;
 import info.openmeta.framework.web.interceptor.ContextInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -19,6 +20,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private ContextInterceptor contextInterceptor;
 
+    /**
+     * Enable authentication
+     */
+    @Value("${system.enable-auth:}")
+    private Boolean enableAuth;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // Exclude Swagger resources and interfaces
@@ -28,12 +35,14 @@ public class WebConfig implements WebMvcConfigurer {
                 "/**/swagger-ui.html",
                 "/**/login"
         );
-
         // Add the Context interceptor to inject user environment variables
-        registry.addInterceptor(contextInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns(excludePathPatterns)
-                .order(Ordered.HIGHEST_PRECEDENCE);
+        if (Boolean.TRUE.equals(enableAuth)) {
+            // Add the Context interceptor to inject user environment variables
+            registry.addInterceptor(contextInterceptor)
+                    .addPathPatterns("/**")
+                    .excludePathPatterns(excludePathPatterns)
+                    .order(Ordered.HIGHEST_PRECEDENCE);
+        }
     }
 }
 
