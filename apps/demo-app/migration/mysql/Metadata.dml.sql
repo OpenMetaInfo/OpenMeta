@@ -6,7 +6,6 @@ DELETE FROM sys_field WHERE model_name = 'SysModel';
 INSERT INTO sys_model(label_name, model_name, table_name, description, default_order, display_name, timeline, soft_delete, multi_tenant, version_lock, partition_field)
     VALUES('System Model', 'SysModel', 'sys_model', '', 'modelName', 'modelName,labelName', false, false,  false, false, '');
 
-field
 INSERT INTO sys_field(label_name, field_name, column_name, model_name, description, field_type, option_set_code, related_model, related_field, inverse_link_field, auto_bind_many, auto_expand_many, cascaded_field, display_name, filters, default_value, length, scale, required, readonly, translatable, copyable, unsearchable, computed, expression, dynamic, encrypted, masking_type)
     VALUES('ID', 'id', 'id', 'SysModel', '', 'Long', '', '', '', '', 0, 0, '', '', '', "", 32, 0, 0, 0, 0, 0, 0, 0, '', 0, 0, '');
 INSERT INTO sys_field(label_name, field_name, column_name, model_name, description, field_type, option_set_code, related_model, related_field, inverse_link_field, auto_bind_many, auto_expand_many, cascaded_field, display_name, filters, default_value, length, scale, required, readonly, translatable, copyable, unsearchable, computed, expression, dynamic, encrypted, masking_type)

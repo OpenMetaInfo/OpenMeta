@@ -35,7 +35,7 @@ CREATE TABLE sys_field(
     field_name VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Field Name' ,
     column_name VARCHAR(64)   DEFAULT '' COMMENT 'Column Name' ,
     model_name VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Model Name' ,
-    model_id BIGINT(32) NOT NULL   COMMENT 'Model ID' ,
+    model_id BIGINT(32)    COMMENT 'Model ID' ,
     description VARCHAR(256)   DEFAULT '' COMMENT 'Description' ,
     field_type VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Field Type' ,
     option_set_code VARCHAR(64)   DEFAULT '' COMMENT 'Option Set Code;Set when FieldType is Option or MultiOption' ,

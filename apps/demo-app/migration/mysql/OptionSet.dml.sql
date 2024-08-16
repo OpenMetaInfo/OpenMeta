@@ -82,3 +82,13 @@ INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('StorageType','ES','ElasticSearch',2,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('StorageType','OLAP','OLAP Engine',3,'','','');
 
+-- Option Set: BooleanValue
+-- Clean up historical data
+DELETE FROM sys_option_set WHERE option_set_code='BooleanValue';
+DELETE FROM sys_option_item WHERE option_set_code='BooleanValue';
+-- Insert option set
+INSERT INTO sys_option_set(option_set_code,name,description) VALUES('BooleanValue','Boolean Option','');
+-- Insert option set items
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('BooleanValue','true','Yes',1,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('BooleanValue','false','No',2,'','','');
+
