@@ -16,7 +16,7 @@ import java.util.Set;
 public interface JdbcService<K extends Serializable> {
 
     /**
-     * Batch create data and return the result.
+     * Batch creates data and returns the result.
      *
      * @param rows List of data to be created
      * @return List<Map> results
@@ -25,7 +25,7 @@ public interface JdbcService<K extends Serializable> {
 
     /**
      * Read multiple rows by ids.
-     * If the fields is not specified, all accessible fields as the default.
+     * If the fields are not specified, all accessible fields as the default.
      *
      * @param modelName Model name
      * @param ids    List of data ids

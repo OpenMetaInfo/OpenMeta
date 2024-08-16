@@ -4,8 +4,8 @@ import info.openmeta.framework.web.controller.vo.ModelField;
 import info.openmeta.framework.web.controller.vo.ModelFields;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.framework.web.service.ToolkitService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,5 +51,17 @@ public class ToolkitController {
     public ApiResponse<Long> fixUnencryptedData(@RequestBody @Valid ModelField modelField) {
         Long result = toolkitService.fixUnencryptedData(modelField.getModel(), modelField.getField());
         return ApiResponse.success(result);
+    }
+
+    /**
+     * Reload metadata.
+     * The current replica will be unavailable if an exception occurs during the reload,
+     * and the metadata needs to be fixed and reloaded.
+     */
+    @Operation(summary = "Reload metadata")
+    @PostMapping("/reloadMetadata")
+    public ApiResponse<Boolean> reloadModelManager() {
+        toolkitService.reloadMetadata();
+        return ApiResponse.success(true);
     }
 }

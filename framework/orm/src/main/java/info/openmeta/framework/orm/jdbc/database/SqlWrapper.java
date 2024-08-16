@@ -3,7 +3,6 @@ package info.openmeta.framework.orm.jdbc.database;
 import com.google.common.collect.Sets;
 import info.openmeta.framework.base.constant.TimeConstant;
 import info.openmeta.framework.base.context.ContextHolder;
-import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Orders;
@@ -206,13 +205,7 @@ public class SqlWrapper {
      * @param fieldName field name
      */
     public void accessModelField(String modelName, String fieldName) {
-        // When using the `searchName` virtual field for search, split it into the original field combination.
-        // For example: `searchName = "name,code"`, then split it into two fields: `name` and `code`.
-        if (fieldName.equals(ModelConstant.SEARCH_NAME)) {
-            List<String> searchName = ModelManager.getModel(modelName).getSearchName();
-            Assert.notEmpty(searchName, "The `searchName` is not configured for model {0}, so searchName cannot be used as the query condition!", modelName);
-            searchName.forEach(f -> this.accessModelField(modelName, f));
-        } else if (accessModelFields.containsKey(modelName)) {
+        if (accessModelFields.containsKey(modelName)) {
             accessModelFields.get(modelName).add(fieldName);
         } else {
             accessModelFields.put(modelName, Sets.newHashSet(fieldName));

@@ -1,12 +1,12 @@
-package info.openmeta.framework.web.interceptor;
+package info.openmeta.app.demo.interceptor;
 
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.constant.RedisConstant;
 import info.openmeta.framework.base.context.Context;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.context.UserInfo;
-import info.openmeta.framework.base.context.UserPermission;
 import info.openmeta.framework.base.utils.JsonMapper;
+import info.openmeta.framework.web.interceptor.ContextInterceptor;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.framework.web.service.CacheService;
 import info.openmeta.framework.web.utils.CookieUtils;
@@ -61,25 +61,39 @@ public class ContextInterceptorImpl implements ContextInterceptor {
             // If sessionId is not found in cookies, get it from the request header
             sessionId = request.getHeader(BaseConstant.SESSION_ID);
         }
+        boolean redirectToLogin = false;
         if (sessionId == null) {
             // If no sessionId is provided, log an error and redirect to the login page
-            log.error("ContextInterceptorImpl.preHandle: sessionId is null");
-            redirectLogin(response);
-            return false;
+            log.warn("ContextInterceptorImpl.preHandle: sessionId is null");
+            redirectToLogin = true;
         }
         Long userId = cacheService.get(RedisConstant.SESSION + sessionId, Long.class);
         if (userId == null) {
             // If sessionId is invalid, redirect to the login page
-            redirectLogin(response);
-            return false;
+            redirectToLogin = true;
         }
         UserInfo userInfo = cacheService.get(RedisConstant.USER_INFO + userId, UserInfo.class);
         if (userInfo == null) {
             // If userInfo does not exist, redirect to the login page
-            redirectLogin(response);
+            redirectToLogin = true;
+        }
+        if (redirectToLogin) {
+            redirectLoginResponse(response);
             return false;
         }
-        // Set user context with info like trace ID, user ID, language, timezone, and permissions
+        setupUserContext(request, userInfo);
+        return true;
+    }
+
+    /**
+     * Setup user context with user info.
+     * Extract the `debug` parameter from the URI to enable debug mode.
+     *
+     * @param request the current HTTP request
+     * @param userInfo the user info
+     */
+    @Override
+    public void setupUserContext(HttpServletRequest request, UserInfo userInfo) {
         Context context = new Context(request.getHeader("traceId"));
         context.setUserId(userInfo.getId());
         context.setName(userInfo.getName());
@@ -88,26 +102,21 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         context.setTenantId(userInfo.getTenantId());
         context.setUserInfo(userInfo);
 
-        UserPermission userPermission = cacheService.get(RedisConstant.USER_PERMISSIONS + userId, UserPermission.class);
-        context.setUserPermission(userPermission);
-
-        ContextHolder.setContext(context);
-
-        // If the `debug` parameter is set in the URI, enable debug mode in the context.
+        // If the `debug` parameter appears in the URI, enable debug mode in the context.
         String debug = request.getParameter(BaseConstant.DEBUG);
         if (Boolean.parseBoolean(debug) || "1".equals(debug)) {
             context.setDebug(true);
         }
-        return true;
+        ContextHolder.setContext(context);
     }
 
     /**
-     * Init context for anonymous users or requests that do not require permission check.
+     * Setup context for anonymous users or requests that do not require permission check.
      * Extract language from request headers or query params, and timezone from customized request headers.
      *
      * @param exchange the server exchange for reactive requests
      */
-    public static void initAnonymousContext(ServerWebExchange exchange) {
+    public void setupAnonymousContext(ServerWebExchange exchange) {
         Context context = new Context();
         HttpHeaders headers = exchange.getRequest().getHeaders();
         String language = headers.getFirst("Accept-Language");
@@ -125,12 +134,12 @@ public class ContextInterceptorImpl implements ContextInterceptor {
     }
 
     /**
-     * Set response as a json response body that contains redirection information to login,
+     * Set response as a JSON response body that contains redirection information to login,
      * enabling client custom redirection.
      *
      * @param response the HTTP response
      */
-    private void redirectLogin(HttpServletResponse response) {
+    private void redirectLoginResponse(HttpServletResponse response) {
         try {
             ApiResponse<String> redirectResponse = ApiResponse.redirect(loginUrl);
             String jsonResponse = JsonMapper.objectToString(redirectResponse);
@@ -142,19 +151,4 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         }
     }
 
-    /**
-     * Clean up the threadLocal after request completion.
-     *
-     * @param request  the current HTTP request
-     * @param response the HTTP response
-     * @param handler  the object that handles the HTTP request
-     * @param e        exception
-     */
-    @Override
-    public void afterCompletion(@Nonnull HttpServletRequest request,
-                                @Nonnull HttpServletResponse response,
-                                @Nonnull Object handler,
-                                Exception e) {
-        ContextHolder.removeContext();
-    }
 }

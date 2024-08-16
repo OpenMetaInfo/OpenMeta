@@ -28,7 +28,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
     }
 
     public void build() {
-        // Just handle the select conditions for non-aggregate queries
+        // Handle the select conditions for non-aggregate queries
         if (!flexQuery.isAggregate()) {
             // Process `distinct` before adding `SELECT` fields
             if (flexQuery.isDistinct()) {

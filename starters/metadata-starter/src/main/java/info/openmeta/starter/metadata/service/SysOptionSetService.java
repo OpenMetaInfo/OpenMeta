@@ -8,9 +8,4 @@ import info.openmeta.framework.orm.service.EntityService;
  */
 public interface SysOptionSetService extends EntityService<SysOptionSet, Long> {
 
-    /**
-     * Reload the memory cache of option set metadata.
-     */
-    void reloadOptionManager();
-
 }

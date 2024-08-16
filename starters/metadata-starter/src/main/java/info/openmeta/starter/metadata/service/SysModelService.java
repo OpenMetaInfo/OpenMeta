@@ -8,8 +8,4 @@ import info.openmeta.framework.orm.service.EntityService;
  */
 public interface SysModelService extends EntityService<SysModel, Long> {
 
-    /**
-     * Reload the memory cache of model metadata.
-     */
-    void reloadModelManager();
 }

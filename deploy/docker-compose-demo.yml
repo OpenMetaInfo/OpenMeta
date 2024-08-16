@@ -1,0 +1,44 @@
+services:
+
+  redis:
+    image: redis:7.2.5-alpine
+    command: redis-server --requirepass admin
+    ports:
+      - 6379:6379
+
+#  postgres:
+#    image: postgres:16.3-alpine
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - ./postgres-data:/var/lib/postgresql/data
+
+  mysql:
+    image: mysql:8.3.0
+    ports:
+      - 3306:3306
+    environment:
+      # For testing environment only
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=demo
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=admin
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+#  openmeta:
+#    image: openmeta/demo:latest
+#    ports:
+#      - 80:80
+#    depends_on:
+#      - redis
+#      - mysql
+
+#  nginx:
+#    image: nginx:1.27.0-alpine
+#    ports:
+#      - 80:80
+##    depends_on:
+##      - openmeta
+#    volumes:
+#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
