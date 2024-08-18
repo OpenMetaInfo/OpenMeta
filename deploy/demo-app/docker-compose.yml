@@ -25,6 +25,8 @@ services:
       - MYSQL_PASSWORD=admin
     volumes:
       - ~/mysql_data:/var/lib/mysql
+      # Specify the directory containing the initial SQL scripts
+      - ./init_mysql:/docker-entrypoint-initdb.d
 
 #  openmeta:
 #    image: openmeta/demo:latest
