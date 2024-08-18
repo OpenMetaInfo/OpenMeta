@@ -57,7 +57,7 @@ INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('MaskingType','IdNumber','Masks ID Number',5,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('MaskingType','CardNumber','Masks Card Number',6,'','','');
 
--- Option set: IdStrategy
+-- Option Set: IdStrategy
 -- Clean up historical data
 DELETE FROM sys_option_set WHERE option_set_code='IdStrategy';
 DELETE FROM sys_option_item WHERE option_set_code='IdStrategy';
@@ -65,9 +65,9 @@ DELETE FROM sys_option_item WHERE option_set_code='IdStrategy';
 INSERT INTO sys_option_set(option_set_code,name,description) VALUES('IdStrategy','ID Strategy','');
 -- Insert option set items
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','DbAutoID','DB Auto-increment ID',1,'','','');
-INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','SnowflakeID','Snowflake ID',2,'','','');
-INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','ObjectID','Object ID',3,'','','');
-INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','ShortUUID','Short UUID',4,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','ULID','ULID',2,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','TSIDLong','Long Time-Sorted ID',3,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','TSIDString','String Time-Sorted ID',4,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','UUID','UUID',5,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','ExternalID','External ID',6,'','','');
 

@@ -9,7 +9,7 @@ CREATE TABLE sys_model(
     search_name VARCHAR(255)   DEFAULT '' COMMENT 'Search Name' ,
     table_name VARCHAR(64)   DEFAULT '' COMMENT 'Table Name' ,
     timeline TINYINT(1)   DEFAULT 0 COMMENT 'Is Timeline Model' ,
-    id_strategy VARCHAR(64)   DEFAULT 'DbAutoId' COMMENT 'ID Strategy' ,
+    id_strategy VARCHAR(64)   DEFAULT 'DbAutoID' COMMENT 'ID Strategy' ,
     storage_type VARCHAR(64)   DEFAULT 'RDBMS' COMMENT 'Storage Type' ,
     version_lock TINYINT(1)   DEFAULT 0 COMMENT 'Enable Version Lock' ,
     multi_tenant TINYINT(1)   DEFAULT 0 COMMENT 'Enable Multi-tenancy' ,

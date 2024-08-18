@@ -24,7 +24,7 @@ services:
       - MYSQL_USER=admin
       - MYSQL_PASSWORD=admin
     volumes:
-      - ./mysql_data:/var/lib/mysql
+      - ~/mysql_data:/var/lib/mysql
 
 #  openmeta:
 #    image: openmeta/demo:latest
