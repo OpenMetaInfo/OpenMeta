@@ -1,6 +1,6 @@
-package info.openmeta.framework.web.message;
+package info.openmeta.starter.metadata.message;
 
-import info.openmeta.framework.web.message.dto.InnerBroadcastMessage;
+import info.openmeta.starter.metadata.message.dto.InnerBroadcastMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendCallback;

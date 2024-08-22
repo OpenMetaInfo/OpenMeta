@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Metadata Upgrade Service.
  */
-public interface MetadataUpgradeService {
+public interface MetadataService {
 
     /**
      /**
@@ -18,4 +18,10 @@ public interface MetadataUpgradeService {
      */
     void upgradeMetadata(List<MetadataUpgradePackage> metadataPackages);
 
+    /**
+     * Reload metadata.
+     * The current replica will be unavailable if an exception occurs during the reload,
+     * and the metadata needs to be fixed and reloaded.
+     */
+    void reloadMetadata();
 }

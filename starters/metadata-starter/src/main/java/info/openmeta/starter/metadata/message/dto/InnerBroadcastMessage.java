@@ -1,7 +1,7 @@
-package info.openmeta.framework.web.message.dto;
+package info.openmeta.starter.metadata.message.dto;
 
 import info.openmeta.framework.base.context.Context;
-import info.openmeta.framework.web.message.enums.InnerBroadcastType;
+import info.openmeta.starter.metadata.message.enums.InnerBroadcastType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

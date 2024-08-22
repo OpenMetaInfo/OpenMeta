@@ -1,13 +1,17 @@
 package info.openmeta.starter.metadata.service.impl;
 
 import info.openmeta.framework.base.constant.BaseConstant;
+import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.dto.MetadataUpgradePackage;
+import info.openmeta.starter.metadata.message.InnerBroadcastProducer;
+import info.openmeta.starter.metadata.message.dto.InnerBroadcastMessage;
+import info.openmeta.starter.metadata.message.enums.InnerBroadcastType;
 import info.openmeta.starter.metadata.constant.MetadataConstant;
-import info.openmeta.starter.metadata.service.MetadataUpgradeService;
+import info.openmeta.starter.metadata.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +25,13 @@ import java.util.Map;
  * Metadata upgrade service implementation.
  */
 @Service
-public class MetadataUpgradeServiceImpl implements MetadataUpgradeService {
+public class MetadataServiceImpl implements MetadataService {
 
     @Autowired
     private ModelService<Long> modelService;
+
+    @Autowired
+    private InnerBroadcastProducer innerBroadcastProducer;
 
     /**
      * The size of operation data in a single API call cannot exceed the MAX_BATCH_SIZE.
@@ -108,5 +115,19 @@ public class MetadataUpgradeServiceImpl implements MetadataUpgradeService {
             // delete
             this.deleteByCode(modelName, modelPackage.getDeleteCodes());
         });
+    }
+
+    /**
+     * Reload metadata.
+     * The current replica will be unavailable if an exception occurs during the reload,
+     * and the metadata needs to be fixed and reloaded.
+     */
+    @Override
+    public void reloadMetadata() {
+        // Send an inner broadcast to reload the metadata of replica containers.
+        InnerBroadcastMessage message = new InnerBroadcastMessage();
+        message.setBroadcastType(InnerBroadcastType.RELOAD_METADATA);
+        message.setContext(ContextHolder.cloneContext());
+        innerBroadcastProducer.sendInnerBroadcast(message);
     }
 }

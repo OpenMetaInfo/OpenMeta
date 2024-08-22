@@ -1,10 +1,10 @@
-package info.openmeta.framework.web.message;
+package info.openmeta.starter.metadata.message;
 
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.meta.OptionManager;
-import info.openmeta.framework.web.message.dto.InnerBroadcastMessage;
-import info.openmeta.framework.web.message.enums.InnerBroadcastType;
+import info.openmeta.starter.metadata.message.dto.InnerBroadcastMessage;
+import info.openmeta.starter.metadata.message.enums.InnerBroadcastType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
