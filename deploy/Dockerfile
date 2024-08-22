@@ -4,8 +4,7 @@ ARG APP_NAME=demo-app
 ARG APP_VERSION=0.3.2
 
 # Stage 1: Build app jar
-#FROM maven:3.9.8-eclipse-temurin-21-alpine as BUILD_JAR
-FROM openmeta/base-image:${APP_VERSION} as BUILD_JAR
+FROM maven:3.9.8-eclipse-temurin-21-alpine AS build_stage
 
 ARG APP_NAME
 COPY . /build/
@@ -21,7 +20,7 @@ ENV APP_NAME=${APP_NAME} \
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY --from=BUILD_JAR /build/apps/${APP_NAME}/target/${APP_NAME}.jar /app/
+COPY --from=build_stage /build/apps/${APP_NAME}/target/${APP_NAME}.jar /app/
 COPY ./deploy/entrypoint.sh /app/entrypoint.sh
 
 WORKDIR /app
