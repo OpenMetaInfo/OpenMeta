@@ -53,15 +53,4 @@ public class ToolkitController {
         return ApiResponse.success(result);
     }
 
-    /**
-     * Reload metadata.
-     * The current replica will be unavailable if an exception occurs during the reload,
-     * and the metadata needs to be fixed and reloaded.
-     */
-    @Operation(summary = "Reload metadata")
-    @PostMapping("/reloadMetadata")
-    public ApiResponse<Boolean> reloadModelManager() {
-        toolkitService.reloadMetadata();
-        return ApiResponse.success(true);
-    }
 }

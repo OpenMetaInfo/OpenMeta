@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.message.enums;
+package info.openmeta.starter.metadata.message.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;

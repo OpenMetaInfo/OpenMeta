@@ -24,10 +24,4 @@ public interface ToolkitService {
      */
     Long fixUnencryptedData(String modelName, String fieldName);
 
-    /**
-     * Reload metadata.
-     * The current replica will be unavailable if an exception occurs during the reload,
-     * and the metadata needs to be fixed and reloaded.
-     */
-    void reloadMetadata();
 }
