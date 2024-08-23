@@ -16,11 +16,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.server.ServerWebExchange;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -36,6 +34,13 @@ public class ContextInterceptorImpl implements ContextInterceptor {
 
     @Autowired
     private CacheService cacheService;
+
+    /**
+     * Enable authentication
+     * Only used in the demo app
+     */
+    @Value("${system.enable-auth:}")
+    private Boolean enableAuth;
 
     /**
      * Login address, default to `/login`
@@ -56,6 +61,12 @@ public class ContextInterceptorImpl implements ContextInterceptor {
     public boolean preHandle(@Nonnull HttpServletRequest request,
                              @Nonnull HttpServletResponse response,
                              @Nonnull Object handler) {
+        // Should be removed in non-demo apps
+        if (!Boolean.TRUE.equals(enableAuth)) {
+            // If authentication is disabled, set up an anonymous context
+            setupAnonymousContext(request);
+            return true;
+        }
         String sessionId = CookieUtils.getCookie(request, BaseConstant.SESSION_ID);
         if (sessionId == null) {
             // If sessionId is not found in cookies, get it from the request header
@@ -101,12 +112,7 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(userInfo.getTimezone())));
         context.setTenantId(userInfo.getTenantId());
         context.setUserInfo(userInfo);
-
-        // If the `debug` parameter appears in the URI, enable debug mode in the context.
-        String debug = request.getParameter(BaseConstant.DEBUG);
-        if (Boolean.parseBoolean(debug) || "1".equals(debug)) {
-            context.setDebug(true);
-        }
+        this.setDebugModeFromRequest(request, context);
         ContextHolder.setContext(context);
     }
 
@@ -114,23 +120,37 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      * Setup context for anonymous users or requests that do not require permission check.
      * Extract language from request headers or query params, and timezone from customized request headers.
      *
-     * @param exchange the server exchange for reactive requests
+     * @param request  the current HTTP request
      */
-    public void setupAnonymousContext(ServerWebExchange exchange) {
+    public void setupAnonymousContext(HttpServletRequest request) {
         Context context = new Context();
-        HttpHeaders headers = exchange.getRequest().getHeaders();
-        String language = headers.getFirst("Accept-Language");
+        // Set language and timezone from request headers or query params
+        String language = request.getHeader("Accept-Language");
         if (!StringUtils.hasText(language)) {
-            language = exchange.getRequest().getQueryParams().getFirst("language");
+            language = request.getParameter("language");
         }
         if (StringUtils.hasText(language)) {
             context.setLanguage(Locale.forLanguageTag(language));
         }
-        String timezone = headers.getFirst("X-Timezone");
+        String timezone = request.getHeader("X-Timezone");
         if (StringUtils.hasText(timezone)) {
             context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(timezone)));
         }
+        this.setDebugModeFromRequest(request, context);
         ContextHolder.setContext(context);
+    }
+
+    /**
+     * Extract the `debug` parameter from the URI to enable debug mode.
+     *
+     * @param request the current HTTP request
+     * @param context the current context
+     */
+    private void setDebugModeFromRequest(HttpServletRequest request, Context context) {
+        String debug = request.getParameter(BaseConstant.DEBUG);
+        if (Boolean.parseBoolean(debug) || "1".equals(debug)) {
+            context.setDebug(true);
+        }
     }
 
     /**

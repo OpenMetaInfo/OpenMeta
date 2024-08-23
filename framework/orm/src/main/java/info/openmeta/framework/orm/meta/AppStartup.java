@@ -4,6 +4,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,9 +22,13 @@ public class AppStartup implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        // 1. init model manager
-        modelManager.init();
-        // 2. init option manager
-        optionManager.init();
+        try {
+            // 1. init model manager
+            modelManager.init();
+            // 2. init option manager
+            optionManager.init();
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new RuntimeException("Database connection failed, please check the database configuration.");
+        }
     }
 }
