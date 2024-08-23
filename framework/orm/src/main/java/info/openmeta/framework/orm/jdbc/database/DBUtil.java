@@ -83,7 +83,7 @@ public class DBUtil {
      */
     public static String wrapHint(String originSql) {
         Context context = ContextHolder.getContext();
-        if (context != null && context.isReadPrimary()) {
+        if (context.isReadPrimary()) {
             // Add the SQL Hint for reading the primary database
             String sqlHint = "/* " + READ_PRIMARY_SQL_HINT + " */ ";
             return sqlHint + originSql;

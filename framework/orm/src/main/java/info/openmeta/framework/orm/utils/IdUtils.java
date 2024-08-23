@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * ID primary field format, mainly used for id field type is Long,
+ * ID primary field format, mainly used for an id field type is Long,
  * the generic interface parameter may be String or Integer, need to convert the id parameter to Long type.
  */
 public class IdUtils {

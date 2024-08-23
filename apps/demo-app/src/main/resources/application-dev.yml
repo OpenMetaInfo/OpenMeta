@@ -1,6 +1,7 @@
 debug: false
 system:
   name: Demo Application
+  enable-auth: false
 security:
   encryption:
     password: 12345678
@@ -34,7 +35,7 @@ spring:
 #    password: your_password
 #    index:
 #      changelog: demo_dev_changelog
-
+#
 #rocketmq:
 #  name-server: 127.0.0.1:9876
 #  producer:
@@ -48,4 +49,4 @@ spring:
 #    flow-async-task:
 #    flow-event:
 #    common-log:
-#    reload-metadata:
+#    inner-broadcast: openmeta-platform-inner-broadcast

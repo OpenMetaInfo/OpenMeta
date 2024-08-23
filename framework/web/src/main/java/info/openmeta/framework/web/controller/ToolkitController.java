@@ -4,8 +4,8 @@ import info.openmeta.framework.web.controller.vo.ModelField;
 import info.openmeta.framework.web.controller.vo.ModelFields;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.framework.web.service.ToolkitService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,4 +52,5 @@ public class ToolkitController {
         Long result = toolkitService.fixUnencryptedData(modelField.getModel(), modelField.getField());
         return ApiResponse.success(result);
     }
+
 }

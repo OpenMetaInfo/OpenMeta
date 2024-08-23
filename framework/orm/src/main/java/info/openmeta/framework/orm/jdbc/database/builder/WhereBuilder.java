@@ -35,12 +35,31 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
     }
 
     public void build() {
+        // SoftDelete filter processing
+        Filters filters = this.handleSoftDeleted(flexQuery.getFilters());
         // Multi-tenant model, add tenant filtering conditions
-        Filters filters = this.handleMultiTenant(flexQuery.getFilters());
+        filters = this.handleMultiTenant(filters);
         // filters
         if (!Filters.isEmpty(filters)) {
             sqlWrapper.where(handleFilters(filters));
         }
+    }
+
+    /**
+     * Update filters based on the softDelete config of the model.
+     * If the model is soft-deleted, and filters do not contain the `disabled` field,
+     * append the ["disable", "=", true] filtering condition to filters.
+     *
+     * @param filters original filters
+     * @return processed filters
+     */
+    private Filters handleSoftDeleted(Filters filters) {
+        if (ModelManager.isSoftDeleted(mainModelName) && !Filters.containsField(filters, ModelConstant.SOFT_DELETED_FIELD)) {
+            Filters deletedFilters = Filters.eq(ModelConstant.SOFT_DELETED_FIELD, true);
+            // Merge the original filters and the softDelete filters ["disable", "=", true]
+            return Filters.merge(filters, deletedFilters);
+        }
+        return filters;
     }
 
     /**
@@ -149,10 +168,10 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
             // Search by main model `searchName` directly.
             return this.parseSearchName(filterUnit, xToManyBuilder);
         } else if (logicField.contains(".")) {
-            // Cascade field processing: f0.f1.f2.f3
+            // Cascade field processing `f0.f1.f2.f3`
             return this.parseCascadeField(filterUnit, xToManyBuilder);
         } else {
-            // Non-cascade field processing: t.column = ?
+            // Non-cascade field processing: `t.column = ?`
             MetaField metaField = ModelManager.getModelField(mainModelName, logicField);
             sqlWrapper.accessModelField(mainModelName, logicField);
             // For non-relational fields, convert the filterUnit operator and query value.
@@ -195,16 +214,16 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
                     FilterUnit newUnit = new FilterUnit(fieldsOfMany, filterUnit.getOperator(), filterUnit.getValue());
                     xToManyBuilder.addXToManyFilterUnit(currentAlias, metaField, newUnit);
                     // XToMany fields are temporarily stored and an empty StringBuilder object is returned directly,
-                    // and the sql is processed separately
+                    // and the SQL is processed separately
                     return new StringBuilder();
                 } else if (i < size - 1) {
-                    // Current xToOne field is not the last field, add it as a leftJoin condition.
+                    // The Current xToOne field is not the last field, add it as a leftJoin condition.
                     String fieldChain = String.join(".", cascadeFields.subList(0, i + 1));
                     String rightAlias = sqlWrapper.getRightTableAliasByFieldChain(fieldChain);
                     sqlWrapper.leftJoin(metaField, currentAlias, rightAlias, flexQuery.isAcrossTimeline());
-                    // The alias of the associated table of current xToOne field, is used as the currentAlias for next loop
+                    // The alias of the associated table for current xToOne field is used as the currentAlias for next loop
                     currentAlias = rightAlias;
-                    // The associated model of current xToOne field, is used as the currentModelName for next loop
+                    // The associated model of current xToOne field is used as the currentModelName for next loop
                     currentModelName = metaField.getRelatedModel();
                 }
             } else {
@@ -228,13 +247,15 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
      *
      * @param filterUnit Single filter unit
      * @param xToManyBuilder XToMany query condition builder at the same level
-     * @return `OR` sql conditions based on searchName, such as: (c1 or c2)
+     * @return `OR` SQL conditions based on searchName, such as (c1 or c2)
      */
     private StringBuilder parseSearchName(FilterUnit filterUnit, FilterXToManyParser xToManyBuilder) {
         List<String> searchNames = ModelManager.getModel(mainModelName).getSearchName();
         Assert.notEmpty(searchNames,
-                "The `searchName` of the model {0} is empty and cannot be used as a query condition!",
-                mainModelName);
+                "The `searchName` of model {0} is not configured and cannot be used in filter {1}",
+                mainModelName, filterUnit.toString());
+        searchNames.forEach(f -> sqlWrapper.accessModelField(mainModelName, f));
+        // Construct the `OR` condition search based on the `searchName` fields.
         Operator operator = filterUnit.getOperator();
         Object value = filterUnit.getValue();
         StringBuilder filterUnitSql = new StringBuilder();

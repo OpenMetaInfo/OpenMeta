@@ -29,7 +29,6 @@ public class Context implements Serializable {
     private String traceId;
 
     private UserInfo userInfo;
-    private UserPermission userPermission;
 
     /**
      * Whether to skip permission verification (including model permission and data range),

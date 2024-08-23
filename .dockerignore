@@ -1,0 +1,6 @@
+**/target/
+**/.mvn/
+**/.gradle/
+**/.git/
+**/.idea/
+**/node_modules/

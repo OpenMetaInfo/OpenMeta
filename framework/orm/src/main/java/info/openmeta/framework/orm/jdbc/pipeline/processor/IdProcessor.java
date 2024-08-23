@@ -1,14 +1,15 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
+import com.github.f4b6a3.tsid.TsidCreator;
+import com.github.f4b6a3.ulid.UlidCreator;
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.utils.Assert;
-import info.openmeta.framework.base.utils.UUIDUtils;
 import info.openmeta.framework.orm.enums.IdStrategy;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
-import info.openmeta.framework.orm.utils.ObjectId;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -35,14 +36,14 @@ public class IdProcessor extends BaseProcessor {
             case DB_AUTO_ID:
                 // Skip auto-increment ID
                 return;
-            case SNOWFLAKE_ID:
-//                generateIds(rows, IdUtils::snowflakeId);
+            case ULID:
+                generateIds(rows, () -> UlidCreator.getMonotonicUlid().toString());
                 break;
-            case OBJECT_ID:
-                generateIds(rows, () -> ObjectId.get().toString());
+            case TSID_LONG:
+                generateIds(rows, () -> TsidCreator.getTsid().toLong());
                 break;
-            case SHORT_UUID:
-                generateIds(rows, UUIDUtils::short22UUID);
+            case TSID_STRING:
+                generateIds(rows, () -> TsidCreator.getTsid().toString());
                 break;
             case UUID:
                 generateIds(rows, () -> UUID.randomUUID().toString());
@@ -61,7 +62,7 @@ public class IdProcessor extends BaseProcessor {
      * @param rows List of data to be created
      * @param idGenerator ID generator
      */
-    private void generateIds(Collection<Map<String, Object>> rows, Supplier<String> idGenerator) {
+    private void generateIds(Collection<Map<String, Object>> rows, Supplier<Serializable> idGenerator) {
         rows.forEach(row -> row.put(fieldName, idGenerator.get()));
     }
 

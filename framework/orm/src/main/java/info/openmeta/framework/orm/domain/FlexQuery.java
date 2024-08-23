@@ -32,7 +32,7 @@ public class FlexQuery {
 
     // Specifies a list of fields to read
     private Set<String> fields = new HashSet<>();
-    // Filters conditions, can be empty
+    // Filters conditions can be empty
     private Filters filters;
     // `orderBy` rule, using the model default configuration when empty
     private Orders orders;

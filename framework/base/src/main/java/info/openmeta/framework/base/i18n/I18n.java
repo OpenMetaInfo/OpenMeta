@@ -32,7 +32,7 @@ public class I18n {
      */
     public static String get(String original, Object... args){
         Context context = ContextHolder.getContext();
-        if (context == null || BaseConstant.DEFAULT_LANGUAGE.equals(context.getLanguage())) {
+        if (BaseConstant.DEFAULT_LANGUAGE.equals(context.getLanguage())) {
             return MessageFormat.format(original, args);
         } else {
             return get(context.getLanguage(), original, args);

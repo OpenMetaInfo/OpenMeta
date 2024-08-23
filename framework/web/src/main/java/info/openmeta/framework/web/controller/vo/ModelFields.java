@@ -1,9 +1,9 @@
 package info.openmeta.framework.web.controller.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import jakarta.validation.constraints.NotEmpty;
 import java.util.Set;
 
 /**
@@ -14,7 +14,7 @@ import java.util.Set;
 public class ModelFields {
 
     @Schema(description = "Model name")
-    @NotEmpty(message = "The model name cannot be empty!")
+    @NotBlank(message = "The model name cannot be empty!")
     private String model;
 
     @Schema(description = "Field names. If it is empty, all fields meet the conditions by default.")

@@ -41,7 +41,7 @@ public class ExceptionMessageHandler {
             appendUserAndTraceId(builder);
             appendClientIp(builder);
             appendRequestParams(builder);
-        } else if (ContextHolder.getContext() != null) {
+        } else {
             appendUserAndTraceId(builder);
         }
         return builder.toString();
@@ -51,7 +51,7 @@ public class ExceptionMessageHandler {
      * Append user info and TraceID to the builder.
      */
     private void appendUserAndTraceId(StringBuilder builder) {
-        if (ContextHolder.getContext() != null) {
+        if (ContextHolder.existContext()) {
             builder.append(" ; User: ").append(ContextHolder.getContext().getName());
             builder.append(" ; TraceID: ").append(ContextHolder.getContext().getTraceId());
         } else {
