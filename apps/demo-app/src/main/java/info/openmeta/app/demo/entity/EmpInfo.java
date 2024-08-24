@@ -19,25 +19,25 @@ public class EmpInfo extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "员工姓名")
+    @Schema(description = "Name")
     private String name;
 
-    @Schema(description = "员工编号")
+    @Schema(description = "Code")
     private String code;
 
-    @Schema(description = "员工邮箱")
+    @Schema(description = "Email")
     private String email;
 
-    @Schema(description = "员工部门")
+    @Schema(description = "Department")
     private Long deptId;
 
-    @Schema(description = "员工参与项目")
+    @Schema(description = "Projects Involved")
     private List<Long> projectIds;
 
-    @Schema(description = "描述信息")
+    @Schema(description = "Description")
     private String description;
 
-    @Schema(description = "租户ID")
+    @Schema(description = "TenantID")
     private Long tenantId;
 
     @Schema(description = "Disabled")

@@ -18,13 +18,13 @@ public class EmpProjectRel extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "员工ID")
+    @Schema(description = "Employee ID")
     private Long empId;
 
-    @Schema(description = "项目ID")
+    @Schema(description = "Project ID")
     private Long projectId;
 
-    @Schema(description = "租户ID")
+    @Schema(description = "Tenant ID")
     private Long tenantId;
 
     @Schema(description = "Disabled")
