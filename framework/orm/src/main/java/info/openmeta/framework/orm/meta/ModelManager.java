@@ -313,7 +313,7 @@ public class ModelManager {
                 "The `cascadedField` {0} of model {1} field {2} does not valid! The field `{3}` is not a ManyToOne/OneToOne field of current model.",
                 metaField.getCascadedField(), modelName, fieldName, cascadedFields[0]);
         Assert.isTrue(isStored(leftField.getRelatedModel(), cascadedFields[1]),
-                "The `cascadedField` {0} of model {1} field {2} does not valid! The field `{3}` is not a stored field of related model `{4}`.",
+                "The `cascadedField` {0} of model {1} field {2} does not valid! The field `{3}` is a dynamic field of related model `{4}`.",
                 metaField.getCascadedField(), modelName, fieldName, cascadedFields[1], leftField.getRelatedModel());
     }
 
@@ -547,7 +547,7 @@ public class ModelManager {
 
     /**
      * Get the fields of the model that are read by default, including `autoBindMany = true` OneToMany/ManyToMany fields.
-     * To read OneToMany/ManyToMany fields which `autoBindMany = false`, the client needs to use AggQuery/SubQuery.
+     * To read OneToMany/ManyToMany fields which `autoBindMany = false`, the client needs to use QueryParams/SubQuery.
      *
      * @param modelName model name
      * @return fields collection

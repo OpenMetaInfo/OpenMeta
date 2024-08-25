@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.collect.ImmutableMap;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
-import info.openmeta.framework.orm.domain.AggFunctionField;
 import info.openmeta.framework.orm.utils.MapUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -56,16 +55,15 @@ public enum AggFunctionType {
     /**
      * Determine whether the aggregation function type matches the field type
      *
-     * @param aggFunctionField aggregation function field
+     * @param functionType      aggregation function type
      * @param fieldType         field type
+     * @return true if the aggregation function type matches the field type
      */
-    public static void validateFunctionType(AggFunctionField aggFunctionField, FieldType fieldType) {
-        AggFunctionType functionType = aggFunctionField.getType();
+    public static boolean validateFunctionType(AggFunctionType functionType, FieldType fieldType) {
         if (COUNT.equals(functionType)) {
-            return;
+            return true;
         }
-        Set<FieldType> suitableFieldTypes = FUNCTION_TO_FIELD_TYPE_MAP.get(aggFunctionField.getType());
-        Assert.isTrue(suitableFieldTypes != null  && suitableFieldTypes.contains(fieldType),
-                "Aggregate function {0} does not support field type: {1}", aggFunctionField, fieldType.getType());
+        Set<FieldType> suitableFieldTypes = FUNCTION_TO_FIELD_TYPE_MAP.get(functionType);
+        return suitableFieldTypes != null && suitableFieldTypes.contains(fieldType);
     }
 }

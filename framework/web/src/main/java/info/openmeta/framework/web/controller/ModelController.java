@@ -417,7 +417,7 @@ public class ModelController<K extends Serializable> {
      * Support SUM, AVG, MIN, MAX, COUNT aggregation queries.
      *
      * @param modelName model name
-     * @param aggQuery  aggregation query parameters
+     * @param queryParams  aggregation query parameters
      * @return data list in the page
      */
     @PostMapping(value = "/searchPage")
@@ -425,18 +425,10 @@ public class ModelController<K extends Serializable> {
                     "groupBy, aggFunctions, subQueries, etc. Use the backend default value when not specified.")
     @DataMask
     public ApiResponse<Page<Map<String, Object>>> searchPage(@PathVariable String modelName,
-                                                             @RequestBody AggQuery aggQuery) {
-        ContextHolder.getContext().setEffectiveDate(aggQuery.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(aggQuery.getFilters(), aggQuery.getOrders());
-        flexQuery.setFields(aggQuery.getFields());
-        flexQuery.setConvertType(ConvertType.KEY_AND_DISPLAY);
-        flexQuery.setSummary(Boolean.TRUE.equals(aggQuery.getSummary()));
-        flexQuery.setGroupBy(aggQuery.getGroupBy());
-        // Set AggFunction parameters
-        flexQuery.setAggFunctions(aggQuery.getAggFunctions());
-        // Set SubQuery parameters
-        flexQuery.expandSubQueries(aggQuery.getSubQueries());
-        Page<Map<String, Object>> page = Page.of(aggQuery.getPageNumber(), aggQuery.getPageSize());
+                                                             @RequestBody(required = false) QueryParams queryParams) {
+        FlexQuery flexQuery = this.convertParamsToFlexQuery(queryParams);
+        flexQuery.setSummary(Boolean.TRUE.equals(queryParams.getSummary()));
+        Page<Map<String, Object>> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
         return ApiResponse.success(modelService.searchPage(modelName, flexQuery, page));
     }
 
@@ -446,7 +438,7 @@ public class ModelController<K extends Serializable> {
      * Support SUM, AVG, MIN, MAX, COUNT aggregation queries.
      *
      * @param modelName model name
-     * @param aggQuery  Aggregation query parameter
+     * @param queryParams  Aggregation query parameter
      * @return data list
      */
     @PostMapping(value = "/searchList")
@@ -454,23 +446,37 @@ public class ModelController<K extends Serializable> {
             "aggFunctions, and subQueries. Default limit to 50.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> searchList(@PathVariable String modelName,
-                                                             @RequestBody AggQuery aggQuery) {
-        ContextHolder.getContext().setEffectiveDate(aggQuery.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(aggQuery.getFilters(), aggQuery.getOrders());
-        flexQuery.setFields(aggQuery.getFields());
-        flexQuery.setConvertType(ConvertType.KEY_AND_DISPLAY);
-        flexQuery.setGroupBy(aggQuery.getGroupBy());
-        // Set AggFunction parameters
-        flexQuery.setAggFunctions(aggQuery.getAggFunctions());
-        // Set SubQuery parameters
-        flexQuery.expandSubQueries(aggQuery.getSubQueries());
+                                                             @RequestBody(required = false) QueryParams queryParams) {
+        FlexQuery flexQuery = this.convertParamsToFlexQuery(queryParams);
         // Default limitSize for searchList.
-        Integer limitSize = aggQuery.getPageSize();
+        Integer limitSize = queryParams.getPageSize();
         limitSize = limitSize == null || limitSize < 1 ? BaseConstant.DEFAULT_PAGE_SIZE : limitSize;
         Assert.isTrue(limitSize <= BaseConstant.MAX_BATCH_SIZE,
                 "API `searchList` cannot exceed the maximum limit of {0}.", BaseConstant.MAX_BATCH_SIZE);
         flexQuery.setLimitSize(limitSize);
         return ApiResponse.success(modelService.searchList(modelName, flexQuery));
+    }
+
+    /**
+     * Convert QueryParams to FlexQuery.
+     *
+     * @param queryParams QueryParams
+     * @return FlexQuery
+     */
+    private FlexQuery convertParamsToFlexQuery(QueryParams queryParams) {
+        if (queryParams == null) {
+            queryParams = new QueryParams();
+        }
+        ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
+        FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
+        flexQuery.setFields(queryParams.getFields());
+        flexQuery.setConvertType(ConvertType.KEY_AND_DISPLAY);
+        flexQuery.setGroupBy(queryParams.getGroupBy());
+        // Set AggFunction parameters
+        flexQuery.setAggFunctions(queryParams.getAggFunctions());
+        // Set SubQuery parameters
+        flexQuery.expandSubQueries(queryParams.getSubQueries());
+        return flexQuery;
     }
 
     /**
@@ -499,27 +505,24 @@ public class ModelController<K extends Serializable> {
     }
 
     /**
-     * Query the PivotTable, without pagination, the data is limited to no more than DEFAULT_BATCH_SIZE records.
+     * Query the PivotTable; without pagination, the data is limited to no more than DEFAULT_BATCH_SIZE records.
      *
      * @param modelName model name
-     * @param aggQuery  aggregation query parameters
+     * @param queryParams  aggregation query parameters
      * @return PivotTable object
      */
     @PostMapping(value = "/searchPivot")
     @Operation(description = "Get the pivot table data based on the specified fields, filters, orders, groupBy, splitBy.")
     @DataMask
-    public ApiResponse<PivotTable> searchPivot(@PathVariable String modelName, @RequestBody AggQuery aggQuery) {
-        ContextHolder.getContext().setEffectiveDate(aggQuery.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(aggQuery.getFilters(), aggQuery.getOrders());
-        flexQuery.setFields(aggQuery.getFields());
-        flexQuery.setConvertType(ConvertType.KEY_AND_DISPLAY);
-        flexQuery.setGroupBy(aggQuery.getGroupBy());
-        flexQuery.setSplitBy(aggQuery.getSplitBy());
+    public ApiResponse<PivotTable> searchPivot(@PathVariable String modelName,
+                                               @RequestBody QueryParams queryParams) {
+        FlexQuery flexQuery = this.convertParamsToFlexQuery(queryParams);
+        flexQuery.setSplitBy(queryParams.getSplitBy());
         return ApiResponse.success(modelService.searchPivot(modelName, flexQuery));
     }
 
     /**
-     * Count query. Support group counting by `groupBy` parameter, count the number of each group.
+     * Count a query. Support group counting by `groupBy` parameter, count the number of each group.
      * That is, the amount of data under each grouped field value. For example:
      * `groupBy=name,code,sequence & orders=sequence`, the actual sql statement is:
      * `SELECT name, code, sequence, count(*) AS count FROM table_name GROUP BY name, code, sequence ORDER BY sequence`
