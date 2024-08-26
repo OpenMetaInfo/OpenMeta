@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.utils;
+package info.openmeta.framework.orm.domain.utils;
 
 import info.openmeta.framework.orm.meta.MetaModel;
 import info.openmeta.framework.orm.utils.LambdaUtils;

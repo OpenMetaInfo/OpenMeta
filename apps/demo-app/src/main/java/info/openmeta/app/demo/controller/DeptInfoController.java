@@ -31,8 +31,8 @@ public class DeptInfoController extends EntityController<DeptInfoService, DeptIn
     @Autowired
     private DeptInfoService deptInfoService;
 
-    @GetMapping(value = "/readOne2", params = { "id", "fields" })
-    @Operation(description = "Read one row by ID.")
+    @GetMapping(value = "/readCustomize", params = { "id", "fields" })
+    @Operation(description = "Read customized department info by ID.")
     @Parameters({
             @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),

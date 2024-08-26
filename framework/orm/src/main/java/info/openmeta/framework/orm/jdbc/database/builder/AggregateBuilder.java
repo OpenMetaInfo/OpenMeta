@@ -56,7 +56,7 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
      * and extract the numeric fields that need to be summed up.
      *
      * @param flexQuery flexQuery
-     * @param sqlGroupByFields group By fields list in sql query, row grouping and column grouping fields
+     * @param sqlGroupByFields group By fields list in SQL query, row grouping and column grouping fields
      */
     private void handleGroupByFields(FlexQuery flexQuery, List<String> sqlGroupByFields) {
         Set<String> numericFields = new HashSet<>();
@@ -108,10 +108,12 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
             sqlWrapper.accessModelField(this.mainModelName, field);
             MetaField metaField = ModelManager.getModelField(this.mainModelName, field);
             Assert.notTrue(metaField.isDynamic(),
-                    "Field {0} of model {1} is not a stored field, and cannot be used for aggregate function queries!",
-                    field, this.mainModelName);
+                    "Model field {0}:{1} is a dynamic field, and cannot be used for aggregate function queries!",
+                    this.mainModelName, field);
             // Verify that the field type matches the aggregate function type
-            AggFunctionType.validateFunctionType(aggFunctionField, metaField.getFieldType());
+            boolean isValid = AggFunctionType.validateFunctionType(aggFunctionField.getType(), metaField.getFieldType());
+            Assert.isTrue(isValid, "Aggregate function {0} does not support field type: {1}",
+                    aggFunctionField, metaField.getFieldType().getType());
             String alias = aggFunctionField.getType().getFunc() + Character.toUpperCase(field.charAt(0)) + field.substring(1);
             sqlWrapper.select(aggFunctionField.getType().name() + "(" + SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName() + ") AS " + alias);
         });

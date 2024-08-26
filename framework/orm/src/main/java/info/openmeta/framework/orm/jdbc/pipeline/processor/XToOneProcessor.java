@@ -60,8 +60,7 @@ public class XToOneProcessor extends BaseProcessor {
     public void processInputRow(Map<String, Object> row, AccessType accessType) {
         checkReadonly(row);
         if (row.containsKey(fieldName) && row.get(fieldName) != null) {
-            Object id = row.get(fieldName);
-            row.put(fieldName, IdUtils.convertIdToLong(id));
+            row.compute(fieldName, (k, id) -> IdUtils.convertIdToLong(id));
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
             row.put(fieldName, metaField.getDefaultValueObject());
@@ -95,7 +94,7 @@ public class XToOneProcessor extends BaseProcessor {
      * @param displayNameMap the displayName map of the related model: {id: displayName}
      */
     public void processOutputRow(Map<String, Object> row, Map<Serializable, String> displayNameMap) {
-        if (!row.containsKey(fieldName)) {
+        if (!row.containsKey(fieldName) || row.get(fieldName) == null) {
             return;
         }
         Serializable id = (Serializable) row.get(fieldName);

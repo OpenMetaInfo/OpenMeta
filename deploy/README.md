@@ -15,3 +15,15 @@ Example to build the demo application image:
 ```bash
 docker-compose -f ./deploy/demo-app/docker-compose.yml up -d
 ```
+
+# 3. Start the EFK stack by Docker Compose
+```bash
+docker-compose -f deploy/efk/docker-compose.yml up -d
+```
+Access the Kibana console at http://localhost:5601
+
+# 4. Start the RocketMQ stack by Docker Compose
+```bash
+docker-compose -f deploy/rocketmq/docker-compose.yml up -d
+```
+Access the RocketMQ console at http://localhost:8080

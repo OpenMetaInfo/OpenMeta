@@ -60,7 +60,7 @@ public class BeanTool {
     }
 
     /**
-     * Convert bean object to map. Null values are not ignored.
+     * Convert a bean object to map. Null values are not ignored.
      *
      * @param object the bean object
      * @return map
@@ -71,7 +71,7 @@ public class BeanTool {
     }
 
     /**
-     * Convert bean object to map.
+     * Convert a bean object to map.
      *
      * @param object the bean object
      * @param ignoreNull whether to ignore null values

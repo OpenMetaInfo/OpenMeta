@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Debug annotation, switch the method execution context to debug mode, such as printing sql logs.
+ * Debug annotation, switch the method execution context to debug mode, such as printing SQL logs.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

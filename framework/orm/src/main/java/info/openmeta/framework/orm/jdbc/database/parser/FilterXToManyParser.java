@@ -132,24 +132,30 @@ public class FilterXToManyParser {
         for (XToManyFieldFilters xToManyFieldFilters : xToManyFieldFiltersMap.values()) {
             // Get the ids of the main model through the XToMany field. The operator after the value replacement is always `IN`.
             // The `negative filter` of the AND logic needs to do a reverse query.
-            List<Serializable> ids = this.processNegativeSearch(xToManyFieldFilters.getMetaField(), xToManyFieldFilters.getFilterUnits());
-            buildXToMany(sb, xToManyFieldFilters.getLeftTableAlias(), ids);
+            List<Serializable> mainIds = this.processNegativeSearch(xToManyFieldFilters.getMetaField(), xToManyFieldFilters.getFilterUnits());
+            buildXToMany(sb, xToManyFieldFilters.getLeftTableAlias(), mainIds);
         }
         return sb;
     }
 
     /**
-     * Build the SQL fragment of a single XToMany field.
+     * Build the SQL fragment of a single XToMany field, `tx.id IN mainIds`.
      *
      * @param sb         SQL fragment that has been built
      * @param tableAlias table alias of the model that the XToMany field belongs to
-     * @param ids        ids of the main model that matches the conditions of the reverse query
+     * @param mainIds    ids of the main model that matches the conditions of the reverse query
      */
-    private void buildXToMany(StringBuilder sb, String tableAlias, List<Serializable> ids) {
-        if (!CollectionUtils.isEmpty(ids)) {
+    private void buildXToMany(StringBuilder sb, String tableAlias, List<Serializable> mainIds) {
+        if (CollectionUtils.isEmpty(mainIds)) {
+            // When the mainIds is empty, the condition is always `FALSE`.
+            if (!sb.isEmpty()) {
+                sb.append(" ").append(logicOperator.name()).append(" ");
+            }
+            sb.append("FALSE");
+        } else {
             MetaField idMetaField = ModelManager.getModelField(mainModel, ModelConstant.ID);
             String columnAlias = tableAlias + "." + ModelConstant.ID;
-            FilterUnit idFilterUnit = new FilterUnit(columnAlias, Operator.IN, ids);
+            FilterUnit idFilterUnit = new FilterUnit(columnAlias, Operator.IN, mainIds);
             StringBuilder xToMSql =  FilterUnitParser.parse(sqlWrapper, tableAlias, idMetaField, idFilterUnit);
             if (!sb.isEmpty() && !xToMSql.isEmpty()) {
                 sb.append(" ").append(logicOperator.name()).append(" ");

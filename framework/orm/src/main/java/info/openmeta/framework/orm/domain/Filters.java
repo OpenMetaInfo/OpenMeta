@@ -15,6 +15,7 @@ import info.openmeta.framework.orm.domain.serializer.FiltersDeserializer;
 import info.openmeta.framework.orm.domain.serializer.FiltersSerializer;
 import info.openmeta.framework.orm.enums.FilterType;
 import info.openmeta.framework.orm.enums.LogicOperator;
+import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.LambdaUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -119,7 +120,26 @@ public class Filters {
     }
 
     /**
-     * Convert List object to filters object.
+     * Combine all properties of an entity object into a Filters object using the `EQUAL` operator and `AND` logic.
+     *
+     * @param entity entity object
+     * @return filters object
+     */
+    public static <T> Filters ofEntity(T entity, boolean ignoreNull) {
+        Map<String, Object> entityMap = BeanTool.objectToMap(entity, ignoreNull);
+        Filters filters = new Filters();
+        entityMap.forEach((key, value) -> {
+            if (value != null) {
+                filters.and(key, Operator.EQUAL, value);
+            } else {
+                filters.and(key, Operator.IS_NOT_SET, null);
+            }
+        });
+        return filters;
+    }
+
+    /**
+     * Convert List object to a filters object.
      * @param listObject List object, e.g.: [["name", "=", "Test"], "OR", ["amount", "=", 1]]
      * @return filters object
      */

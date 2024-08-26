@@ -6,11 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 /**
- * Aggregation function field
+ * Represents an aggregation function configuration for use in queries.
+ * This class encapsulates the details necessary to define how an aggregation
+ * should be performed on a specific field.
  */
 @Getter
-@Schema(name = "AggFunctionField")
-public class AggFunctionField {
+@Schema(name = "AggFunction")
+public class AggFunction {
 
     @Schema(description = "Aggregation function type")
     private final AggFunctionType type;
@@ -21,11 +23,11 @@ public class AggFunctionField {
 
     /**
      * The alias is the camel case string obtained by jointing the function name and the field name.
-     * For example:
-     *      sum + amount -> sumAmount,
-     *      max + createdTime -> maxCreatedTime
+     * For example,
+     *      sum + amount → sumAmount,
+     *      max + createdTime → maxCreatedTime
      */
-    public AggFunctionField(AggFunctionType type, String field) {
+    public AggFunction(AggFunctionType type, String field) {
         Assert.notBlank(field, "Field cannot be empty");
         this.type = type;
         this.field = field;

@@ -145,9 +145,9 @@ public class StringTools {
     }
 
     /**
-     * String to underscore naming, can be used for attribute name to field name conversion.
+     * String to underscore naming can be used for attribute name to field name conversion.
      * The number after the letter is not separated.
-     * For example:
+     * For example,
      *      deptId -> dept_id,
      *      hello123World -> hello123_world,
      *      JSON -> json,
@@ -190,14 +190,14 @@ public class StringTools {
     }
 
     /**
-     * String to all uppercase underscore naming, also known as uppercase snake naming.
+     * String to all uppercase underscore namings, also known as uppercase snake naming.
      * Can be used to convert the Enum optionCode to the name of the Enum item name,
      * and call the built-in method valueOf() of the Enum to get the Enum item.
-     * For example:
-     *      ManyToMany -> MANY_TO_MANY,
-     *      String -> STRING,
-     *      JSON -> JSON,
-     *      DateTime -> DATE_TIME
+     * For example,
+     *      ManyToMany → MANY_TO_MANY,
+     *      String → STRING,
+     *      JSON → JSON,
+     *      DateTime → DATE_TIME
      *
      * @param value string
      * @return lowercase characters separated by underscores
@@ -211,8 +211,8 @@ public class StringTools {
 
     /**
      * Check whether the model name is valid.
-     * matching a string starting with a capital letter + at least one letter or number.
-     * For example:
+     * Matching a string starting with a capital letter + at least one letter or number.
+     * For example,
      *      Dept, User, Order, OrderDetail
      *
      * @param modelName model name
@@ -226,7 +226,7 @@ public class StringTools {
     /**
      * Check whether the field name is valid,
      * matching a string starting with a lowercase letter + at least one letter or number.
-     * For example:
+     * For example,
      *      deptId, userId, orderNo, orderDetailId
      *
      * @param fieldName field name
@@ -294,10 +294,10 @@ public class StringTools {
 
     /**
      * Convert string to upper camel case, that is, convert hyphen, underscore separated string to camel case.
-     * For example:
-     *      dept_id -> DeptId,
-     *      user_name -> UserName,
-     *      order_no -> OrderNo
+     * For example,
+     *      dept_id → DeptId,
+     *      user_name → UserName,
+     *      order_no → OrderNo
      *
      * @param str string
      * @return upper camel case string

@@ -1,8 +1,7 @@
-package info.openmeta.framework.web.model;
+package info.openmeta.framework.orm.domain;
 
 import info.openmeta.framework.base.enums.Operator;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
-import info.openmeta.framework.orm.domain.Filters;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -187,5 +186,60 @@ class FiltersTest {
         log.info(filters.toString());
         log.info(filters.toSemanticString());
         Assertions.assertEquals(filterString, filters.toSemanticString());
+    }
+
+    /**
+     * Convert entity to Filters object with non-null values
+     */
+    @Test
+    void ofEntityWithNonNullValues() {
+        TestEntity entity = new TestEntity("Test", 1);
+        Filters filters = Filters.ofEntity(entity, false);
+        String expected = "[[\"name\",\"=\",\"Test\"],\"AND\",[\"value\",\"=\",1]]";
+        Assertions.assertEquals(expected, filters.toString());
+    }
+
+    /**
+     * Convert entity to Filters object with null values ignored
+     */
+    @Test
+    void ofEntityWithNullValuesIgnored() {
+        TestEntity entity = new TestEntity(null, 1);
+        Filters filters = Filters.ofEntity(entity, true);
+        String expected = "[[\"value\",\"=\",1]]";
+        Assertions.assertEquals(expected, filters.toString());
+    }
+
+    /**
+     * Convert entity to Filters object with null values not ignored
+     */
+    @Test
+    void ofEntityWithNullValuesNotIgnored() {
+        TestEntity entity = new TestEntity(null, 1);
+        Filters filters = Filters.ofEntity(entity, false);
+        String expected = "[[\"name\",\"IS NOT SET\",null],\"AND\",[\"value\",\"=\",1]]";
+        Assertions.assertEquals(expected, filters.toString());
+    }
+
+    /**
+     * Convert empty entity to Filters object
+     */
+    @Test
+    void ofEntityWithEmptyEntity() {
+        TestEntity entity = new TestEntity(null, null);
+        Filters filters = Filters.ofEntity(entity, true);
+        String expected = "[]";
+        Assertions.assertEquals(expected, filters.toString());
+    }
+
+    /**
+     * Convert entity to Filters object with all null values
+     */
+    @Test
+    void ofEntityWithAllNullValues() {
+        TestEntity entity = new TestEntity(null, null);
+        Filters filters = Filters.ofEntity(entity, false);
+        String expected = "[[\"name\",\"IS NOT SET\",null],\"AND\",[\"value\",\"IS NOT SET\",null]]";
+        Assertions.assertEquals(expected, filters.toString());
     }
 }

@@ -19,19 +19,16 @@ public class ProjectInfo extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "项目名称")
+    @Schema(description = "Name")
     private String name;
 
-    @Schema(description = "项目编码")
+    @Schema(description = "Code")
     private String code;
 
-    @Schema(description = "项目员工")
+    @Schema(description = "Employees")
     private List<Long> empIds;
 
-    @Schema(description = "版本")
-    private Integer version;
-
-    @Schema(description = "描述")
+    @Schema(description = "Description")
     private String description;
 
     @Schema(description = "Disabled")

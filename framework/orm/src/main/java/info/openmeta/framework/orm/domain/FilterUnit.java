@@ -114,7 +114,9 @@ public class FilterUnit {
     private static void validateCollectionValue(FilterUnit filterUnit) {
         Operator operator = filterUnit.getOperator();
         if (filterUnit.getValue() instanceof Collection<?> valueList) {
-            Assert.allNotNull(valueList, "The value cannot be null or include null item: {0}", filterUnit);
+            if (valueList.contains(null)) {
+                throw new IllegalArgumentException("The value cannot include null item: {0}", filterUnit);
+            }
             if ((Operator.PARENT_OF.equals(operator) || Operator.CHILD_OF.equals(operator))) {
                 valueList.forEach(v -> Assert.isTrue(v instanceof String && StringUtils.isNotBlank((String) v),
                         "The value of {0} operator can only be a list of non-empty strings: {1}", operator, filterUnit));

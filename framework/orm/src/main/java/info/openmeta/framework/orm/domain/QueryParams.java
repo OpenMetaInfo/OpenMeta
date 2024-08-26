@@ -9,14 +9,19 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Aggregation query object, support aggregation functions and sub queries.
- * Support querying the latest data of each group by using `MAX` + `groupBy`, such as:
+ * General query parameters object specifically designed for API request parameter transmission.
+ * This class encapsulates all necessary parameters for performing various types of API queries,
+ * including aggregation functions, sorting, and sub-queries.
+ * <p>
+ * It is intended solely for API endpoint consumption and is not suitable for internal service logic.
+ * <p>
+ * Support querying the latest data of each group by using `MAX` + `groupBy`, such as
  *      AggFunctions: ["MAX", "createdTime", "newestTime"],
  *      GroupBy: ["deptId"],
  */
-@Schema(name = "AggQuery")
+@Schema(name = "QueryParams")
 @Data
-public class AggQuery {
+public class QueryParams {
 
     @Schema(description = "Fields to get, empty means all fields.", example = "[\"id\", \"name\"]")
     private Set<String> fields;

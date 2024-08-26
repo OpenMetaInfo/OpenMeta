@@ -19,19 +19,16 @@ public class DeptInfo extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "部门名称")
+    @Schema(description = "Name")
     private String name;
 
-    @Schema(description = "部门编码")
+    @Schema(description = "Code")
     private String code;
 
-    @Schema(description = "部门员工")
+    @Schema(description = "Employees")
     private List<EmpInfo> empIds;
 
-    @Schema(description = "版本")
-    private Integer version;
-
-    @Schema(description = "描述")
+    @Schema(description = "Description")
     private String description;
 
     @Schema(description = "Disabled")

@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class AggFunctions {
 
     @Schema(hidden = true)
-    private final List<AggFunctionField> functionList = new ArrayList<>(2);
+    private final List<AggFunction> functionList = new ArrayList<>(2);
 
     public static AggFunctions of(AggFunctionType type, String field) {
         AggFunctions aggFunctions = new AggFunctions();
@@ -41,7 +41,7 @@ public class AggFunctions {
     }
 
     public AggFunctions add(AggFunctionType type, String field) {
-        this.functionList.add(new AggFunctionField(type, field));
+        this.functionList.add(new AggFunction(type, field));
         return this;
     }
 
@@ -50,13 +50,13 @@ public class AggFunctions {
     }
 
     public static boolean containAlias(AggFunctions aggFunctions, String alias) {
-        return aggFunctions != null && aggFunctions.getFunctionList().stream().anyMatch(aggFunctionField -> aggFunctionField.getAlias().equals(alias));
+        return aggFunctions != null && aggFunctions.getFunctionList().stream().anyMatch(aggFunction -> aggFunction.getAlias().equals(alias));
     }
 
     @Override
     public String toString() {
         return functionList.stream()
-                .map(AggFunctionField::toString)
+                .map(AggFunction::toString)
                 .collect(Collectors.joining(", "));
     }
 }
