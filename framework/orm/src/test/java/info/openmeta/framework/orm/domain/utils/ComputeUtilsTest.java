@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.utils;
+package info.openmeta.framework.orm.domain.utils;
 
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.AviatorEvaluatorInstance;

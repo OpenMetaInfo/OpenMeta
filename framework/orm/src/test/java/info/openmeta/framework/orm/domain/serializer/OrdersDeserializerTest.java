@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.model.serializer;
+package info.openmeta.framework.orm.domain.serializer;
 
 import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.base.utils.JsonMapper;

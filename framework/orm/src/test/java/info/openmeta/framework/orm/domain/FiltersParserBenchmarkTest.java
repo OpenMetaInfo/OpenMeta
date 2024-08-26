@@ -1,8 +1,7 @@
-package info.openmeta.framework.web.model;
+package info.openmeta.framework.orm.domain;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import info.openmeta.framework.base.utils.JsonMapper;
-import info.openmeta.framework.orm.domain.Filters;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;

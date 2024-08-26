@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.model;
+package info.openmeta.framework.orm.meta;
 
 import info.openmeta.framework.orm.compute.ComputeUtils;
 import lombok.extern.slf4j.Slf4j;

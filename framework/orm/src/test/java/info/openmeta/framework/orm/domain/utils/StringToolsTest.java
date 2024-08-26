@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.utils;
+package info.openmeta.framework.orm.domain.utils;
 
 import info.openmeta.framework.base.utils.StringTools;
 import lombok.extern.slf4j.Slf4j;

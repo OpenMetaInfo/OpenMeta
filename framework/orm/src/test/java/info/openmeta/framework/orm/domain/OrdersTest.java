@@ -1,6 +1,5 @@
-package info.openmeta.framework.web.model;
+package info.openmeta.framework.orm.domain;
 
-import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.base.utils.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
