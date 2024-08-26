@@ -83,11 +83,11 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
      * If the field chain contains OneToMany or ManyToMany fields, construct the FlexQuery of the associated model,
      * then, call the search method to return the ids of the left model.
      * The final query condition is [id, in, ids].
-     * For example:
+     * For example,
      *      [deptId.empIds, in, [1,2,3]] is converted to [deptId.id, in, [4,5,6]], exchange empIds with deptIds.
      *
      * @param filters filters
-     * @return sql condition of where clause
+     * @return SQL condition of where clause
      */
     private StringBuilder handleFilters(Filters filters) {
         if (FilterType.LEAF.equals(filters.getType())) {
@@ -109,7 +109,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
      * Handle the TREE Filters recursively.
      *
      * @param filters TREE filters object
-     * @return sql condition of where clause
+     * @return SQL condition of where clause
      */
     private StringBuilder handleFiltersTree(Filters filters) {
         // Current level filter information
@@ -140,14 +140,14 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
      *
      * @param child child node of filters
      * @param xToManyBuilder XToMany query condition builder at the same level
-     * @return sql condition fragment of a child node
+     * @return SQL condition fragment of a child node
      */
     private StringBuilder processChildFilter(Filters child, FilterXToManyParser xToManyBuilder) {
         if (FilterType.LEAF.equals(child.getType())) {
-            // When child is a LEAF node, get the filterUnit object
+            // When a child is a LEAF node, get the filterUnit object
             return this.parseFilterUnit(child.getFilterUnit(), xToManyBuilder);
         } else {
-            // When child is a TREE node, recursively process, get the sql fragment of child node, and wrap it in ()
+            // When child is a TREE node, recursively process, get the SQL fragment of child node, and wrap it in ()
             StringBuilder treeSql = handleFiltersTree(child);
             if (!treeSql.isEmpty()) {
                 return new StringBuilder("(").append(treeSql).append(")");
@@ -157,7 +157,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
     }
 
     /**
-     * Parse FilterUnit to generate sql condition fragment.
+     * Parse FilterUnit to generate SQL condition fragment.
      *
      * @param filterUnit Single filter unit
      * @param xToManyBuilder XToMany query condition builder at the same level.
@@ -171,21 +171,28 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
             // Cascade field processing `f0.f1.f2.f3`
             return this.parseCascadeField(filterUnit, xToManyBuilder);
         } else {
-            // Non-cascade field processing: `t.column = ?`
+            // Single model field processing
             MetaField metaField = ModelManager.getModelField(mainModelName, logicField);
             sqlWrapper.accessModelField(mainModelName, logicField);
-            // For non-relational fields, convert the filterUnit operator and query value.
-            this.convertFilterUnit(metaField, filterUnit);
-            return FilterUnitParser.parse(sqlWrapper, SqlWrapper.MAIN_TABLE_ALIAS, metaField, filterUnit);
+            if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
+                // XToMany field processing, such as `["projectIds", "IN", [20]]`, execute `id IN (20)` on the right model.
+                FilterUnit newUnit = new FilterUnit(ModelConstant.ID, filterUnit.getOperator(), filterUnit.getValue());
+                xToManyBuilder.addXToManyFilterUnit(SqlWrapper.MAIN_TABLE_ALIAS, metaField, newUnit);
+                return new StringBuilder();
+            } else {
+                // Non-cascade field processing: `t.column = ?`
+                this.convertFilterUnit(metaField, filterUnit);
+                return FilterUnitParser.parse(sqlWrapper, SqlWrapper.MAIN_TABLE_ALIAS, metaField, filterUnit);
+            }
         }
     }
 
     /**
-     * Cascade field processing: f0.f1.f2.f3, construct join query statement.
+     * Cascade field processing: f0.f1.f2.f3, construct a join query statement.
      *
      * @param filterUnit Single filter unit
      * @param xToManyBuilder XToMany query condition builder at the same level
-     * @return sql condition fragment of cascade field
+     * @return SQL condition fragment of cascade field
      */
     private StringBuilder parseCascadeField(FilterUnit filterUnit, FilterXToManyParser xToManyBuilder) {
         List<String> cascadeFields = Arrays.asList(StringUtils.split(filterUnit.getField(), "."));
@@ -202,18 +209,18 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
             String fieldName = cascadeFields.get(i);
             sqlWrapper.accessModelField(currentModelName, fieldName);
             metaField = ModelManager.getModelField(currentModelName, fieldName);
-            FieldType fieldType = metaField.getFieldType();
             if (FieldType.RELATED_TYPES.contains(metaField.getFieldType())) {
                 // The processing of relational fields
-                if (FieldType.TO_MANY_TYPES.contains(fieldType)) {
+                if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
                     // Truncate OneToMany/ManyToMany fields.
                     // If there are still cascading fields behind, use the second half as the new FilterUnit field.
                     // If the current field is the last field, use "id" as the new FilterUnit field,
                     // which is the id field of the right model.
-                    String fieldsOfMany = i < size - 1 ? String.join(".", cascadeFields.subList(i + 1, size)) : ModelConstant.ID;
-                    FilterUnit newUnit = new FilterUnit(fieldsOfMany, filterUnit.getOperator(), filterUnit.getValue());
+                    String fieldsOfManyEndpoint = i < size - 1 ?
+                            String.join(".", cascadeFields.subList(i + 1, size)) : ModelConstant.ID;
+                    FilterUnit newUnit = new FilterUnit(fieldsOfManyEndpoint, filterUnit.getOperator(), filterUnit.getValue());
                     xToManyBuilder.addXToManyFilterUnit(currentAlias, metaField, newUnit);
-                    // XToMany fields are temporarily stored and an empty StringBuilder object is returned directly,
+                    // XToMany fields are temporarily stored, and an empty StringBuilder object is returned directly,
                     // and the SQL is processed separately
                     return new StringBuilder();
                 } else if (i < size - 1) {
@@ -280,7 +287,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
     }
 
     /**
-     * Convert the operator and value of the filterUnit.
+     * Convert the operator and value of the filterUnit based on the field type for non-relational fields.
      *
      * @param metaField field object
      * @param filterUnit filterUnit

@@ -47,7 +47,7 @@ public class SqlWrapper {
      * In addition, the associated tables of different field chain keys may be the same table,
      * but are joined through different left join statements, in this case, they are two different table aliases,
      * such as deptId.name, parentDeptId.name
-     * For example:
+     * For example,
      *      `A left join B on A.f=B.id` only join once when taking multiple fields of B through the field `f`;
      *      `A left join B b1 on A.f1=b1.id left join B b2 on A.f2=b2.id` when A's f1 and f2 fields respectively join B,
      *       it belongs to join multiple times, and table B has different aliases in this case,
@@ -136,9 +136,9 @@ public class SqlWrapper {
     }
 
     /**
-     * Assign the sql conditions parsed by Filters to the where clause.
+     * Assign the SQL conditions parsed by Filters to the where clause.
      *
-     * @param where sql conditions
+     * @param where SQL conditions
      */
     public void where(StringBuilder where) {
         whereClause.append(where);
@@ -171,7 +171,7 @@ public class SqlWrapper {
     /**
      * Directly assign the paging statement spliced by various database dialect tools
      *
-     * @param pageSql sql fragment
+     * @param pageSql SQL fragment
      */
     public void page(StringBuilder pageSql) {
         limitClause = pageSql;

@@ -51,7 +51,7 @@ public class MapUtils {
     }
 
     /**
-     * Quick build Map<String, Object> type static factory method, for example:
+     * Quick build Map<String, Object> type static factory method, for example,
      *      MapUtils.strObj().put(k1, v1).put(k2, v2).build()
      *
      * @return MapBuilder instance
@@ -61,7 +61,7 @@ public class MapUtils {
     }
 
     /**
-     * Quick build Map<String, String> type static factory method, for example:
+     * Quick build Map<String, String> type static factory method, for example,
      *      MapUtils.strStr().put(k1, v1).put(k2, v2).build()
      *
      * @return MapBuilder instance
@@ -71,7 +71,7 @@ public class MapUtils {
     }
 
     /**
-     * Custom key-value data type static factory method for MapBuilder, for example:
+     * Custom key-value data type static factory method for MapBuilder, for example,
      *      MapUtils.<Long, String>builder().put(k1, v1).put(k2, v2).build()
      *
      * @return an instance of MapBuilder class

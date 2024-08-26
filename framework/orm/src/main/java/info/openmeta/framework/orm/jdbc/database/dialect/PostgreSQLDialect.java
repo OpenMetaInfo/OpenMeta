@@ -34,9 +34,9 @@ public abstract class PostgreSQLDialect {
     }
 
     /**
-     * Convert Operator to sql predicate
+     * Convert Operator to SQL predicate
      * @param operator Operator
-     * @return sql predicate string
+     * @return SQL predicate string
      */
     public static String getPredicate(Operator operator) {
         Assert.isTrue(OPERATOR_MAP.containsKey(operator),

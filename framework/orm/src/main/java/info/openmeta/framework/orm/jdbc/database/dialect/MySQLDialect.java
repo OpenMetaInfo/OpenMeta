@@ -37,7 +37,7 @@ public class MySQLDialect implements DialectInterface {
      * Get the predicate of the database query operator: >, =, IN, etc.
      *
      * @param operator FilterUnit operator
-     * @return sql operator predicate string
+     * @return SQL operator predicate string
      */
     public String getPredicate(Operator operator) {
         Assert.isTrue(OPERATOR_MAP.containsKey(operator), """

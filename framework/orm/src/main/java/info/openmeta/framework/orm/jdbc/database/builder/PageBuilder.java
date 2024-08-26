@@ -19,7 +19,7 @@ public class PageBuilder extends BaseBuilder implements SqlClauseBuilder {
 
     /**
      * Different databases might have different paging syntax,
-     * implement the getPageClause() method in different database dialect to define the sql fragment.
+     * implement the getPageClause() method in different database dialect to define the SQL fragment.
      */
     public void build() {
         StringBuilder pageSql = DBUtil.getDialectPageClause(page.getPageNumber(), page.getPageSize());

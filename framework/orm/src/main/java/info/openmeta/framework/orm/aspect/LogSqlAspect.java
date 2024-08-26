@@ -35,7 +35,7 @@ public class LogSqlAspect {
                 appendResult(sb, result);
                 return result;
             } finally {
-                // Log sql even if an exception occurs, no execution result when an exception occurs
+                // Log SQL even if an exception occurs, no execution result when an exception occurs
                 log.warn(sb.toString());
             }
         }

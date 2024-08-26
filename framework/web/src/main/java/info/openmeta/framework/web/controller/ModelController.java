@@ -523,8 +523,8 @@ public class ModelController<K extends Serializable> {
 
     /**
      * Count a query. Support group counting by `groupBy` parameter, count the number of each group.
-     * That is, the amount of data under each grouped field value. For example:
-     * `groupBy=name,code,sequence & orders=sequence`, the actual sql statement is:
+     * That is, the amount of data under each grouped field value. For example,
+     * `groupBy=name,code,sequence & orders=sequence`, the actual SQL statement is:
      * `SELECT name, code, sequence, count(*) AS count FROM table_name GROUP BY name, code, sequence ORDER BY sequence`
      *
      * @param filters filters

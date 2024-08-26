@@ -8,7 +8,7 @@ public interface DialectInterface {
      * Get the predicate of the database query operator: >, =, IN, etc.
      *
      * @param operator FilterUnit operator
-     * @return sql operator predicate string
+     * @return SQL operator predicate string
      */
     String getPredicate(Operator operator);
 

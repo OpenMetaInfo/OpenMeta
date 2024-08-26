@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Log the sql statement of the method, used only in the debug mode.
+ * Log the SQL statement of the method, used only in the debug mode.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

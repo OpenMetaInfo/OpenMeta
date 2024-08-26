@@ -56,7 +56,7 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
      * and extract the numeric fields that need to be summed up.
      *
      * @param flexQuery flexQuery
-     * @param sqlGroupByFields group By fields list in sql query, row grouping and column grouping fields
+     * @param sqlGroupByFields group By fields list in SQL query, row grouping and column grouping fields
      */
     private void handleGroupByFields(FlexQuery flexQuery, List<String> sqlGroupByFields) {
         Set<String> numericFields = new HashSet<>();

@@ -52,7 +52,7 @@ public class StaticSqlBuilder {
         placeholder.deleteCharAt(placeholder.length() - 1);
         // Add the placeholder of field value
         insertSql.append(") VALUES (").append(placeholder).append(")");
-        // sql params
+        // SQL params
         return new SqlParams(insertSql.toString());
     }
 
@@ -73,7 +73,7 @@ public class StaticSqlBuilder {
         readSql.deleteCharAt(readSql.length() - 1);
         readSql.append(" FROM ").append(getTableName(modelName));
         appendIdSql(readSql, ids.size());
-        // Add the id list to the sql parameter list.
+        // Add the id list to the SQL parameter list.
         sqlParams.setArgs(Cast.of(ids));
         if (ModelManager.isMultiTenant(modelName)) {
             // Add tenantId condition
@@ -119,7 +119,7 @@ public class StaticSqlBuilder {
         updateSql.deleteCharAt(updateSql.length() - 1);
         // Append the id condition to WHERE clause.
         updateSql.append(" WHERE ").append(pk).append(" = ?");
-        // sql params object
+        // SQL params object
         SqlParams sqlParams = new SqlParams(updateSql.toString());
         fields.forEach(field -> sqlParams.addArgValue(rowMap.get(field)));
         // Add the pk value to the end of `valueArray`
@@ -139,7 +139,7 @@ public class StaticSqlBuilder {
     public static SqlParams getDeleteSql(String modelName, List<?> ids) {
         StringBuilder deleteSql = new StringBuilder("DELETE FROM ").append(getTableName(modelName));
         appendIdSql(deleteSql, ids.size());
-        // sql params
+        // SQL params
         SqlParams sqlParams = new SqlParams(deleteSql.toString());
         sqlParams.setArgs(Cast.of(ids));
         return sqlParams;
@@ -159,7 +159,7 @@ public class StaticSqlBuilder {
                 .append(" WHERE ")
                 .append(ModelConstant.SLICE_ID_COLUMN)
                 .append(" = ?");
-        // sql params
+        // SQL params
         SqlParams sqlParams = new SqlParams(deleteSql.toString());
         sqlParams.addArgValue(sliceId);
         return sqlParams;

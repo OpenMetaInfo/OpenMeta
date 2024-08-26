@@ -13,15 +13,15 @@ import info.openmeta.framework.orm.meta.ModelManager;
 import java.util.*;
 
 /**
- * FilterUnit parser to get the sql condition.
+ * FilterUnit parser to get the SQL condition.
  */
 public class FilterUnitParser {
 
     /**
-     * Build the sql fragment based on the calculated field alias(table alias + column name)
+     * Build the SQL fragment based on the calculated field alias(table alias + column name)
      *
-     * @param sqlWrapper sql wrapper
-     * @param tableAlias table alias of the field of current filterUnit
+     * @param sqlWrapper SQL wrapper
+     * @param tableAlias table alias of current filterUnit field
      * @param metaField field object corresponding to the current filterUnit
      * @param filterUnit filterUnit
      */
@@ -40,7 +40,7 @@ public class FilterUnitParser {
                 condition.append(" ").append(DBUtil.getPredicate(operator));
                 if (value instanceof String expression && StringTools.isReservedField((String) value)) {
                     // Handle field comparison, value is @{fieldName}, which is a reserved field name,
-                    // embed it into sql after checking the field name is legal
+                    // embed it into SQL after checking the field name is legal
                     String fieldName = expression.substring(2, expression.length() - 1).trim();
                     String columnName = ModelManager.getModelFieldColumn(metaField.getModelName(), fieldName);
                     condition.append(" ").append(tableAlias).append(".").append(columnName).append(" ");
@@ -65,10 +65,12 @@ public class FilterUnitParser {
             case NOT_IN:
                 condition.append(" ").append(DBUtil.getPredicate(operator)).append(" (");
                 StringBuilder inSql = new StringBuilder();
-                ((Collection<?>) value).forEach( v -> {
-                    inSql.append("?,");
-                    sqlWrapper.addArgValue(v);
-                });
+                if (value instanceof Collection<?> objects) {
+                    objects.forEach(o -> {
+                        inSql.append("?,");
+                        sqlWrapper.addArgValue(o);
+                    });
+                }
                 StringTools.removeLastComma(inSql);
                 condition.append(inSql).append(")");
                 break;
@@ -102,11 +104,11 @@ public class FilterUnitParser {
      * When the value of PARENT_OF is a list, the IN condition is constructed by combining the id set extracted from
      * the idPath separated by "/". which is: id IN Set(split(idPath1, "/") + split(idPath2, "/") + split(idPath3, "/"))
      *
-     * @param sqlWrapper sql wrapper
+     * @param sqlWrapper SQL wrapper
      * @param tableAlias table alias
      * @param operator operator
      * @param value value
-     * @return sql condition
+     * @return SQL condition
      */
     private static StringBuilder parseParentOf(SqlWrapper sqlWrapper, String tableAlias, Operator operator, Object value) {
         StringBuilder condition = new StringBuilder(tableAlias).append(".").append(ModelConstant.ID).append(" ").append(DBUtil.getPredicate(operator)).append(" (");
@@ -134,11 +136,11 @@ public class FilterUnitParser {
      * When the value of CHILD_OF is a list, the OR condition is constructed by combining the StartWith condition,
      * which is: `(t.field LIKE ? OR t.field LIKE ?), value1%, value2%`
      *
-     * @param sqlWrapper sql wrapper
+     * @param sqlWrapper SQL wrapper
      * @param fieldAlias field alias
      * @param operator operator
      * @param value value
-     * @return sql condition
+     * @return SQL condition
      */
     private static StringBuilder parseChildOf(SqlWrapper sqlWrapper, StringBuilder fieldAlias, Operator operator, Object value) {
         StringBuilder condition;
