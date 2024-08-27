@@ -1,15 +1,9 @@
 package info.openmeta.framework.web.handler;
 
-import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.enums.ResponseCode;
 import info.openmeta.framework.base.exception.BaseException;
 import info.openmeta.framework.base.exception.BusinessException;
-import info.openmeta.framework.base.exception.PermissionException;
-import info.openmeta.framework.orm.utils.BeanTool;
-import info.openmeta.framework.orm.changelog.message.dto.CommonLogMessage;
 import info.openmeta.framework.web.response.ApiResponse;
-import info.openmeta.framework.web.dto.LogAuthFailureDTO;
-import info.openmeta.framework.orm.changelog.message.CommonLogProducer;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +21,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Web request exception handler, which catch the API exception that requires specifying responseCode.
@@ -46,9 +38,6 @@ public class WebExceptionHandler {
 
     @Autowired
     private ExceptionMessageHandler messageHandler;
-
-    @Autowired
-    private CommonLogProducer commonLogProducer;
 
     /**
      * Handling exception and logging errors.
@@ -225,24 +214,4 @@ public class WebExceptionHandler {
         log.warn("ClientAbortException: {}", e.getMessage());
     }
 
-    /**
-     * Handle PermissionException.
-     *
-     * @param e Exception
-     */
-    @ExceptionHandler(value = PermissionException.class)
-    public ResponseEntity<ApiResponse<String>> handleException(PermissionException e) {
-        String apiPath = messageHandler.getRequestURI();
-        String failureReason = e.getMessage();
-        String errorStack = Arrays.toString(e.getStackTrace());
-        // Prevent logs from being too long
-        if (errorStack.length() > 3000) {
-            errorStack = errorStack.substring(0, 3000);
-        }
-        LogAuthFailureDTO logAuthFailureDTO = new LogAuthFailureDTO(apiPath, failureReason, errorStack);
-        Map<String, Object> data = BeanTool.objectToMap(logAuthFailureDTO);
-        CommonLogMessage commonLogMessage = new CommonLogMessage(LogAuthFailureDTO.MODEL_NAME, data, ContextHolder.getContext());
-        commonLogProducer.sendCommonLog(commonLogMessage);
-        return handler(ResponseCode.ERROR, e);
-    }
 }

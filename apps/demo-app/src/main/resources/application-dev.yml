@@ -48,5 +48,4 @@ spring:
 #    change-log:
 #    flow-async-task:
 #    flow-event:
-#    common-log:
 #    inner-broadcast: openmeta-platform-inner-broadcast
