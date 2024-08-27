@@ -5,8 +5,8 @@ import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
 import info.openmeta.framework.orm.entity.BaseModel;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.service.EntityService;
+import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.utils.BeanTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -142,7 +142,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
 
     /**
      * Read multiple data objects by ids.
-     * If the fields is not specified, all accessible fields as the default.
+     * If the fields are not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param ids data ids list
@@ -376,24 +376,21 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      */
     @Override
     public List<T> searchList(FlexQuery flexQuery) {
-        List<Map<String, Object>> rows = modelService.searchList(modelName, flexQuery);
-        return CollectionUtils.isEmpty(rows) ? Collections.emptyList() : BeanTool.mapListToObjects(rows, entityClass);
+        return modelService.searchList(modelName, flexQuery, entityClass);
     }
 
     /**
-     * Query objects map based on Filters without pagination, only for code use.
+     * Searches for objects based on the provided FlexQuery and maps them to the specified DTO class.
      * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
      *
-     * @param filters filters
-     * @return object map (id -> object)
+     * @param <R> the type of the DTO class
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param dtoClass the class of the objects to be returned
+     * @return object list of the specified DTO class
      */
     @Override
-    public Map<Long, T> searchMapById(Filters filters) {
-        List<T> objects = this.searchList(filters);
-        if (!CollectionUtils.isEmpty(objects)) {
-            return objects.stream().collect(Collectors.toMap(BaseModel::getId, Function.identity()));
-        }
-        return Collections.emptyMap();
+    public <R> List<R> searchList(FlexQuery flexQuery, Class<R> dtoClass) {
+        return modelService.searchList(modelName, flexQuery, dtoClass);
     }
 
     /**
@@ -401,18 +398,42 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * The page size cannot exceed the MAX_BATCH_SIZE.
      *
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page page object
-     * @return objects in the page
+     * @param page the Page object containing pagination information
+     * @return a Page object containing the objects
      */
     @Override
     public Page<T> searchPage(FlexQuery flexQuery, Page<T> page) {
-        Page<Map<String, Object>> mapPage = Page.of(page.getPageNumber(), page.getPageSize(), page.isScroll(), page.isCount());
-        modelService.searchPage(modelName, flexQuery, mapPage);
-        if (!CollectionUtils.isEmpty(mapPage.getRows())) {
-            List<T> objects = BeanTool.mapListToObjects(mapPage.getRows(), entityClass);
-            page.setRows(objects);
-            page.setTotal(mapPage.getTotal());
+        return modelService.searchPage(modelName, flexQuery, page, entityClass);
+    }
+
+    /**
+     * Query objects based on FlexQuery with pagination and map them to the specified DTO class.
+     * The page size cannot exceed the MAX_BATCH_SIZE.
+     *
+     * @param <R> the type of the DTO class
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param page the Page object containing pagination information
+     * @param dtoClass the class of the objects to be returned
+     * @return a Page object containing the DTO objects
+     */
+    @Override
+    public <R> Page<R> searchPage(FlexQuery flexQuery, Page<R> page, Class<R> dtoClass) {
+        return modelService.searchPage(modelName, flexQuery, page, dtoClass);
+    }
+
+    /**
+     * Groups objects by their IDs based on the provided filters.
+     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     *
+     * @param filters the filters to apply when searching for objects
+     * @return objects map (id -> object)
+     */
+    @Override
+    public Map<Long, T> groupById(Filters filters) {
+        List<T> objects = this.searchList(filters);
+        if (!CollectionUtils.isEmpty(objects)) {
+            return objects.stream().collect(Collectors.toMap(BaseModel::getId, Function.identity()));
         }
-        return page;
+        return Collections.emptyMap();
     }
 }

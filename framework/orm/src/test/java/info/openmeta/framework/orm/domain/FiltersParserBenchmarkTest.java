@@ -39,7 +39,6 @@ public class FiltersParserBenchmarkTest {
         String structuredString = "[[[\"name\",\"=\",\"Te st\"],\"AND\",[\"code\",\"IN\",[\"A01\"]]],\"OR\",[\"version\",\"NOT IN\",[1]]],\"AND\",[\"version2\",\"!=\",21]]";
         List<Object> filterList = JsonMapper.stringToObject(structuredString, new TypeReference<>() {});
         Filters filters = Filters.of(filterList);
-
     }
 
     public static void main(String[] args) throws Exception {

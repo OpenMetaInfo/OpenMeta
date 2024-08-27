@@ -25,6 +25,7 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.service.TimelineService;
+import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.IdUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -441,7 +442,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             }
             return true;
         }).collect(Collectors.toList());
-        List<Serializable> deletableIds = deletableRows.stream().map(m -> (Serializable) m.get(ModelConstant.ID)).collect(Collectors.toList());
+        List<Serializable> deletableIds = deletableRows.stream().map(m -> (Serializable) m.get(ModelConstant.ID)).toList();
         if (CollectionUtils.isEmpty(deletableIds)) {
             return false;
         }
@@ -543,9 +544,10 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Query a single row data based on filters. Only for code use.
+     * Query single row data based on filters. Only for code use.
      * Throw an exception when there are multiple objects.
      *
+     * @param modelName model name
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
      * @return single row data
      */
@@ -565,6 +567,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * Query data list based on FlexQuery without pagination, only for code use.
      * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
      *
+     * @param modelName model name
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
      * @return data list
      */
@@ -586,12 +589,29 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Searches for objects based on the provided FlexQuery and maps them to the specified return class.
+     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     *
+     * @param <R> the type of the return class
+     * @param modelName model name
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param returnClass the class of the objects to be returned
+     * @return object list of the specified return class
+     */
+    @Override
+    public <R> List<R> searchList(String modelName, FlexQuery flexQuery, Class<R> returnClass) {
+        List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
+        return CollectionUtils.isEmpty(rows) ? Collections.emptyList() : BeanTool.mapListToObjects(rows, returnClass);
+    }
+
+    /**
      * Query data list based on FlexQuery with pagination.
      * The page size cannot exceed the MAX_BATCH_SIZE.
      *
+     * @param modelName model name
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page page object
-     * @return data list in the page
+     * @param page the Page object containing pagination information
+     * @return a Page object containing the Map data list
      */
     @Override
     public Page<Map<String, Object>> searchPage(String modelName, FlexQuery flexQuery, Page<Map<String, Object>> page) {
@@ -603,6 +623,29 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         filters = permissionService.appendScopeAccessFilters(modelName, filters);
         flexQuery.setFilters(filters);
         return jdbcService.selectByPage(modelName, flexQuery, page);
+    }
+
+    /**
+     * Query objects based on FlexQuery with pagination.
+     * The page size cannot exceed the MAX_BATCH_SIZE.
+     *
+     * @param <R> the type of the return class
+     * @param modelName model name
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param page the Page object containing pagination information
+     * @param returnClass the class of the objects to be returned
+     * @return a Page object containing the queried objects
+     */
+    @Override
+    public <R> Page<R> searchPage(String modelName, FlexQuery flexQuery, Page<R> page, Class<R> returnClass) {
+        Page<Map<String, Object>> mapPage = Page.of(page.getPageNumber(), page.getPageSize(), page.isScroll(), page.isCount());
+        this.searchPage(modelName, flexQuery, mapPage);
+        if (!CollectionUtils.isEmpty(mapPage.getRows())) {
+            List<R> objects = BeanTool.mapListToObjects(mapPage.getRows(), returnClass);
+            page.setRows(objects);
+            page.setTotal(mapPage.getTotal());
+        }
+        return page;
     }
 
     /**

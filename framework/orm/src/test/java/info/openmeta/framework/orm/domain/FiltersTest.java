@@ -206,7 +206,7 @@ class FiltersTest {
     void ofEntityWithNullValuesIgnored() {
         TestEntity entity = new TestEntity(null, 1);
         Filters filters = Filters.ofEntity(entity, true);
-        String expected = "[[\"value\",\"=\",1]]";
+        String expected = "[\"value\",\"=\",1]";
         Assertions.assertEquals(expected, filters.toString());
     }
 

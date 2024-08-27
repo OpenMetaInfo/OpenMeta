@@ -255,9 +255,10 @@ public interface ModelService<K extends Serializable> {
     Map<String, Object> copyWithoutCreate(String modelName, K id);
 
     /**
-     * Query a single row data based on filters. Only for code use.
+     * Query single row data based on filters. Only for code use.
      * Throw an exception when there are multiple objects.
      *
+     * @param modelName model name
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
      * @return single row data
      */
@@ -267,20 +268,46 @@ public interface ModelService<K extends Serializable> {
      * Query data list based on FlexQuery without pagination, only for code use.
      * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
      *
+     * @param modelName model name
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
      * @return data list
      */
     List<Map<String, Object>> searchList(String modelName, FlexQuery flexQuery);
 
     /**
+     * Searches for objects based on the provided FlexQuery and maps them to the specified return class.
+     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     *
+     * @param <R> the type of the return class
+     * @param modelName model name
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param returnClass the class of the objects to be returned
+     * @return object list of the specified return class
+     */
+    <R> List<R> searchList(String modelName, FlexQuery flexQuery, Class<R> returnClass);
+
+    /**
      * Query data list based on FlexQuery with pagination.
      * The page size cannot exceed the MAX_BATCH_SIZE.
      *
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page page object
-     * @return data list in the page
+     * @param page the Page object containing pagination information
+     * @return a Page object containing the Map data list
      */
     Page<Map<String, Object>> searchPage(String modelName, FlexQuery flexQuery, Page<Map<String, Object>> page);
+
+    /**
+     * Query objects based on FlexQuery with pagination.
+     * The page size cannot exceed the MAX_BATCH_SIZE.
+     *
+     * @param <R> the type of the return class
+     * @param modelName model name
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param page the Page object containing pagination information
+     * @param returnClass the class of the objects to be returned
+     * @return a Page object containing the queried objects
+     */
+    <R> Page<R> searchPage(String modelName, FlexQuery flexQuery, Page<R> page, Class<R> returnClass);
 
     /**
      * Return data in a tree structure.
