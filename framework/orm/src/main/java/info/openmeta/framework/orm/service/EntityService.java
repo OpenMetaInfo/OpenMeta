@@ -249,22 +249,45 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
     List<T> searchList(FlexQuery flexQuery);
 
     /**
-     * Query objects map based on Filters without pagination, only for code use.
+     * Searches for objects based on the provided FlexQuery and maps them to the specified DTO class.
      * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
      *
-     * @param filters filters
-     * @return object map (id -> object)
+     * @param <R> the type of the DTO class
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param dtoClass the class of the objects to be returned
+     * @return object list of the specified DTO class
      */
-    Map<Long, T> searchMapById(Filters filters);
+    <R> List<R> searchList(FlexQuery flexQuery, Class<R> dtoClass);
 
     /**
      * Query objects based on FlexQuery with pagination.
      * The page size cannot exceed the MAX_BATCH_SIZE.
      *
      * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page page object
-     * @return objects in the page
+     * @param page the Page object containing pagination information
+     * @return a Page object containing the objects
      */
     Page<T> searchPage(FlexQuery flexQuery, Page<T> page);
+
+    /**
+     * Query objects based on FlexQuery with pagination and map them to the specified DTO class.
+     * The page size cannot exceed the MAX_BATCH_SIZE.
+     *
+     * @param <R> the type of the DTO class
+     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
+     * @param page the Page object containing pagination information
+     * @param dtoClass the class of the objects to be returned
+     * @return a Page object containing the DTO objects
+     */
+    <R> Page<R> searchPage(FlexQuery flexQuery, Page<R> page, Class<R> dtoClass);
+
+    /**
+     * Groups objects by their ID based on the provided filters.
+     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     *
+     * @param filters the filters to apply when searching for objects
+     * @return objects map (id -> object)
+     */
+    Map<Long, T> groupById(Filters filters);
 
 }
