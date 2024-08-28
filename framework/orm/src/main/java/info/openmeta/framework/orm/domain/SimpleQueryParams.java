@@ -6,14 +6,14 @@ import lombok.Data;
 import java.time.LocalDate;
 
 /**
- * Simple aggregation query object, support filters and aggregation functions.
+ * Simple aggregation query params object, support filters and aggregation functions.
  * Support querying the latest data of each group by using `MAX` + `groupBy`, such as:
  *      AggFunctions: ["MAX", "createdTime", "newestTime"],
  *      GroupBy: ["deptId"],
  */
-@Schema(name = "SimpleAggQuery")
+@Schema(name = "SimpleQueryParams")
 @Data
-public class SimpleAggQuery {
+public class SimpleQueryParams {
 
     @Schema(description = "Filters, support nested filters.")
     private Filters filters;

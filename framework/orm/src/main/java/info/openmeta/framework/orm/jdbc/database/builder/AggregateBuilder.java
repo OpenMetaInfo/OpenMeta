@@ -103,19 +103,19 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
         if (AggFunctions.isEmpty(aggFunctions)) {
             return;
         }
-        aggFunctions.getFunctionList().forEach(aggFunctionField -> {
-            String field = aggFunctionField.getField();
+        aggFunctions.getFunctionList().forEach(aggFunction -> {
+            String field = aggFunction.getField();
             sqlWrapper.accessModelField(this.mainModelName, field);
             MetaField metaField = ModelManager.getModelField(this.mainModelName, field);
             Assert.notTrue(metaField.isDynamic(),
                     "Model field {0}:{1} is a dynamic field, and cannot be used for aggregate function queries!",
                     this.mainModelName, field);
             // Verify that the field type matches the aggregate function type
-            boolean isValid = AggFunctionType.validateFunctionType(aggFunctionField.getType(), metaField.getFieldType());
+            boolean isValid = AggFunctionType.validateFunctionType(aggFunction.getType(), metaField.getFieldType());
             Assert.isTrue(isValid, "Aggregate function {0} does not support field type: {1}",
-                    aggFunctionField, metaField.getFieldType().getType());
-            String alias = aggFunctionField.getType().getFunc() + Character.toUpperCase(field.charAt(0)) + field.substring(1);
-            sqlWrapper.select(aggFunctionField.getType().name() + "(" + SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName() + ") AS " + alias);
+                    aggFunction, metaField.getFieldType().getType());
+            String alias = aggFunction.getType().getFunc() + Character.toUpperCase(field.charAt(0)) + field.substring(1);
+            sqlWrapper.select(aggFunction.getType().name() + "(" + SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName() + ") AS " + alias);
         });
     }
 }

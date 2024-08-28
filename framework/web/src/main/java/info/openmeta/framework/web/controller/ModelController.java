@@ -480,27 +480,27 @@ public class ModelController<K extends Serializable> {
     }
 
     /**
-     * Simple aggregation query by `filters` and `aggFunctions`.
+     * Simple aggregation query params by `filters` and `aggFunctions`.
      * SUM, AVG, MIN, MAX, COUNT aggregation queries, such as `["SUM", "amount"]`, or `[["SUM", "amount"], [], ...]`.
      * Each key of the result is a camel case string concatenated with the functionName + fieldName, e.g., `sumAmount`.
      * Use the searchPage interface when grouping or paging is needed.
      *
      * @param modelName model name
-     * @param simpleAggQuery Simple aggregation query parameters
+     * @param simpleQueryParams Simple aggregation query parameters
      * @return Result map.
      */
-    @PostMapping(value = "/searchSimpleAgg")
+    @PostMapping(value = "/searchSimpleQueryParams")
     @Operation(description = """
-            Simple aggregation query. Pure SUM, AVG, MIN, MAX, COUNT aggregate query, like `["SUM", "amount"]`
+            Simple aggregation query params. Pure SUM, AVG, MIN, MAX, COUNT aggregate query, like `["SUM", "amount"]`
             or `[["SUM", "amount"], [], ...]`, the return key is `sumAmount`.""")
     @DataMask
     public ApiResponse<Map<String, Object>> searchSimpleAgg(@PathVariable String modelName,
-                                                            @RequestBody SimpleAggQuery simpleAggQuery) {
-        ContextHolder.getContext().setEffectiveDate(simpleAggQuery.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(simpleAggQuery.getFilters());
-        Assert.notTrue(AggFunctions.isEmpty(simpleAggQuery.getAggFunctions()), "`aggFunctions` cannot be null!");
+                                                            @RequestBody SimpleQueryParams simpleQueryParams) {
+        ContextHolder.getContext().setEffectiveDate(simpleQueryParams.getEffectiveDate());
+        FlexQuery flexQuery = new FlexQuery(simpleQueryParams.getFilters());
+        Assert.notTrue(AggFunctions.isEmpty(simpleQueryParams.getAggFunctions()), "`aggFunctions` cannot be null!");
         // Set AggFunction parameters
-        flexQuery.setAggFunctions(simpleAggQuery.getAggFunctions());
+        flexQuery.setAggFunctions(simpleQueryParams.getAggFunctions());
         return ApiResponse.success(modelService.searchOne(modelName, flexQuery));
     }
 
