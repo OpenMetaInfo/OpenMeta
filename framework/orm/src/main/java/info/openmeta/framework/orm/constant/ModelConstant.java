@@ -56,9 +56,6 @@ public interface ModelConstant {
     String EFFECTIVE_START_COLUMN = "effective_start";
     String EFFECTIVE_END_COLUMN = "effective_end";
 
-    Set<String> CLIENT_READONLY_FIELDS = Set.of(CREATED_TIME, CREATED_ID, CREATED_BY, UPDATED_TIME, UPDATED_ID, UPDATED_BY,
-            VERSION, SLICE_ID, TENANT_ID);
-
     /** Reserved field names, cannot be used as custom field names */
     Set<String> RESERVED_KEYWORD = ImmutableSet.<String>builder()
             .add(ID)
