@@ -193,9 +193,13 @@ public class OneToManyProcessor extends BaseProcessor {
             List<Map<String, Object>> subRows = groupedValues.get((Serializable) row.get(ModelConstant.ID));
             if (CollectionUtils.isEmpty(subRows)) {
                 subRows = new ArrayList<>(0);
+            } else if (!flexQuery.getFields().contains(relatedField.getFieldName())) {
+                // Remove the relatedField field used for `groupBy` when it is not in the fields list.
+                subRows.forEach(subRow -> subRow.remove(relatedField.getFieldName()));
             } else if (FieldType.TO_ONE_TYPES.contains(relatedField.getFieldType())
                     && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
-                // When the `relatedField` defined in related model is ManyToOne field, fill in the displayName of it.
+                // When the `relatedField` appears in the fields and defined as a ManyToOne field,
+                // fill in the displayName of it.
                 fillManyToOneDisplayName(relatedField, row, subRows);
             }
             row.put(fieldName, subRows);
@@ -207,12 +211,15 @@ public class OneToManyProcessor extends BaseProcessor {
      * query the main model again to get the displayNames, fill in the displayName using the main model rows directly.
      *
      * @param manyToOneField ManyToOne field object corresponding to the OneToMany field
-     * @param row Main model row
+     * @param mainRow Main model row
      * @param subRows OneToMany field, multiple related model rows corresponding to the single main model row
      */
-    private void fillManyToOneDisplayName(MetaField manyToOneField, Map<String, Object> row, List<Map<String, Object>> subRows) {
+    private void fillManyToOneDisplayName(MetaField manyToOneField, Map<String, Object> mainRow, List<Map<String, Object>> subRows) {
         // Filter out null or empty strings of displayNames
-        List<Object> displayValues =  ModelManager.getFieldDisplayName(manyToOneField).stream().map(row::get).filter(v -> v != null && v != "").collect(Collectors.toList());
+        List<Object> displayValues =  ModelManager.getFieldDisplayName(manyToOneField).stream()
+                .map(mainRow::get)
+                .filter(v -> v != null && v != "")
+                .collect(Collectors.toList());
         String displayName = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
         if (ConvertType.DISPLAY.equals(flexQuery.getConvertType())) {
             subRows.forEach(r -> r.put(metaField.getRelatedField(), displayName));
@@ -230,15 +237,23 @@ public class OneToManyProcessor extends BaseProcessor {
     private List<Map<String, Object>> getRelatedModelRows(List<Serializable> mainModelIds) {
         Filters filters = Filters.of(metaField.getRelatedField(), Operator.IN, mainModelIds);
         FlexQuery relatedFlexQuery;
-        if (subQuery != null) {
-            if (!CollectionUtils.isEmpty(subQuery.getFields()) && !subQuery.getFields().contains(metaField.getRelatedField())) {
-                subQuery.getFields().add(metaField.getRelatedField());
-            }
+        if (subQuery == null) {
+            relatedFlexQuery = new FlexQuery(Collections.emptyList(), filters);
+        } else {
             // When there is a subQuery filters, merge them with `AND` logic
             filters.and(subQuery.getFilters());
-            relatedFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
-        } else {
-            relatedFlexQuery = new FlexQuery(Collections.emptyList(), filters);
+            // Simple processing for count subQuery
+            if (Boolean.TRUE.equals(subQuery.getCount())) {
+                List<String> fields = new ArrayList<>(List.of(metaField.getRelatedField()));
+                relatedFlexQuery = new FlexQuery(fields, filters);
+                // Count is automatically added during the groupBy operation
+                relatedFlexQuery.setGroupBy(metaField.getRelatedField());
+            } else {
+                relatedFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
+                if (!CollectionUtils.isEmpty(subQuery.getFields())) {
+                    relatedFlexQuery.getFields().add(metaField.getRelatedField());
+                }
+            }
         }
         relatedFlexQuery.setConvertType(flexQuery.getConvertType());
         // When get the related model rows of OneToMany field, the `relatedField` field of the related model is only

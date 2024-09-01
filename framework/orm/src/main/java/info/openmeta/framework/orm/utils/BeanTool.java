@@ -290,4 +290,29 @@ public class BeanTool {
         return rows.stream().map(row -> mapToObject(row, entityClass)).collect(Collectors.toList());
     }
 
+    /**
+     * Check if all fields of an entity are null.
+     * @param entity The entity object to check.
+     * @return true if all fields are null, false otherwise.
+     */
+    public static boolean isAllFieldsNull(Object entity) {
+        if (entity == null) {
+            return true;
+        }
+        // Get all fields of the entity class
+        Field[] fields = entity.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                Object value = field.get(entity);
+                if (value != null) {
+                    return false;
+                }
+            } catch (IllegalAccessException e) {
+                log.error("Failed to get the value of the field: {}.{}",
+                        entity.getClass().getSimpleName(), field.getName(), e);
+            }
+        }
+        return true;
+    }
 }

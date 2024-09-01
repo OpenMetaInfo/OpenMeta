@@ -172,16 +172,29 @@ public class ManyToManyProcessor extends BaseProcessor {
     @Override
     public void batchProcessOutputRows(List<Map<String, Object>> rows) {
         List<Serializable> mainModelIds = rows.stream().map(row -> (Serializable) row.get(ModelConstant.ID)).collect(Collectors.toList());
-        List<Map<String, Object>> middleRows = getMiddleRows(mainModelIds);
-        if (CollectionUtils.isEmpty(middleRows)) {
-            rows.forEach(row -> row.put(fieldName, Collections.emptyList()));
-            return;
+        List<Map<String, Object>> middleRows;
+        Map<Serializable, List<Object>> groupedValues;
+        if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
+            groupedValues = new HashMap<>();
+            middleRows = getMiddleCount(mainModelIds);
+            for (Map<String, Object> row : middleRows) {
+                Serializable id = (Serializable) row.get(metaField.getRelatedField());
+                row.remove(metaField.getRelatedField());
+                List<Object> value = Collections.singletonList(row);
+                groupedValues.put(id, value);
+            }
+        } else {
+            middleRows = getMiddleRows(mainModelIds);
+            if (CollectionUtils.isEmpty(middleRows)) {
+                rows.forEach(row -> row.put(fieldName, Collections.emptyList()));
+                return;
+            }
+            // Expand the middle model rows, converted the `inverseLinkField` value to [id, displayName]
+            // or {target row} according to the `autoExpandMany` config and `subQuery` object.
+            List<Map<String, Object>> expandedMiddleRows = expandMiddleRowsWithAssociatedData(middleRows);
+            // Group by `relatedField` of the middle model, which stores the main model id.
+            groupedValues = groupMiddleRows(expandedMiddleRows);
         }
-        // Expand the middle model rows, converted the `inverseLinkField` value to [id, displayName]
-        // or {target row} according to the `autoExpandMany` config and `subQuery` object.
-        List<Map<String, Object>> expandedMiddleRows = expandMiddleRowsWithAssociatedData(middleRows);
-        // Group by `relatedField` of the middle model, which stores the main model id.
-        Map<Serializable, List<Object>> groupedValues = groupMiddleRows(expandedMiddleRows);
         rows.forEach(row -> {
             List<Object> associatedRows = groupedValues.get((Serializable) row.get(ModelConstant.ID));
             if (associatedRows == null) {
@@ -197,7 +210,7 @@ public class ManyToManyProcessor extends BaseProcessor {
      * Since `relatedField` and `inverseLinkField` are both ManyToOne fields, this query directly get the id values
      * of the two fields in the database.
      *
-     * @param mainModelIds Current table ids
+     * @param mainModelIds Main model ids
      * @return Middle model rows: [[id, relatedField, inverseLinkField], ...]
      */
     private List<Map<String, Object>> getMiddleRows(List<Serializable> mainModelIds) {
@@ -222,6 +235,9 @@ public class ManyToManyProcessor extends BaseProcessor {
     private List<Map<String, Object>> expandMiddleRowsWithAssociatedData(List<Map<String, Object>> middleRows) {
         String inverseLinkField = metaField.getInverseLinkField();
         List<Serializable> associatedIds = middleRows.stream().map(value -> (Serializable) value.get(inverseLinkField)).distinct().collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(associatedIds)) {
+            return Collections.emptyList();
+        }
         String associatedModel = ModelManager.getModelField(metaField.getRelatedModel(), inverseLinkField).getRelatedModel();
         if (subQuery == null && !metaField.isAutoExpandMany()) {
             // When `subQuery == null` and `autoExpandMany = false`, get the displayNames of associated model directly.
@@ -240,6 +256,24 @@ public class ManyToManyProcessor extends BaseProcessor {
     }
 
     /**
+     * Count the number of related rows in the middle model.
+     *
+     * @param mainModelIds Main model ids
+     * @return Middle model count: [{relatedField, count}, ...]
+     */
+    private List<Map<String, Object>> getMiddleCount(List<Serializable> mainModelIds) {
+        Filters filters = Filters.in(ModelConstant.ID, mainModelIds);
+        // When there is a subQuery filters, merge them with `AND` logic
+        filters.and(subQuery.getFilters());
+        // count subQuery on the middle model
+        List<String> fields = new ArrayList<>(List.of(metaField.getRelatedField()));
+        FlexQuery relatedFlexQuery = new FlexQuery(fields, filters);
+        // Count is automatically added during the groupBy operation
+        relatedFlexQuery.setGroupBy(metaField.getRelatedField());
+        return ReflectTool.searchMapList(metaField.getRelatedModel(), relatedFlexQuery);
+    }
+
+    /**
      * Perform a subQuery on the associated model
      *
      * @param associatedModel Associated model
@@ -247,20 +281,17 @@ public class ManyToManyProcessor extends BaseProcessor {
      * @return Associated model rows
      */
     private List<Map<String, Object>> getAssociatedRows(String associatedModel, List<Serializable> ids) {
-        if (CollectionUtils.isEmpty(ids)) {
-            return Collections.emptyList();
-        }
         Filters filters = Filters.in(ModelConstant.ID, ids);
         FlexQuery relatedFlexQuery;
         if (subQuery == null) {
             relatedFlexQuery = new FlexQuery(Collections.emptyList(), filters);
         } else {
-            // When there is a subQuery condition, merge it together
-            if (!CollectionUtils.isEmpty(subQuery.getFields()) && !subQuery.getFields().contains(ModelConstant.ID)) {
-                subQuery.getFields().add(ModelConstant.ID);
-            }
+            // When there is a subQuery filters, merge them with `AND` logic
             filters.and(subQuery.getFilters());
             relatedFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
+            if (!CollectionUtils.isEmpty(subQuery.getFields())) {
+                relatedFlexQuery.getFields().add(ModelConstant.ID);
+            }
         }
         relatedFlexQuery.setConvertType(flexQuery.getConvertType());
         return ReflectTool.searchMapList(associatedModel, relatedFlexQuery);

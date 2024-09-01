@@ -3,11 +3,13 @@ package info.openmeta.framework.orm.domain;
 import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.enums.ConvertType;
+import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.LambdaUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,7 +39,7 @@ public class FlexQuery {
     // `orderBy` rule, using the model default configuration when empty
     private Orders orders;
 
-    // A limit on the number of returns for list queries (non-paged queries), used only in back-end code
+    // A limit on the number of returns for list queries (non-paged queries)
     private Integer limitSize;
 
     // Convert the return value type
@@ -190,7 +192,8 @@ public class FlexQuery {
      * @return SubQuery object
      */
     public SubQuery extractSubQuery(String relationField) {
-        return this.subQueries.getOrDefault(relationField, null);
+        SubQuery subQuery = this.subQueries.getOrDefault(relationField, null);
+        return BeanTool.isAllFieldsNull(subQuery) ? null : subQuery;
     }
 
     /**
@@ -228,6 +231,14 @@ public class FlexQuery {
     public FlexQuery setFields(Collection<String> fields) {
         if (!CollectionUtils.isEmpty(fields)) {
             this.fields = new HashSet<>(fields);
+        }
+        return this;
+    }
+
+    public FlexQuery setGroupBy(String groupBy) {
+        if (StringUtils.hasLength(groupBy)) {
+            this.groupBy.add(groupBy);
+            this.aggregate = true;
         }
         return this;
     }

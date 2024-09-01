@@ -674,6 +674,7 @@ public class ModelManager {
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(f -> FieldType.NUMERIC_TYPES.contains(f.getFieldType())
                         && !f.isDynamic()
+                        && !ModelConstant.ID.equals(f.getFieldName())
                         && !ModelConstant.AUDIT_FIELDS.contains(f.getFieldName()))
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
     }

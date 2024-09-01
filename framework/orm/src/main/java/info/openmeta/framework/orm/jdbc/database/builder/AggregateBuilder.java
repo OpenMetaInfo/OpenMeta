@@ -72,6 +72,8 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
         }
         // Update flexQuery.fields
         flexQuery.setFields(selectFields);
+        // Add select fields to groupBy fields to incompatible with `sql_mode = only_full_group_by`
+        selectFields.stream().filter(f -> !sqlGroupByFields.contains(f)).forEach(sqlGroupByFields::add);
         // Reassign selectFields, only select non-numeric, stored fields of the current model,
         // excluding cascading query fields (a.b.c), non-stored fields,
         // numeric fields that are excluded will be aggregated by `sum()`,
@@ -89,7 +91,7 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
                 sqlWrapper.select("SUM(" + SqlWrapper.MAIN_TABLE_ALIAS + "." + column + ") AS " + alias);
             });
         }
-        // Automatically add `count(*) as count`
+        // Automatically add `count(*) as count` for aggregation queries
         sqlWrapper.count();
     }
 
