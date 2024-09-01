@@ -5,6 +5,7 @@ import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.enums.Operator;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.Cast;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
@@ -252,6 +253,13 @@ public class OneToManyProcessor extends BaseProcessor {
                 relatedFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
                 if (!CollectionUtils.isEmpty(subQuery.getFields())) {
                     relatedFlexQuery.getFields().add(metaField.getRelatedField());
+                }
+                if (subQuery.getTopN() != null && subQuery.getTopN() > 0) {
+                    Assert.notNull(subQuery.getOrders(), "TopN query must have orderBy fields!");
+                    relatedFlexQuery.setTopN(subQuery.getTopN());
+                    // the `relatedField` field as the partition field of the TopN query, without aggregation
+                    relatedFlexQuery.setGroupBy(Collections.singletonList(metaField.getRelatedField()));
+                    relatedFlexQuery.setAggregate(false);
                 }
             }
         }

@@ -12,11 +12,11 @@ import java.util.Collection;
  * Application scenarios of different field types:
  *      1. ManyToOne, OneToOne: specify the field list to get.
  *      2. OneToMany, ManyToMany: specify the fields to get, filters, orders, aggFunctions, topN.
- *      3. Count query: specify the `count = true` to get the count for every group.
+ *      3. Count query ( + filters): specify the `count = true` to get the count for every group.
  *      For example: get the count of each department's employees.
  *      Note:
  *      If `filters` is specified, the `count` query will be based on the `filters` conditions.
- *      4. TopN query: specify the topN and orders parameters to get the top N data.
+ *      4. TopN query on OneToMany field: specify the `topN` and `orders` parameters to get the top N data.
  *      For example: set the topN = 10 and orders = ["createTime", "DESC"].
  *      Note:
  *      The topN query is not supported by all databases,
@@ -28,10 +28,6 @@ import java.util.Collection;
  * 	        MySQL: 8.0 and later
  * 	        IBM DB2: 8.1 and later
  * 	        SQLite: 3.25.0 and later
- *      5. For databases that do not support the topN query, can only use the MAX/MIN aggregation function
- *      to get the `top 1` data. For example:
- *          aggFunctions = ["MAX", "createTime"] or ["MIN", "createTime"].
- *          which means get the latest or earliest data.
  */
 @Data
 @NoArgsConstructor
@@ -48,7 +44,7 @@ public class SubQuery {
     @Schema(description = "Only count the sub records, true/false")
     private Boolean count;
 
-    @Schema(description = "Sub query topN number. Default is no limit.", example = "3")
+    @Schema(description = "TopN query on OneToMany field, using with `orders`.", example = "3")
     private Integer topN;
 
     public SubQuery(Collection<String> fields) {

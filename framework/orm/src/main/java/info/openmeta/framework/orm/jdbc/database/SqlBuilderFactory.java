@@ -84,4 +84,30 @@ public class SqlBuilderFactory {
         sqlWrapper.buildCountSql();
         return sqlWrapper.getSqlParams();
     }
+
+    /**
+     * Build TopN SQL clause based on model name and FlexQuery object:
+     *      SELECT *
+     *      FROM (
+     *          SELECT t.*,
+     *              ROW_NUMBER() OVER(PARTITION BY t.dept_id ORDER BY t.created_time DESC) as topNumber
+     *          FROM emp_info t
+     *      ) subQuery
+     *      WHERE topNumber <= ?
+     *
+     * @param modelName Model name
+     * @param flexQuery Filter conditions
+     * @return SELECT SQL
+     */
+    public static SqlParams buildTopNSql(String modelName, FlexQuery flexQuery) {
+        SqlWrapper sqlWrapper = new SqlWrapper(modelName);
+        // SELECT query, first process Filter, then build select, groupBy, orderBy clauses in turn.
+        SqlBuilderChain chain = new SqlBuilderChain()
+                .addBuilder(new WhereBuilder(sqlWrapper, flexQuery))
+                .addBuilder(new SelectBuilder(sqlWrapper, flexQuery))
+                .addBuilder(new OrderByBuilder(sqlWrapper, flexQuery));
+        chain.build();
+        sqlWrapper.buildTopNSql(flexQuery.getGroupBy().getFirst(), flexQuery.getTopN());
+        return sqlWrapper.getSqlParams();
+    }
 }

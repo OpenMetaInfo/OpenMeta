@@ -145,7 +145,12 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
      */
     @SkipPermissionCheck
     public List<Map<String, Object>> selectByFilter(String modelName, FlexQuery flexQuery) {
-        SqlParams sqlParams = SqlBuilderFactory.buildSelectSql(modelName, flexQuery);
+        SqlParams sqlParams;
+        if (flexQuery.getTopN() != null && flexQuery.getTopN() > 0) {
+            sqlParams = SqlBuilderFactory.buildTopNSql(modelName, flexQuery);
+        } else {
+            sqlParams = SqlBuilderFactory.buildSelectSql(modelName, flexQuery);
+        }
         List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
         if (CollectionUtils.isEmpty(rows)) {
             return Collections.emptyList();

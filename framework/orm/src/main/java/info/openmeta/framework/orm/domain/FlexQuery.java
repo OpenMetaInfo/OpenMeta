@@ -42,6 +42,9 @@ public class FlexQuery {
     // A limit on the number of returns for list queries (non-paged queries)
     private Integer limitSize;
 
+    // TopN query, used to get the top N data of the OneToMany field
+    private Integer topN;
+
     // Convert the return value type
     private ConvertType convertType = ConvertType.DEFAULT;
 
