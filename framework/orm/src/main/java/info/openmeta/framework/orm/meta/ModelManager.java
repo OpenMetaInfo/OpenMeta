@@ -352,19 +352,29 @@ public class ModelManager {
     /**
      * Verify and update the `readonly` attribute of the field.
      * The `readonly` attribute is automatically set for the following fields:
-     *     1. Fields in the `CLIENT_READONLY_FIELDS` list, including audit fields, `version`, `sliceId`, `tenantId`.
-     *     2. Computed fields, cascaded fields.
-     *     3. `id` field of the model, except for EXTERNAL_ID strategy.
+     *     1. Fields in the `AUDIT_FIELDS` list, including audit fields, `version`, `sliceId`, `tenantId`.
+     *     2. TenantId field if enable multi-tenant.
+     *     3. Version field of the optimistic lock control model.
+     *     4. SliceId field of the timeline model.
+     *     5. Computed fields, cascaded fields.
+     *     6. `id` field of the model, except for EXTERNAL_ID strategy.
      *
      * @param metaField field metadata object
      */
     private static void verifyReadonlyAttribute(MetaField metaField) {
-        if (ModelConstant.CLIENT_READONLY_FIELDS.contains(metaField.getFieldName())) {
+        String model = metaField.getModelName();
+        if (ModelConstant.AUDIT_FIELDS.contains(metaField.getFieldName())) {
+            metaField.setReadonly(true);
+        } else if (TenantConfig.isEnableMultiTenant() && ModelConstant.TENANT_ID.equals(metaField.getFieldName())) {
+            metaField.setReadonly(true);
+        } else if (MODEL_MAP.get(model).isVersionLock() && ModelConstant.VERSION.equals(metaField.getFieldName())) {
+            metaField.setReadonly(true);
+        } else if (MODEL_MAP.get(model).isTimeline() && ModelConstant.SLICE_ID.equals(metaField.getFieldName())) {
             metaField.setReadonly(true);
         } else if (metaField.isComputed() || StringUtils.isNotBlank(metaField.getCascadedField())) {
             metaField.setReadonly(true);
         } else if (ModelConstant.ID.equals(metaField.getFieldName())
-                && !IdStrategy.EXTERNAL_ID.equals(MODEL_MAP.get(metaField.getModelName()).getIdStrategy())) {
+                && !IdStrategy.EXTERNAL_ID.equals(MODEL_MAP.get(model).getIdStrategy())) {
             metaField.setReadonly(true);
         }
     }
@@ -664,6 +674,7 @@ public class ModelManager {
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(f -> FieldType.NUMERIC_TYPES.contains(f.getFieldType())
                         && !f.isDynamic()
+                        && !ModelConstant.ID.equals(f.getFieldName())
                         && !ModelConstant.AUDIT_FIELDS.contains(f.getFieldName()))
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
     }

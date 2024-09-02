@@ -743,7 +743,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         FlexQuery flexQuery = new FlexQuery(filters);
         // Automatic distinct when querying relational field ids
         flexQuery.setDistinct(true);
-        return jdbcService.getIds(modelName, fieldName, flexQuery);
+        List<K> relatedIds = jdbcService.getIds(modelName, fieldName, flexQuery);
+        // Filter out null value
+        return relatedIds.stream().filter(IdUtils::validId).collect(Collectors.toList());
     }
 
     /**

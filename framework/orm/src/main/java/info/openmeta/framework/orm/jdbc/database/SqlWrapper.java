@@ -242,6 +242,37 @@ public class SqlWrapper {
     }
 
     /**
+     * Build TOP N SQL:
+     *      SELECT *
+     *      FROM (
+     *          SELECT t.*,
+     *              ROW_NUMBER() OVER(PARTITION BY t.dept_id ORDER BY t.created_time DESC) as topNumber
+     *          FROM emp_info t
+     *      ) subQuery
+     *      WHERE topNumber <= ?
+     * <p>
+     * Build the `subQuery` first, and then wrap the `subQuery` with the `topNumber` condition.
+     *
+     * @param partitionField partition field, relatedField attribute of OneToMany field
+     *
+     */
+    public void buildTopNSql(String partitionField, Integer topN) {
+        String windowSql = " ROW_NUMBER() OVER(PARTITION BY " +
+                MAIN_TABLE_ALIAS + "." + StringTools.toUnderscoreCase(partitionField) +
+                " ORDER BY " + StringTools.removeLastComma(orderByClause) + ") as topNumber ";
+        StringBuilder subSql = new StringBuilder("SELECT ").append(selectClause)
+                .append(windowSql)
+                .append(" FROM ").append(tableName).append(" ").append(MAIN_TABLE_ALIAS)
+                .append(joinClause);
+        if (!whereClause.isEmpty()) {
+            subSql.append(" WHERE ").append(whereClause);
+        }
+        String topNSql = "SELECT * FROM (" + subSql + ") subQuery WHERE topNumber <= ?";
+        addArgValue(topN);
+        sqlParams.setSql(DBUtil.wrapHint(topNSql));
+    }
+
+    /**
      * Build COUNT SQL:
      *      SELECT COUNT(*) FROM mainTable
      *      LEFT JOIN relatedTables... ON relations...
