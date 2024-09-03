@@ -50,7 +50,7 @@ public class I18nJSONLoader implements CommandLineRunner {
 
     /**
      * Get language code from the filename.
-     * The filename should be like: i18n/messages.en_US.json
+     * The filename should be like: i18n/messages.en-US.json
      */
     private String getLanguageCode(String filename) {
         int firstDotIndex = filename.indexOf(".");

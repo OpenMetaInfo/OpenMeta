@@ -108,7 +108,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         Context context = new Context(request.getHeader("traceId"));
         context.setUserId(userInfo.getId());
         context.setName(userInfo.getName());
-        context.setLanguage(Locale.of(userInfo.getLanguage()));
+        Locale language = Locale.of(userInfo.getLanguage());
+        language = language == null ? getLocaleFromRequest(request) : language;
+        context.setLanguage(language);
         context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(userInfo.getTimezone())));
         context.setTenantId(userInfo.getTenantId());
         context.setUserInfo(userInfo);
@@ -124,13 +126,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      */
     public void setupAnonymousContext(HttpServletRequest request) {
         Context context = new Context();
-        // Set language and timezone from request headers or query params
-        String language = request.getHeader("Accept-Language");
-        if (!StringUtils.hasText(language)) {
-            language = request.getParameter("language");
-        }
-        if (StringUtils.hasText(language)) {
-            context.setLanguage(Locale.forLanguageTag(language));
+        Locale language = getLocaleFromRequest(request);
+        if (language != null) {
+            context.setLanguage(language);
         }
         String timezone = request.getHeader("X-Timezone");
         if (StringUtils.hasText(timezone)) {
@@ -138,6 +136,19 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         }
         this.setDebugModeFromRequest(request, context);
         ContextHolder.setContext(context);
+    }
+
+    /**
+     * Extract language from query params or request headers.
+     * LanguageCode from the URI params will override the language from the request headers.
+     * For example, `?language=zh-CN` will set the language to Chinese.
+     *
+     * @param request the current HTTP request
+     * @return the locale extracted from the request
+     */
+    private Locale getLocaleFromRequest(HttpServletRequest request) {
+        String languageCode = request.getParameter("language");
+        return StringUtils.hasText(languageCode) ? Locale.forLanguageTag(languageCode) : request.getLocale();
     }
 
     /**
