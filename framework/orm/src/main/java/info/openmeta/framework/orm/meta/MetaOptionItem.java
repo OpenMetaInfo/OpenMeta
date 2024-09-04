@@ -48,7 +48,7 @@ public class MetaOptionItem implements Serializable {
      */
     public String getItemName() {
         String languageCode = ContextHolder.getContext().getLanguageCode();
-        if (translations.containsKey(languageCode)) {
+        if (translations != null && translations.containsKey(languageCode)) {
             return translations.get(languageCode).getItemName();
         } else {
             return itemName;

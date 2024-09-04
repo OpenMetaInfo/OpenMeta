@@ -8,7 +8,7 @@ import java.util.Locale;
 public interface BaseConstant {
 
     Locale DEFAULT_LANGUAGE = Locale.US;
-    String DEFAULT_LANGUAGE_CODE = DEFAULT_LANGUAGE.getLanguage();
+    String DEFAULT_LANGUAGE_CODE = DEFAULT_LANGUAGE.toLanguageTag();
 
     /** Debug parameter in request parameter */
     String DEBUG = "debug";

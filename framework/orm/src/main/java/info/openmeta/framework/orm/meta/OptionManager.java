@@ -41,6 +41,9 @@ public class OptionManager {
                 .collect(Collectors.groupingBy(SysOptionItemTrans::getRowId,
                         Collectors.toMap(SysOptionItemTrans::getLanguageCode, Function.identity())));
         metaOptionItems.forEach(item -> {
+            // Set the translations
+            item.setTranslations(groupedTranslations.getOrDefault(item.getId(), Collections.emptyMap()));
+            // Update the optionSet cache
             if (META_OPTION_SET_MAP.containsKey(item.getOptionSetCode())) {
                 META_OPTION_SET_MAP.get(item.getOptionSetCode()).put(item.getItemCode(), item);
             } else {
@@ -49,8 +52,6 @@ public class OptionManager {
                 map.put(item.getItemCode(), item);
                 META_OPTION_SET_MAP.put(item.getOptionSetCode(), map);
             }
-            // Set the translations
-            item.setTranslations(groupedTranslations.getOrDefault(item.getId(), Collections.emptyMap()));
         });
     }
 

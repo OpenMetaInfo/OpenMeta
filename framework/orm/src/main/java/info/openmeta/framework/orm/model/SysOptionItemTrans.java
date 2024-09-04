@@ -22,7 +22,7 @@ public class SysOptionItemTrans extends BaseModel {
     private String languageCode;
 
     @Schema(description = "Row ID")
-    private String rowId;
+    private Long rowId;
 
     @Schema(description = "Item Name")
     private String itemName;

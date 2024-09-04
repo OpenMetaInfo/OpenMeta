@@ -2,11 +2,12 @@ package info.openmeta.framework.base.context;
 
 import info.openmeta.framework.base.constant.BaseConstant;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -75,12 +76,35 @@ public class Context implements Serializable {
      * @param traceId passed by the client or upstream system
      */
     public Context(String traceId) {
-        this.traceId = StringUtils.isBlank(traceId) ? UUID.randomUUID().toString() : traceId;
+        this.traceId = StringUtils.hasLength(traceId) ? UUID.randomUUID().toString() : traceId;
     }
 
     public void setEffectiveDate(LocalDate effectiveDate) {
         if (effectiveDate != null) {
             this.effectiveDate = effectiveDate;
+        }
+    }
+
+    /**
+     * Set the language code of the current user.
+     *
+     * @param locale the locale to get the language code
+     */
+    public void setLanguageCode(Locale locale) {
+        if (locale != null) {
+            this.languageCode = locale.toLanguageTag();
+        }
+    }
+
+    /**
+     * Set the language code of the current user.
+     * The method is defined to avoid hacking the context language code.
+     *
+     * @param languageCode the language code to set
+     */
+    public void setLanguageCode(String languageCode) {
+        if (StringUtils.hasLength(languageCode)) {
+            this.languageCode = Locale.of(languageCode).toLanguageTag();
         }
     }
 

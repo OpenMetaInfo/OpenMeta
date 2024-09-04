@@ -22,7 +22,7 @@ public class SysFieldTrans extends BaseModel {
     private String languageCode;
 
     @Schema(description = "Row ID")
-    private String rowId;
+    private Long rowId;
 
     @Schema(description = "Label Name")
     private String labelName;

@@ -22,7 +22,7 @@ public class SysOptionSetTrans extends BaseModel {
     private String languageCode;
 
     @Schema(description = "Row ID")
-    private String rowId;
+    private Long rowId;
 
     @Schema(description = "Option Set Name")
     private String name;

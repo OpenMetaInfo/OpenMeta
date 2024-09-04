@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.ZoneId;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -107,9 +108,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         Context context = new Context(request.getHeader("traceId"));
         context.setUserId(userInfo.getId());
         context.setName(userInfo.getName());
-        String languageCode = StringUtils.hasLength(userInfo.getLanguage()) ?
-                userInfo.getLanguage() : getLocaleFromRequest(request);
-        context.setLanguageCode(languageCode);
+        Locale locale = StringUtils.hasLength(userInfo.getLanguage()) ?
+                Locale.of(userInfo.getLanguage()) : getLocaleFromRequest(request);
+        context.setLanguageCode(locale);
         context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(userInfo.getTimezone())));
         context.setTenantId(userInfo.getTenantId());
         context.setUserInfo(userInfo);
@@ -125,9 +126,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      */
     public void setupAnonymousContext(HttpServletRequest request) {
         Context context = new Context();
-        String languageCode = getLocaleFromRequest(request);
-        if (languageCode != null) {
-            context.setLanguageCode(languageCode);
+        Locale locale = getLocaleFromRequest(request);
+        if (locale != null) {
+            context.setLanguageCode(locale);
         }
         String timezone = request.getHeader("X-Timezone");
         if (StringUtils.hasText(timezone)) {
@@ -147,9 +148,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      * @param request the current HTTP request
      * @return the languageCode extracted from the request
      */
-    private String getLocaleFromRequest(HttpServletRequest request) {
+    private Locale getLocaleFromRequest(HttpServletRequest request) {
         String languageCode = request.getParameter("language");
-        return StringUtils.hasText(languageCode) ? languageCode : request.getLocale().getLanguage();
+        return StringUtils.hasText(languageCode) ? Locale.of(languageCode) : request.getLocale();
     }
 
     /**

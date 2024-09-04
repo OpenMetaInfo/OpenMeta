@@ -57,11 +57,13 @@ public abstract class BaseBuilder {
         String modelName = this.mainModelName;
         String lastAlias = SqlWrapper.MAIN_TABLE_ALIAS;
         StringBuilder fieldChain = new StringBuilder(cascadeFields.getFirst());
-        MetaField metaField = ModelManager.getModelField(modelName, cascadeFields.getFirst());
+        MetaField metaField;
+        String columnAlias = "";
         for (int i = 0; i < cascadeFields.size(); i++) {
             String fieldName = cascadeFields.get(i);
             sqlWrapper.accessModelField(modelName, fieldName);
             metaField = ModelManager.getModelField(modelName, fieldName);
+            columnAlias = lastAlias + "." + metaField.getColumnName();
             FieldType fieldType = metaField.getFieldType();
             if (FieldType.RELATED_TYPES.contains(fieldType)) {
                 // Update the model, and continue to traverse the field list to update the model field access list
@@ -71,17 +73,41 @@ public abstract class BaseBuilder {
                 if (i < cascadeFields.size() - 1) {
                     // If the current field is not the last field, then the alias of the current field associated table
                     // is the leftAlias of the next level associated field.
-                    String rightAlias = sqlWrapper.getRightTableAliasByFieldChain(fieldChain.toString());
+                    String rightAlias = sqlWrapper.getTableAlias().getRightTableAlias(fieldChain.toString());
                     sqlWrapper.leftJoin(metaField, lastAlias, rightAlias, flexQuery.isAcrossTimeline());
                     lastAlias = rightAlias;
                     fieldChain.append(".").append(fieldName);
                 }
             } else {
                 // Only the last field allows non-relational fields, including the case where the cascade field has only one field
-                Assert.isTrue(i == cascadeFields.size() - 1, "The {0} field in the cascade field {1} is not a relational field!", fieldName, logicField);
+                Assert.isTrue(i == cascadeFields.size() - 1,
+                        "The {0} field in cascade field {1} is not a relational field!", fieldName, logicField);
+                if (metaField.isTranslatable()) {
+                    // If the field is a translatable field, get the alias of the translation table
+                    String transAlias = sqlWrapper.getTableAlias().getTransTableAlias(fieldChain.toString());
+                    sqlWrapper.leftJoinTranslation(metaField, lastAlias, transAlias);
+                    // Construct the SQL segment of the translation field
+                    columnAlias = sqlWrapper.selectTranslatableField(lastAlias, metaField.getColumnName(), transAlias);
+                }
             }
         }
-        return lastAlias + "." + metaField.getColumnName();
+        return columnAlias;
+    }
+
+    /**
+     * Construct the SQL segment of the translation field
+     *      COALESCE(NULLIF(trans.column_name, ''), t.column_name) AS t.column_name
+     * Use the original value if the translation field is null or empty.
+     *
+     * @param leftAlias        left table alias
+     * @param columnName       column name
+     * @param transTableAlias translation table alias
+     * @return SQL segment of the translation field
+     */
+    private String constructTransColumn(String leftAlias, String columnName, String transTableAlias) {
+        String columnAlias = leftAlias + "." + columnName;
+        return "COALESCE(NULLIF(" + transTableAlias + "." + columnName + ", ''), " +
+                columnAlias + ") AS " + columnName;
     }
 
     /**
@@ -94,7 +120,15 @@ public abstract class BaseBuilder {
         if (ModelManager.existField(this.mainModelName, simpleField)) {
             MetaField metaField = ModelManager.getModelField(this.mainModelName, simpleField);
             sqlWrapper.accessModelField(this.mainModelName, simpleField);
-            return SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName();
+            if (metaField.isTranslatable()) {
+                // If the field is a translatable field, get the alias of the translation table
+                String transAlias = sqlWrapper.getTableAlias().getTransTableAlias(simpleField);
+                sqlWrapper.leftJoinTranslation(metaField, SqlWrapper.MAIN_TABLE_ALIAS, transAlias);
+                // Construct the SQL segment of the translation field
+                return sqlWrapper.selectTranslatableField(SqlWrapper.MAIN_TABLE_ALIAS, metaField.getColumnName(), transAlias);
+            } else {
+                return SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName();
+            }
         } else if (AggFunctions.containAlias(this.flexQuery.getAggFunctions(), simpleField)) {
             return simpleField;
         } else {
