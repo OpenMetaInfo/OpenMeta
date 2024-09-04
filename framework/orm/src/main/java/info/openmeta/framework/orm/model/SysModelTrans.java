@@ -1,4 +1,4 @@
-package info.openmeta.starter.metadata.entity;
+package info.openmeta.framework.orm.model;
 
 import info.openmeta.framework.orm.entity.BaseModel;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,12 +8,12 @@ import lombok.EqualsAndHashCode;
 import java.io.Serial;
 
 /**
- * SysTranslation Model
+ * SysModelTrans Model
  */
 @Data
-@Schema(name = "SysTranslation")
+@Schema(name = "SysModelTrans")
 @EqualsAndHashCode(callSuper = true)
-public class SysTranslation extends BaseModel {
+public class SysModelTrans extends BaseModel {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -21,12 +21,12 @@ public class SysTranslation extends BaseModel {
     @Schema(description = "Language Code")
     private String languageCode;
 
-    @Schema(description = "Original")
-    private String original;
+    @Schema(description = "Row ID")
+    private Long rowId;
 
-    @Schema(description = "Translation")
-    private String translation;
+    @Schema(description = "Label Name")
+    private String labelName;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Description")
+    private String description;
 }

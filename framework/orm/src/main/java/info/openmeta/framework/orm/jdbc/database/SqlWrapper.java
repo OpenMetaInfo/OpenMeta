@@ -25,6 +25,8 @@ public class SqlWrapper {
     private final String tableName;
     @Getter
     private final SqlParams sqlParams = new SqlParams();
+    @Getter
+    private final TableAlias tableAlias = new TableAlias();
 
     private final StringBuilder selectClause = new StringBuilder();
     private final StringBuilder joinClause = new StringBuilder();
@@ -54,6 +56,12 @@ public class SqlWrapper {
      *       so the keys (in chainTableAlias) of B alias is f1, f2 respectively, and the multi-level cascade is the same.
      */
     private final Map<String, String> chainTableAlias = new HashMap<>();
+
+    /**
+     * The translation table alias with the field chain as the key, which is used to join the translation table
+     * when the field is translatable.
+     */
+    private final Map<String, String> transTableAlias = new HashMap<>();
 
     public SqlWrapper(String modelName) {
         this.modelName = modelName;
@@ -93,7 +101,22 @@ public class SqlWrapper {
     }
 
     /**
-     * Generate join statement like: `LEFT JOIN table_name t1 ON t1.id = t.job_id`
+     * Construct the field segment of the translation field
+     *      COALESCE(NULLIF(trans.column_name, ''), t.column_name) AS t.column_name
+     * Use the original value if the translation field is null or empty.
+     *
+     * @param leftAlias        left table alias
+     * @param columnName       column name
+     * @param transTableAlias translation table alias
+     * @return SQL segment of the translation field
+     */
+    public String selectTranslatableField(String leftAlias, String columnName, String transTableAlias) {
+        String columnAlias = leftAlias + "." + columnName;
+        return "COALESCE(NULLIF(" + transTableAlias + "." + columnName + ", ''), " + columnAlias + ") AS " + columnName;
+    }
+
+    /**
+     * Generate join statement like: `LEFT JOIN table_name t1 ON t.job_id = t1.id`
      *
      * @param metaField left table field object
      * @param leftAlias left table alias
@@ -108,30 +131,62 @@ public class SqlWrapper {
                 .append(" = ")
                 .append(rightAlias).append(".").append(ModelManager.getModelFieldColumn(metaField.getRelatedModel(), metaField.getRelatedField())).append(" ");
         if (ModelManager.isTimelineModel(metaField.getRelatedModel())) {
-            // Append `ON` condition when the associated model is a timeline model.
-            if (ModelManager.isTimelineModel(metaField.getModelName()) && isAcrossTimeline) {
-                // If both the main model and the association model are timeline models, and `isAcrossTimeline = true`,
-                // the timeline slice to be associated needs to be determined by adding the effective time condition
-                // to the join clause.
-                // masterEffectiveOption represents whether the data query of the associated model is based on
-                // the start date or end date of the main model data as the effective date of the associated model.
-                // Here, it is the end date EFFECTIVE_END_COLUMN of the main model data by default.
-                String masterEffectiveOption = leftAlias + "." + ModelConstant.EFFECTIVE_END_COLUMN;
-                joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_COLUMN).append(" <= ").append(masterEffectiveOption)
-                        .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_COLUMN).append(" >= ").append(masterEffectiveOption);
-            } else {
-                // When the associated model is a timeline model and specified the `effectiveDate`,
-                // add an `ON` condition to the join clause:
-                //      AND tn.effectiveStart <= effectiveDate AND tn.effectiveEnd >= effectiveDate
-                String effectiveDate = ContextHolder.getContext().getEffectiveDate().format(TimeConstant.DATE_FORMATTER);
-                joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_COLUMN).append(" <= '").append(effectiveDate).append("' ")
-                        .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_COLUMN).append(" >= '").append(effectiveDate).append("' ");
-            }
+            this.joinOnTimelineModel(metaField, leftAlias, rightAlias, isAcrossTimeline);
         }
         if (ModelManager.isMultiTenant(metaField.getRelatedModel())) {
             // Add the `ON` condition of the tenant ID when the associated model is a multi-tenant model:
             //      AND tn.tenantId = tenantId
             joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.TENANT_ID).append(" = ").append(ContextHolder.getContext().getTenantId());
+        }
+    }
+
+    /**
+     * Generate join statement like:
+     *      `LEFT JOIN trans_table_name trans1 ON t1.id = trans1.row_id AND trans1.language_code = ?`
+     *
+     * @param metaField left table field object
+     * @param leftAlias left table alias
+     * @param transAlias the alias of the translation table
+     */
+    public void leftJoinTranslation(MetaField metaField, String leftAlias, String transAlias) {
+        String transTableName = ModelManager.getTranslationTableName(metaField.getModelName());
+        String currentLanguage = ContextHolder.getContext().getLanguage().getCode();
+        joinClause.append(" LEFT JOIN ")
+                .append(transTableName).append(" ").append(transAlias).append(" ").append(" ON ")
+                .append(leftAlias).append(".").append(ModelConstant.ID).append(" = ")
+                .append(transAlias).append(".").append(ModelConstant.TRANS_ROW_ID_COLUMN).append(" ")
+                .append(" AND ")
+                .append(transAlias).append(".").append(ModelConstant.LANGUAGE_CODE_COLUMN).append(" = '")
+                .append(currentLanguage).append("' ");
+    }
+
+    /**
+     * Append `ON` condition when the associated model is a timeline model.
+     *
+     * @param metaField left table field object
+     * @param leftAlias left table alias
+     * @param rightAlias right table alias
+     * @param isAcrossTimeline whether to get all timeline slice data
+     */
+    private void joinOnTimelineModel(MetaField metaField, String leftAlias, String rightAlias, boolean isAcrossTimeline) {
+        // Append `ON` condition when the associated model is a timeline model.
+        if (ModelManager.isTimelineModel(metaField.getModelName()) && isAcrossTimeline) {
+            // If both the main model and the association model are timeline models, and `isAcrossTimeline = true`,
+            // the timeline slice to be associated needs to be determined by adding the effective time condition
+            // to the join clause.
+            // masterEffectiveOption represents whether the data query of the associated model is based on
+            // the start date or end date of the main model data as the effective date of the associated model.
+            // Here, it is the end date EFFECTIVE_END_COLUMN of the main model data by default.
+            String masterEffectiveOption = leftAlias + "." + ModelConstant.EFFECTIVE_END_COLUMN;
+            joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_COLUMN).append(" <= ").append(masterEffectiveOption)
+                    .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_COLUMN).append(" >= ").append(masterEffectiveOption);
+        } else {
+            // When the associated model is a timeline model and specified the `effectiveDate`,
+            // add an `ON` condition to the join clause:
+            //      AND tn.effectiveStart <= effectiveDate AND tn.effectiveEnd >= effectiveDate
+            String effectiveDate = ContextHolder.getContext().getEffectiveDate().format(TimeConstant.DATE_FORMATTER);
+            joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_COLUMN).append(" <= '").append(effectiveDate).append("' ")
+                    .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_COLUMN).append(" >= '").append(effectiveDate).append("' ");
         }
     }
 
@@ -175,27 +230,6 @@ public class SqlWrapper {
      */
     public void page(StringBuilder pageSql) {
         limitClause = pageSql;
-    }
-
-    /**
-     * Get the alias of the right table by the field chain.
-     * If the field chain has been associated with a table alias, return the table alias directly;
-     *
-     * @param fieldChain Table alias key, that is, the left part of the cascading field,
-     *                   such as `jobId` of `jobId.name`, `jobId.typeId` of `jobId.typeId.name`.
-     * @return Alias of the right table
-     */
-    public String getRightTableAliasByFieldChain(String fieldChain) {
-        String rightTableAlias;
-        if (chainTableAlias.containsKey(fieldChain)) {
-            rightTableAlias = chainTableAlias.get(fieldChain);
-        } else {
-            // Generate a new table alias based on the size +1
-            rightTableAlias = MAIN_TABLE_ALIAS + (chainTableAlias.size() + 1);
-            // Update the table alias dictionary
-            this.chainTableAlias.put(fieldChain, rightTableAlias);
-        }
-        return rightTableAlias;
     }
 
     /**

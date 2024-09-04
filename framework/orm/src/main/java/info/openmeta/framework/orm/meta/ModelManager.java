@@ -502,6 +502,30 @@ public class ModelManager {
     }
 
     /**
+     * Get the translation modelName of the specified data model.
+     * The translation model name equals to `modelName + "Trans"`, which stores the translations of the data model.
+     *
+     * @param modelName data model name
+     * @return the translation modelName of the data model
+     */
+    public static String getTranslationModelName(String modelName) {
+        validateModel(modelName);
+        return modelName + ModelConstant.MODEL_TRANS_SUFFIX;
+    }
+
+    /**
+     * Get the translation table name of the data model.
+     * The translation table name equals to `table_name + "_trans"`, which stores the translations of the data model.
+     *
+     * @param modelName data model name
+     * @return the translation table name of the data model
+     */
+    public static String getTranslationTableName(String modelName) {
+        String transModel = getTranslationModelName(modelName);
+        return StringTools.toUnderscoreCase(transModel);
+    }
+
+    /**
      * Get the cascaded fields of the model.
      *
      * @param modelName model name

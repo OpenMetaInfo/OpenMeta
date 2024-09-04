@@ -226,7 +226,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
                 } else if (i < size - 1) {
                     // The Current xToOne field is not the last field, add it as a leftJoin condition.
                     String fieldChain = String.join(".", cascadeFields.subList(0, i + 1));
-                    String rightAlias = sqlWrapper.getRightTableAliasByFieldChain(fieldChain);
+                    String rightAlias = sqlWrapper.getTableAlias().getRightTableAlias(fieldChain);
                     sqlWrapper.leftJoin(metaField, currentAlias, rightAlias, flexQuery.isAcrossTimeline());
                     // The alias of the associated table for current xToOne field is used as the currentAlias for next loop
                     currentAlias = rightAlias;

@@ -363,7 +363,6 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
      * @return Object list
      */
     public <T> List<T> selectMetaEntityList(Class<T> entityClass, String orderBy) {
-        // TODO: Change to page query
         String modelName = entityClass.getSimpleName();
         SqlParams sqlParams = StaticSqlBuilder.getSelectAllMetaSql(modelName, orderBy);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);

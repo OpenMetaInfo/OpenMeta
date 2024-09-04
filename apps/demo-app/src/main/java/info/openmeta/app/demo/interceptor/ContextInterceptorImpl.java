@@ -5,6 +5,7 @@ import info.openmeta.framework.base.constant.RedisConstant;
 import info.openmeta.framework.base.context.Context;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.context.UserInfo;
+import info.openmeta.framework.base.enums.Language;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.web.interceptor.ContextInterceptor;
 import info.openmeta.framework.web.response.ApiResponse;
@@ -22,7 +23,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.ZoneId;
-import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -47,6 +47,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      */
     @Value("${system.login.url:/login}")
     private String loginUrl;
+
+    @Value("${system.default-language:}")
+    private String defaultLanguage;
 
     /**
      * Context interceptor that handles session validation and user context setup before request processing.
@@ -108,7 +111,8 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         Context context = new Context(request.getHeader("traceId"));
         context.setUserId(userInfo.getId());
         context.setName(userInfo.getName());
-        context.setLanguage(Locale.of(userInfo.getLanguage()));
+        Language language = this.getCurrentLanguage(request, userInfo.getLanguage());
+        context.setLanguage(language);
         context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(userInfo.getTimezone())));
         context.setTenantId(userInfo.getTenantId());
         context.setUserInfo(userInfo);
@@ -124,20 +128,40 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      */
     public void setupAnonymousContext(HttpServletRequest request) {
         Context context = new Context();
-        // Set language and timezone from request headers or query params
-        String language = request.getHeader("Accept-Language");
-        if (!StringUtils.hasText(language)) {
-            language = request.getParameter("language");
-        }
-        if (StringUtils.hasText(language)) {
-            context.setLanguage(Locale.forLanguageTag(language));
-        }
+        Language language = this.getCurrentLanguage(request, null);
+        context.setLanguage(language);
         String timezone = request.getHeader("X-Timezone");
         if (StringUtils.hasText(timezone)) {
             context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(timezone)));
         }
         this.setDebugModeFromRequest(request, context);
         ContextHolder.setContext(context);
+    }
+
+    /**
+     * Extract language from user info, query params, request headers or default language.
+     * LanguageCode from the URI params will override the language from the request headers.
+     * For example, `?language=zh-CN` will set the language to Chinese.
+     * request.getLocale() will be used if no language is specified, which is based on the Accept-Language header.
+     * `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7` will be parsed as `zh-CN`, which is the highest priority language.
+     *
+     * @param request the current HTTP request
+     * @return the languageCode extracted from the request
+     */
+    private Language getCurrentLanguage(HttpServletRequest request, String userLanguage) {
+        if (StringUtils.hasText(userLanguage)) {
+            return Language.of(userLanguage);
+        }
+        String languageCode = request.getParameter("language");
+        if (StringUtils.hasText(languageCode)) {
+            return Language.of(userLanguage);
+        } else if (StringUtils.hasText(request.getHeader("Accept-Language"))) {
+            languageCode = request.getLocale().toLanguageTag();
+            return Language.of(languageCode);
+        } else if (StringUtils.hasText(defaultLanguage)) {
+            return Language.of(defaultLanguage);
+        }
+        return null;
     }
 
     /**

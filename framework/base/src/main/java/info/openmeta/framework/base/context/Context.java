@@ -1,13 +1,13 @@
 package info.openmeta.framework.base.context;
 
 import info.openmeta.framework.base.constant.BaseConstant;
+import info.openmeta.framework.base.enums.Language;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public class Context implements Serializable {
 
     private Long userId;
     private String name;
-    private Locale language = BaseConstant.DEFAULT_LANGUAGE;
+    private Language language = BaseConstant.DEFAULT_LANGUAGE;
     private TimeZone timeZone;
 
     private Serializable tenantId;
@@ -29,6 +29,7 @@ public class Context implements Serializable {
     private String traceId;
 
     private UserInfo userInfo;
+    private UserPermission userPermission;
 
     /**
      * Whether to skip permission verification (including model permission and data range),
@@ -76,12 +77,24 @@ public class Context implements Serializable {
      * @param traceId passed by the client or upstream system
      */
     public Context(String traceId) {
-        this.traceId = StringUtils.isBlank(traceId) ? UUID.randomUUID().toString() : traceId;
+        this.traceId = StringUtils.hasText(traceId) ? UUID.randomUUID().toString() : traceId;
     }
 
     public void setEffectiveDate(LocalDate effectiveDate) {
         if (effectiveDate != null) {
             this.effectiveDate = effectiveDate;
+        }
+    }
+
+    /**
+     * Set the language for current user.
+     * Keep the default language if the language parameter is null.
+     *
+     * @param language the language to set
+     */
+    public void setLanguage(Language language) {
+        if (language != null) {
+            this.language = language;
         }
     }
 

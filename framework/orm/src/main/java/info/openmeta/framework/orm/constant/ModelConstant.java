@@ -26,6 +26,12 @@ public interface ModelConstant {
     String VERSION = "version";
     Integer DEFAULT_VERSION = 1;
 
+    // Model translation suffix
+    String MODEL_TRANS_SUFFIX = "Trans";
+    // The fields of the translation model, which stores the language code and the ID of the business data.
+    String LANGUAGE_CODE_COLUMN = "language_code";
+    String TRANS_ROW_ID_COLUMN = "row_id";
+
     // Default order rule: ID ascending order.
     String DEFAULT_PAGED_ORDER = "id ASC";
 

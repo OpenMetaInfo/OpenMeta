@@ -5,8 +5,9 @@ import com.cronutils.model.Cron;
 import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.parser.CronParser;
-import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+
+import java.util.Locale;
 
 /**
  * Expression calculation tool class.
@@ -21,7 +22,7 @@ public class CronUtils {
     public static final CronType CRON_FORMAT = CronType.QUARTZ;
 
     private static final CronParser cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CRON_FORMAT));
-    private static final CronDescriptor descriptor = CronDescriptor.instance(BaseConstant.DEFAULT_LANGUAGE);
+    private static final CronDescriptor descriptor = CronDescriptor.instance(Locale.US);
 
     /**
      * Validate the cron expression.

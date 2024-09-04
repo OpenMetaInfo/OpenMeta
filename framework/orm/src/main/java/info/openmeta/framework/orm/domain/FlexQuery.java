@@ -239,7 +239,7 @@ public class FlexQuery {
     }
 
     public FlexQuery setGroupBy(String groupBy) {
-        if (StringUtils.hasLength(groupBy)) {
+        if (StringUtils.hasText(groupBy)) {
             this.groupBy.add(groupBy);
             this.aggregate = true;
         }
