@@ -1,13 +1,13 @@
 package info.openmeta.framework.base.context;
 
 import info.openmeta.framework.base.constant.BaseConstant;
+import info.openmeta.framework.base.enums.Language;
 import lombok.Data;
 import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public class Context implements Serializable {
 
     private Long userId;
     private String name;
-    private String languageCode = BaseConstant.DEFAULT_LANGUAGE_CODE;
+    private Language language = BaseConstant.DEFAULT_LANGUAGE;
     private TimeZone timeZone;
 
     private Serializable tenantId;
@@ -76,7 +76,7 @@ public class Context implements Serializable {
      * @param traceId passed by the client or upstream system
      */
     public Context(String traceId) {
-        this.traceId = StringUtils.hasLength(traceId) ? UUID.randomUUID().toString() : traceId;
+        this.traceId = StringUtils.hasText(traceId) ? UUID.randomUUID().toString() : traceId;
     }
 
     public void setEffectiveDate(LocalDate effectiveDate) {
@@ -86,25 +86,14 @@ public class Context implements Serializable {
     }
 
     /**
-     * Set the language code of the current user.
+     * Set the language for current user.
+     * Keep the default language if the language parameter is null.
      *
-     * @param locale the locale to get the language code
+     * @param language the language to set
      */
-    public void setLanguageCode(Locale locale) {
-        if (locale != null) {
-            this.languageCode = locale.toLanguageTag();
-        }
-    }
-
-    /**
-     * Set the language code of the current user.
-     * The method is defined to avoid hacking the context language code.
-     *
-     * @param languageCode the language code to set
-     */
-    public void setLanguageCode(String languageCode) {
-        if (StringUtils.hasLength(languageCode)) {
-            this.languageCode = Locale.of(languageCode).toLanguageTag();
+    public void setLanguage(Language language) {
+        if (language != null) {
+            this.language = language;
         }
     }
 
@@ -112,7 +101,7 @@ public class Context implements Serializable {
         Context newContext = new Context(this.traceId);
         newContext.setUserId(this.userId);
         newContext.setName(this.name);
-        newContext.setLanguageCode(this.languageCode);
+        newContext.setLanguage(this.language);
         newContext.setTimeZone(this.timeZone);
         newContext.setTenantId(this.tenantId);
         newContext.setSkipPermissionCheck(this.skipPermissionCheck);

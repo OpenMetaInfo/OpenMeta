@@ -15,7 +15,7 @@ class OperatorTest {
     @BeforeAll
     static void initContext() {
         Context context = new Context();
-        context.setLanguageCode(BaseConstant.DEFAULT_LANGUAGE_CODE);
+        context.setLanguage(BaseConstant.DEFAULT_LANGUAGE);
         ContextHolder.setContext(context);
     }
 

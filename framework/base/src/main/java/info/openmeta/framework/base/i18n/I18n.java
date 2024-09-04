@@ -36,7 +36,7 @@ public class I18n {
      * @return the translated text, or the original text if no translation is found
      */
     public static String get(String original, Object... args){
-        String languageCode = ContextHolder.getContext().getLanguageCode();
+        String languageCode = ContextHolder.getContext().getLanguage().getCode();
         if (BaseConstant.DEFAULT_LANGUAGE_CODE.equals(languageCode)
                 || !MESSAGE_TRANSLATIONS.containsKey(languageCode)) {
             log.warn("Language {} does not has any translation", languageCode);

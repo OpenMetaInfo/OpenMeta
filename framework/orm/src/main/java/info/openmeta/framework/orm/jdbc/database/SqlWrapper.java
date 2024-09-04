@@ -150,7 +150,7 @@ public class SqlWrapper {
      */
     public void leftJoinTranslation(MetaField metaField, String leftAlias, String transAlias) {
         String transTableName = ModelManager.getTranslationTableName(metaField.getModelName());
-        String currentLanguage = ContextHolder.getContext().getLanguageCode();
+        String currentLanguage = ContextHolder.getContext().getLanguage().getCode();
         joinClause.append(" LEFT JOIN ")
                 .append(transTableName).append(" ").append(transAlias).append(" ").append(" ON ")
                 .append(leftAlias).append(".").append(ModelConstant.ID).append(" = ")
