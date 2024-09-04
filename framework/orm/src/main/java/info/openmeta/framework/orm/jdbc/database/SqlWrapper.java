@@ -43,26 +43,6 @@ public class SqlWrapper {
      */
     private final Map<String, Set<String>> accessModelFields = new HashMap<>();
 
-    /**
-     * The associated table alias with the field chain as the key, which may use different fields of the key associated table,
-     * but their table aliases are the same table, such as jobId.name, jobId.code;
-     * In addition, the associated tables of different field chain keys may be the same table,
-     * but are joined through different left join statements, in this case, they are two different table aliases,
-     * such as deptId.name, parentDeptId.name
-     * For example,
-     *      `A left join B on A.f=B.id` only join once when taking multiple fields of B through the field `f`;
-     *      `A left join B b1 on A.f1=b1.id left join B b2 on A.f2=b2.id` when A's f1 and f2 fields respectively join B,
-     *       it belongs to join multiple times, and table B has different aliases in this case,
-     *       so the keys (in chainTableAlias) of B alias is f1, f2 respectively, and the multi-level cascade is the same.
-     */
-    private final Map<String, String> chainTableAlias = new HashMap<>();
-
-    /**
-     * The translation table alias with the field chain as the key, which is used to join the translation table
-     * when the field is translatable.
-     */
-    private final Map<String, String> transTableAlias = new HashMap<>();
-
     public SqlWrapper(String modelName) {
         this.modelName = modelName;
         this.tableName = ModelManager.getModel(modelName).getTableName();
@@ -101,18 +81,20 @@ public class SqlWrapper {
     }
 
     /**
-     * Construct the field segment of the translation field
-     *      COALESCE(NULLIF(trans.column_name, ''), t.column_name) AS t.column_name
+     * Construct the field segment for the translatable field
+     *      COALESCE(NULLIF(trans.column_name, ''), t.column_name) AS column_name
      * Use the original value if the translation field is null or empty.
      *
-     * @param leftAlias        left table alias
-     * @param columnName       column name
-     * @param transTableAlias translation table alias
+     * @param metaField translatable field object of the left table
+     * @param leftAlias left table alias
+     * @param transAlias corresponding translation table alias
      * @return SQL segment of the translation field
      */
-    public String selectTranslatableField(String leftAlias, String columnName, String transTableAlias) {
+    public String selectTranslatableField(MetaField metaField, String leftAlias, String transAlias) {
+        this.leftJoinTranslation(metaField, leftAlias, transAlias);
+        String columnName = metaField.getColumnName();
         String columnAlias = leftAlias + "." + columnName;
-        return "COALESCE(NULLIF(" + transTableAlias + "." + columnName + ", ''), " + columnAlias + ") AS " + columnName;
+        return "COALESCE(NULLIF(" + transAlias + "." + columnName + ", ''), " + columnAlias + ") AS " + columnName;
     }
 
     /**
