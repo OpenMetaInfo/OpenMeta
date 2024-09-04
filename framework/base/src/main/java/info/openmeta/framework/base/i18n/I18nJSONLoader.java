@@ -22,7 +22,7 @@ public class I18nJSONLoader implements CommandLineRunner {
     private static final String LOCATION_PATTERN = "classpath*:i18n/*.json";
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
             Resource[] resources = resolver.getResources(LOCATION_PATTERN);

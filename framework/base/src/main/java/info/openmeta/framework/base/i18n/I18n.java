@@ -1,7 +1,6 @@
 package info.openmeta.framework.base.i18n;
 
 import info.openmeta.framework.base.constant.BaseConstant;
-import info.openmeta.framework.base.context.Context;
 import info.openmeta.framework.base.context.ContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,9 +36,8 @@ public class I18n {
      * @return the translated text, or the original text if no translation is found
      */
     public static String get(String original, Object... args){
-        Context context = ContextHolder.getContext();
-        String languageCode = context.getLanguage().getLanguage();
-        if (BaseConstant.DEFAULT_LANGUAGE.equals(context.getLanguage())
+        String languageCode = ContextHolder.getContext().getLanguageCode();
+        if (BaseConstant.DEFAULT_LANGUAGE_CODE.equals(languageCode)
                 || !MESSAGE_TRANSLATIONS.containsKey(languageCode)) {
             log.warn("Language {} does not has any translation", languageCode);
             return MessageFormat.format(original, args);
@@ -61,7 +59,7 @@ public class I18n {
         if (StringUtils.isBlank(original)) {
             return StringUtils.EMPTY;
         }
-        String translation =  MESSAGE_TRANSLATIONS.get(languageCode).getOrDefault(original, original);
+        String translation = MESSAGE_TRANSLATIONS.get(languageCode).getOrDefault(original, original);
         return MessageFormat.format(translation, args);
     }
 

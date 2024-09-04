@@ -22,7 +22,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.ZoneId;
-import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -108,9 +107,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         Context context = new Context(request.getHeader("traceId"));
         context.setUserId(userInfo.getId());
         context.setName(userInfo.getName());
-        Locale language = Locale.of(userInfo.getLanguage());
-        language = language == null ? getLocaleFromRequest(request) : language;
-        context.setLanguage(language);
+        String languageCode = StringUtils.hasLength(userInfo.getLanguage()) ?
+                userInfo.getLanguage() : getLocaleFromRequest(request);
+        context.setLanguageCode(languageCode);
         context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(userInfo.getTimezone())));
         context.setTenantId(userInfo.getTenantId());
         context.setUserInfo(userInfo);
@@ -126,9 +125,9 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      */
     public void setupAnonymousContext(HttpServletRequest request) {
         Context context = new Context();
-        Locale language = getLocaleFromRequest(request);
-        if (language != null) {
-            context.setLanguage(language);
+        String languageCode = getLocaleFromRequest(request);
+        if (languageCode != null) {
+            context.setLanguageCode(languageCode);
         }
         String timezone = request.getHeader("X-Timezone");
         if (StringUtils.hasText(timezone)) {
@@ -142,13 +141,15 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      * Extract language from query params or request headers.
      * LanguageCode from the URI params will override the language from the request headers.
      * For example, `?language=zh-CN` will set the language to Chinese.
+     * request.getLocale() will be used if no language is specified, which is based on the Accept-Language header.
+     * `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7` will be parsed as `zh-CN`, which is the highest priority language.
      *
      * @param request the current HTTP request
-     * @return the locale extracted from the request
+     * @return the languageCode extracted from the request
      */
-    private Locale getLocaleFromRequest(HttpServletRequest request) {
+    private String getLocaleFromRequest(HttpServletRequest request) {
         String languageCode = request.getParameter("language");
-        return StringUtils.hasText(languageCode) ? Locale.forLanguageTag(languageCode) : request.getLocale();
+        return StringUtils.hasText(languageCode) ? languageCode : request.getLocale().getLanguage();
     }
 
     /**

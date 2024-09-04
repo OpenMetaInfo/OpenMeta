@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -21,7 +20,7 @@ public class Context implements Serializable {
 
     private Long userId;
     private String name;
-    private Locale language = BaseConstant.DEFAULT_LANGUAGE;
+    private String languageCode = BaseConstant.DEFAULT_LANGUAGE_CODE;
     private TimeZone timeZone;
 
     private Serializable tenantId;
@@ -89,7 +88,7 @@ public class Context implements Serializable {
         Context newContext = new Context(this.traceId);
         newContext.setUserId(this.userId);
         newContext.setName(this.name);
-        newContext.setLanguage(this.language);
+        newContext.setLanguageCode(this.languageCode);
         newContext.setTimeZone(this.timeZone);
         newContext.setTenantId(this.tenantId);
         newContext.setSkipPermissionCheck(this.skipPermissionCheck);
