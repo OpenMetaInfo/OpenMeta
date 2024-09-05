@@ -8,7 +8,6 @@ import info.openmeta.framework.base.enums.Language;
 public interface BaseConstant {
 
     Language DEFAULT_LANGUAGE = Language.EN_US;
-    String DEFAULT_LANGUAGE_CODE = DEFAULT_LANGUAGE.getCode();
 
     /** Debug parameter in request parameter */
     String DEBUG = "debug";
