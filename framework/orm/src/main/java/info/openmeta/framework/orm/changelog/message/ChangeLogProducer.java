@@ -38,7 +38,6 @@ public class ChangeLogProducer {
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
 
-
     /**
      * Send ChangeLog to MQ in batches to avoid exceeding the message size limit
      */
