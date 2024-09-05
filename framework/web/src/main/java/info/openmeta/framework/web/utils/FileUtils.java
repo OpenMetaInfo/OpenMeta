@@ -14,7 +14,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -40,29 +43,40 @@ public class FileUtils {
         }
     }
 
-    public static FileInfo getFileInfo(String fileName) {
+    /**
+     * Gets the fileInfo object by path.
+     *
+     * @param path     The path of the file
+     * @param fileName The name of the file
+     * @return The fileInfo object
+     */
+    public static FileInfo getFileInfoByPath(String path, String fileName) {
         Assert.notBlank(fileName, "Filename cannot be empty!");
-        ClassPathResource resource = new ClassPathResource(fileName);
-        Assert.isTrue(resource.exists(), "File does not exist: {0}", fileName);
+        String fullName = path + fileName;
+        ClassPathResource resource = new ClassPathResource(fullName);
+        Assert.isTrue(resource.exists(), "File does not exist: {0}", fullName);
         FileInfo fileInfo = new FileInfo();
         try (InputStream inputStream = resource.getInputStream()) {
-            FileType actualFileType = getActualFileType(fileName, inputStream);
-            FileType seemingFileType = getFileTypeByExtension(fileName);
-            validateFileType(fileName, actualFileType, seemingFileType);
+            FileType actualFileType = getActualFileType(fullName, inputStream);
+            FileType seemingFileType = getFileTypeByExtension(fullName);
+            validateFileType(fullName, actualFileType, seemingFileType);
+            fileInfo.setFileName(fileName);
             fileInfo.setFileType(actualFileType);
             // reset inputStream to re-read the content
             inputStream.reset();
             String content = FileCopyUtils.copyToString(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
             fileInfo.setContent(content);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to read the content of file: {0}", fileName);
+            throw new IllegalArgumentException("Failed to read the content of file: {0}", fullName);
         }
         return fileInfo;
     }
 
     /**
      * Validates if the file type, determined by its real mimetype, is within the acceptable range.
+     *
      * @param file The MultipartFile to validate
+     * @return The fileInfo object
      */
     public static FileInfo getFileInfo(MultipartFile file) {
         FileInfo fileInfo = new FileInfo();
@@ -71,6 +85,7 @@ public class FileUtils {
             FileType actualFileType = getActualFileType(fileName, inputStream);
             FileType seemingFileType = FileType.of(file.getContentType());
             validateFileType(fileName, actualFileType, seemingFileType);
+            fileInfo.setFileName(fileName);
             fileInfo.setFileType(actualFileType);
             // reset inputStream to re-read the content
             inputStream.reset();
@@ -82,6 +97,30 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Gets the actual fileType of the uploaded file.
+     *
+     * @param file The uploaded file
+     * @return The actual fileType
+     */
+    public static FileType getActualFileType(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        try (InputStream inputStream = file.getInputStream()) {
+            FileType actualFileType = getActualFileType(fileName, inputStream);
+            FileType seemingFileType = FileType.of(file.getContentType());
+            validateFileType(fileName, actualFileType, seemingFileType);
+            return actualFileType;
+        } catch (IOException e) {
+            throw new BusinessException("Failed to read the uploaded file!", e);
+        }
+    }
+
+    /**
+     * Gets the actual fileType of the uploaded file.
+     *
+     * @param fileName fileName, using relative paths
+     * @return The actual fileType
+     */
     private static FileType getActualFileType(String fileName, InputStream fileStream) {
         try {
             Metadata fileMetadata = new Metadata();
@@ -97,6 +136,13 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Validates if the file type, determined by its real mimetype, is within the acceptable range.
+     *
+     * @param fileName        The name of the file
+     * @param actualFileType  The actual fileType
+     * @param seemingFileType The seeming fileType
+     */
     private static void validateFileType(String fileName, FileType actualFileType, FileType seemingFileType) {
         // Allow different image types and handle cases where the image extension was modified.
         if (FileType.COMPATIBLE_IMAGE_TYPE.contains(actualFileType)

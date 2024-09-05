@@ -6,6 +6,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Date and time utility class
@@ -42,6 +43,14 @@ public abstract class DateUtils {
      */
     public static String  getCurrentLocalDateString(String zoneId){
         return getZonedDateTimeNow(zoneId).format(TimeConstant.DATE_FORMATTER);
+    }
+
+    /**
+     * Get current date in string format with the system default zone.
+     * @return datetime string
+     */
+    public static String getCurrentSimpleDateString(){
+        return ZonedDateTime.now(TimeZone.getDefault().toZoneId()).format(TimeConstant.SIMPLE_DATE_FORMATTER);
     }
 
     /**

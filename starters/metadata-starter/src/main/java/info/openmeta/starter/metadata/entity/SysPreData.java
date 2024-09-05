@@ -27,8 +27,8 @@ public class SysPreData extends BaseModel {
     @Schema(description = "Row Data ID")
     private Long rowId;
 
-    @Schema(description = "Updatable")
-    private Boolean updatable;
+    @Schema(description = "Frozen")
+    private Boolean frozen;
 
     @Schema(description = "Disabled")
     private Boolean disabled;

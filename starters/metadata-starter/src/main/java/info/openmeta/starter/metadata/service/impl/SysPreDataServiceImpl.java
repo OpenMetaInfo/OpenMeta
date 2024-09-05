@@ -3,9 +3,11 @@ package info.openmeta.starter.metadata.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.Cast;
 import info.openmeta.framework.base.utils.JsonMapper;
+import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.FieldType;
@@ -18,13 +20,18 @@ import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.metadata.entity.SysPreData;
 import info.openmeta.starter.metadata.service.SysPreDataService;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,7 +60,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
     public void loadPredefinedData(List<String> fileNames) {
         String dataDir = BaseConstant.PREDEFINED_DATA_DIR;
         for (String fileName : fileNames) {
-            FileInfo fileInfo = FileUtils.getFileInfo(dataDir + fileName);
+            FileInfo fileInfo = FileUtils.getFileInfoByPath(dataDir, fileName);
             loadFileInfo(fileInfo);
         }
     }
@@ -87,7 +94,12 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
         } else if (FileType.XML.equals(fileInfo.getFileType())) {
             processXml(fileInfo.getContent());
         } else if (FileType.CSV.equals(fileInfo.getFileType())) {
-            processCsv(fileInfo.getContent());
+            // Treats the first part of the file name as the model name
+            String fileName = fileInfo.getFileName();
+            String modelName = fileName.substring(0, fileName.indexOf('.')).trim();
+            Assert.isTrue(ModelManager.existModel(modelName),
+                    "Model {0} specified in the fileName `{1}` does not exist!", modelName, fileName);
+            processCsv(modelName, fileInfo.getContent());
         } else {
             throw new IllegalArgumentException("Unsupported file type for predefined data: {0}", fileInfo.getFileType());
         }
@@ -99,7 +111,10 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * but they will be created separately when loading. The main model data is created first to generate the ID,
      * then the relatedModel data is created.
      * <p>
-     *     Data under the JSON model supports single Map<String, Object> or List<Map<String, Object>> formats.
+     *     Data under the JSON model supports two formats:
+     *     <ul>
+     *         <li>Single Map format: { model1: {field1: value1, field2: value2, ...}, model2: {...}, ...}</li>
+     *         <li>List<Map> format: { model1: [{field1: value1, field2: value2}, {...}], model2: {...}, ...}</li>
      * </p>
      *
      * @param content JSON string data content
@@ -113,8 +128,50 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
         // TODO: Process the data of XML format
     }
 
-    private void processCsv(String content) {
-        // TODO: Process the data of CSV format
+    /**
+     * Process CSV format data, parse and map according to the data order in the CSV text.
+     * The first line of the CSV content is the header, and the data content is converted to a list of map.
+     * Default separator is comma, and the quote character is double quote
+     *
+     * @param modelName Model name
+     * @param content CSV string data content
+     */
+    private void processCsv(String modelName, String content) {
+        // Parse the CSV content using CSVParser, automatically detect and skip the first line as the header
+        CSVFormat csvFormat = CSVFormat.Builder.create()
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .build();
+        // Parse the CSV content using CSVParser
+        CSVParser parser;
+        try {
+            parser = csvFormat.parse(new StringReader(content));
+        } catch (IOException e) {
+            throw new SystemException("Failed to parse the CSV content: {0}", e.getMessage());
+        }
+        // Get the header map of the CSV content
+        Map<String, Integer> headerMap = parser.getHeaderMap();
+        List<Map<String, Object>> csvDataList = new ArrayList<>();
+        // Iterate over each record in the CSV content, not including the header
+        for (CSVRecord record : parser) {
+            Map<String, Object> rowData = new HashMap<>();
+            for (Map.Entry<String, Integer> header : headerMap.entrySet()) {
+                String fieldName = header.getKey().trim();
+                Assert.notBlank(fieldName, "The field name in the CSV header cannot be empty!");
+                String stringValue = record.get(header.getValue()).trim();
+                FieldType fieldType = ModelManager.getModelField(modelName, fieldName).getFieldType();
+                if (ModelConstant.ID.equals(fieldName) || FieldType.TO_ONE_TYPES.contains(fieldType)) {
+                    // Retain the preID of ID, ManyToOne, and OneToOne fields, which are String value.
+                    rowData.put(fieldName, stringValue);
+                } else {
+                    Object fieldValue = FieldType.convertStringToObject(fieldType, stringValue);
+                    rowData.put(fieldName, fieldValue);
+                }
+            }
+            csvDataList.add(rowData);
+        }
+        // Process the model data list
+        processModelData(modelName, csvDataList);
     }
 
     /**
@@ -207,14 +264,15 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
 
     /**
      * Determine whether to create or update predefined data based on whether the main model preId already exists.
+     *
      * @param model Model name
      * @param row Predefined data record
      * @return Record ID created or updated
      */
     private Long createOrUpdateData(String model, Map<String, Object> row) {
         SysPreData preData = getPreDataByPreId(model, row);
-        if (preData != null && Boolean.FALSE.equals(preData.getUpdatable())) {
-            // The current data is no longer updated, and the data ID is returned directly
+        if (preData != null && Boolean.TRUE.equals(preData.getFrozen())) {
+            // The current data is frozen, and the data ID is returned directly
             return preData.getRowId();
         }
         // Replace the preID of ManyToOne, OneToOne, and ManyToMany fields with the row ID

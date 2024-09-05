@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FileInfo {
 
+    private String fileName;
+
     private FileType fileType;
 
     private String content;

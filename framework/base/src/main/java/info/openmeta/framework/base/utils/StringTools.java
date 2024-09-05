@@ -119,7 +119,7 @@ public class StringTools {
      * @param url url
      * @return https url
      */
-    public static String http2https(String url) {
+    public static String httpToHttps(String url) {
         if (StringUtils.isBlank(url)) {
             return url;
         }
@@ -136,7 +136,7 @@ public class StringTools {
      * @param url url
      * @return http url
      */
-    public static String https2http(String url) {
+    public static String httpsToHttp(String url) {
         if (StringUtils.isBlank(url)) {
             return url;
         }

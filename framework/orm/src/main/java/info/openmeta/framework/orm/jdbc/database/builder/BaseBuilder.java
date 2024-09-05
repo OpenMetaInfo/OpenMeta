@@ -85,9 +85,8 @@ public abstract class BaseBuilder {
                 if (metaField.isTranslatable()) {
                     // If the field is a translatable field, get the alias of the translation table
                     String transAlias = sqlWrapper.getTableAlias().getTransTableAlias(fieldChain.toString());
-                    sqlWrapper.leftJoinTranslation(metaField, lastAlias, transAlias);
                     // Construct the SQL segment of the translation field
-                    columnAlias = sqlWrapper.selectTranslatableField(lastAlias, metaField.getColumnName(), transAlias);
+                    columnAlias = sqlWrapper.selectTranslatableField(metaField, lastAlias, transAlias);
                 }
             }
         }
@@ -96,7 +95,7 @@ public abstract class BaseBuilder {
 
     /**
      * Construct the SQL segment of the translation field
-     *      COALESCE(NULLIF(trans.column_name, ''), t.column_name) AS t.column_name
+     *      COALESCE(NULLIF(trans.column_name, ''), t.column_name) AS column_name
      * Use the original value if the translation field is null or empty.
      *
      * @param leftAlias        left table alias
@@ -123,9 +122,8 @@ public abstract class BaseBuilder {
             if (metaField.isTranslatable()) {
                 // If the field is a translatable field, get the alias of the translation table
                 String transAlias = sqlWrapper.getTableAlias().getTransTableAlias(simpleField);
-                sqlWrapper.leftJoinTranslation(metaField, SqlWrapper.MAIN_TABLE_ALIAS, transAlias);
                 // Construct the SQL segment of the translation field
-                return sqlWrapper.selectTranslatableField(SqlWrapper.MAIN_TABLE_ALIAS, metaField.getColumnName(), transAlias);
+                return sqlWrapper.selectTranslatableField(metaField, SqlWrapper.MAIN_TABLE_ALIAS, transAlias);
             } else {
                 return SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName();
             }
