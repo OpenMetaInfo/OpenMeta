@@ -40,7 +40,7 @@ public class FileUtils {
         }
     }
 
-    public static FileInfo getFileInfo(String fileName) {
+    public static FileInfo getFileInfoByPath(String fileName) {
         Assert.notBlank(fileName, "Filename cannot be empty!");
         ClassPathResource resource = new ClassPathResource(fileName);
         Assert.isTrue(resource.exists(), "File does not exist: {0}", fileName);
@@ -77,6 +77,23 @@ public class FileUtils {
             String content = FileCopyUtils.copyToString(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
             fileInfo.setContent(content);
             return fileInfo;
+        } catch (IOException e) {
+            throw new BusinessException("Failed to read the uploaded file!", e);
+        }
+    }
+
+    /**
+     * Gets the actual fileType of the uploaded file.
+     * @param file The uploaded file
+     * @return The actual fileType
+     */
+    public static FileType getActualFileType(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        try (InputStream inputStream = file.getInputStream()) {
+            FileType actualFileType = getActualFileType(fileName, inputStream);
+            FileType seemingFileType = FileType.of(file.getContentType());
+            validateFileType(fileName, actualFileType, seemingFileType);
+            return actualFileType;
         } catch (IOException e) {
             throw new BusinessException("Failed to read the uploaded file!", e);
         }

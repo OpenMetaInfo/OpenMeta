@@ -489,7 +489,7 @@ public class ModelController<K extends Serializable> {
      * @param simpleQueryParams Simple aggregation query parameters
      * @return Result map.
      */
-    @PostMapping(value = "/searchSimpleQueryParams")
+    @PostMapping(value = "/searchSimpleAgg")
     @Operation(description = """
             Simple aggregation query params. Pure SUM, AVG, MIN, MAX, COUNT aggregate query, like `["SUM", "amount"]`
             or `[["SUM", "amount"], [], ...]`, the return key is `sumAmount`.""")

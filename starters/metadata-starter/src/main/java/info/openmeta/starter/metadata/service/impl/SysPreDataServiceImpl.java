@@ -53,7 +53,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
     public void loadPredefinedData(List<String> fileNames) {
         String dataDir = BaseConstant.PREDEFINED_DATA_DIR;
         for (String fileName : fileNames) {
-            FileInfo fileInfo = FileUtils.getFileInfo(dataDir + fileName);
+            FileInfo fileInfo = FileUtils.getFileInfoByPath(dataDir + fileName);
             loadFileInfo(fileInfo);
         }
     }
