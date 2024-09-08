@@ -30,9 +30,10 @@ public class ChangeLogProducer {
     private String changeLogTopic;
 
     /**
-     * Message delay level, default is 1, which means 1s
+     * Message delay level, default is 0, which means 0s.
+     * Suggest to set to 1s or more to avoid data synchronization delay in database read-write separation scenarios.
      */
-    @Value("${rocketmq.changelog.delay-level:1}")
+    @Value("${rocketmq.changelog.delay-level:0}")
     private Integer delayLevel;
 
     @Autowired
