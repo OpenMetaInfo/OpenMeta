@@ -582,7 +582,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         flexQuery.setFilters(filters);
         List<Map<String, Object>> result = jdbcService.selectByFilter(modelName, flexQuery);
         if (result.size() > BaseConstant.MAX_BATCH_SIZE) {
-            log.error("Model {} `searchList` exceeds the limit of {}, please switch to `searchPage` or check the flexQuery: {}",
+            log.error("Model {} `searchList` exceeds the limit of {}, please switch to `searchPage`: {}",
                     modelName, BaseConstant.MAX_BATCH_SIZE, flexQuery);
         }
         return result;
@@ -638,7 +638,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public <R> Page<R> searchPage(String modelName, FlexQuery flexQuery, Page<R> page, Class<R> returnClass) {
-        Page<Map<String, Object>> mapPage = Page.of(page.getPageNumber(), page.getPageSize(), page.isScroll(), page.isCount());
+        Page<Map<String, Object>> mapPage = new Page<>(page.getPageNumber(), page.getPageSize(), page.isCursorPage(), page.isCount());
         this.searchPage(modelName, flexQuery, mapPage);
         if (!CollectionUtils.isEmpty(mapPage.getRows())) {
             List<R> objects = BeanTool.mapListToObjects(mapPage.getRows(), returnClass);
