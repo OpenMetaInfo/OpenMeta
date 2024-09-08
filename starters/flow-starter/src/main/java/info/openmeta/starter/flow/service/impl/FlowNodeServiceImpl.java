@@ -212,13 +212,16 @@ public class FlowNodeServiceImpl extends EntityServiceImpl<FlowNode, Long> imple
             return;
         }
         // Build paginated query conditions in an ordered manner without automatically counting.
-        Page<Map<String, Object>> page = Page.of(BaseConstant.DEFAULT_PAGE_NUMBER, loopByPageParams.getPageSize(), true, false);
+        Page<Map<String, Object>> page = Page.of(BaseConstant.DEFAULT_PAGE_NUMBER, loopByPageParams.getPageSize(), false);
         page.setTotal(total);
         FlexQuery flexQuery = new FlexQuery(loopByPageParams.getFields(), clonedFilters, loopByPageParams.getOrders());
         List<Object> returnList = new ArrayList<>();
         // Iterate through paginated queries and execute the action list.
         do {
             page = modelService.searchPage(loopByPageParams.getModel(), flexQuery, page);
+            if (page.getRows().isEmpty()) {
+                break;
+            }
             // Assign `actionContext` as a local variable within the loop to achieve variable isolation inside the loop.
             ActionContext innerActionContext = actionContext.copy();
             innerActionContext.setInLoop(true);
