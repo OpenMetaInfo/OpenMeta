@@ -674,6 +674,33 @@ public class ModelManager {
     }
 
     /**
+     * Get the labelName of the last field in the custom cascading field, such as `field1.field2.field3`.
+     *
+     * @param modelName model name
+     * @param cascadingField custom cascading field
+     * @return the labelName of the last field
+     */
+    public static String getCascadingFieldLabelName(String modelName, String cascadingField){
+        if (cascadingField.contains(".")) {
+            String[] fields = StringUtils.split(cascadingField, ".");
+            Assert.isTrue(fields.length -1 <= BaseConstant.CASCADE_LEVEL,
+                    "Custom cascaded field `{0}` cannot exceed the max cascaded levels of {1}!",
+                    cascadingField, BaseConstant.CASCADE_LEVEL);
+            String currentModel = modelName;
+            for (int i = 0; i < fields.length - 1; i ++) {
+                MetaField metaField = getModelField(currentModel, fields[i]);
+                Assert.isTrue(FieldType.TO_ONE_TYPES.contains(metaField.getFieldType()),
+                        "The field `{0}` in custom cascading field `{1}` must be ManyToOne/OneToOne field!",
+                        metaField.getFieldName(), cascadingField);
+                currentModel = metaField.getRelatedModel();
+            }
+            return getModelField(currentModel, fields[fields.length - 1]).getLabelName();
+        } else {
+            return getModelField(modelName, cascadingField).getLabelName();
+        }
+    }
+
+    /**
      * Get the numeric fields of the model, including stored and dynamic fields.
      *
      * @param modelName model name

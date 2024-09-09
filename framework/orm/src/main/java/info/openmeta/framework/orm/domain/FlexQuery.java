@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class FlexQuery {
 
     // Specifies a list of fields to read
-    private Set<String> fields = new HashSet<>();
+    private List<String> fields = new ArrayList<>();
     // Filters conditions can be empty
     private Filters filters;
     // `orderBy` rule, using the model default configuration when empty
@@ -82,7 +82,7 @@ public class FlexQuery {
      */
     public FlexQuery(Collection<String> fields) {
         if (!CollectionUtils.isEmpty(fields)) {
-            this.fields = new HashSet<>(fields);
+            this.fields = new ArrayList<>(fields);
         }
     }
 
@@ -105,7 +105,7 @@ public class FlexQuery {
      */
     public FlexQuery(Collection<String> fields, Filters filters) {
         if (!CollectionUtils.isEmpty(fields)) {
-            this.fields = new HashSet<>(fields);
+            this.fields = new ArrayList<>(fields);
         }
         this.filters = filters;
     }
@@ -119,7 +119,7 @@ public class FlexQuery {
      */
     public FlexQuery(Collection<String> fields, Filters filters, Orders orders) {
         if (!CollectionUtils.isEmpty(fields)) {
-            this.fields = new HashSet<>(fields);
+            this.fields = new ArrayList<>(fields);
         }
         this.filters = filters;
         this.orders = orders;
@@ -175,7 +175,7 @@ public class FlexQuery {
      * @param relationField Relation field
      * @param fields Field set of the associated model to be read in the cascade
      */
-    public void expandSubQuery(String relationField, Collection<String> fields) {
+    public void expandSubQuery(String relationField, List<String> fields) {
         this.subQueries.put(relationField, new SubQuery(fields));
     }
 
@@ -209,7 +209,7 @@ public class FlexQuery {
         if (this.fields != null) {
             this.fields.add(field);
         } else {
-            this.fields = new HashSet<>(Collections.singletonList(field));
+            this.fields = new ArrayList<>(Collections.singletonList(field));
         }
         return this;
     }
@@ -222,7 +222,7 @@ public class FlexQuery {
     public final <T, R> FlexQuery setFields(SFunction<T, R>... lambdaMethods) {
         List<String> fields = Arrays.stream(lambdaMethods).map(LambdaUtils::getAttributeName).toList();
         if (!CollectionUtils.isEmpty(fields)) {
-            this.fields = new HashSet<>(fields);
+            this.fields = new ArrayList<>(fields);
         }
         return this;
     }
@@ -233,7 +233,7 @@ public class FlexQuery {
      */
     public FlexQuery setFields(Collection<String> fields) {
         if (!CollectionUtils.isEmpty(fields)) {
-            this.fields = new HashSet<>(fields);
+            this.fields = new ArrayList<>(fields);
         }
         return this;
     }

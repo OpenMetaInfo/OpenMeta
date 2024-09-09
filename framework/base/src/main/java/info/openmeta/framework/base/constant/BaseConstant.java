@@ -17,6 +17,7 @@ public interface BaseConstant {
     Integer DEFAULT_PAGE_SIZE = 50;
     Integer DEFAULT_BATCH_SIZE = 1000;
     Integer MAX_BATCH_SIZE = 10000;
+    Integer MAX_EXPORT_SIZE = 100000;
 
     /** Cascading level restriction for cascade fields, for performance consideration, that is f0.f1.f2.f3.f4 */
     Integer CASCADE_LEVEL = 4;

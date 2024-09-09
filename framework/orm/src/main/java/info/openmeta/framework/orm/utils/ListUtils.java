@@ -185,4 +185,20 @@ public abstract class ListUtils {
     public static <T, R> List<String> getLambdaFields(SFunction<T, R>... lambdaFields) {
         return Arrays.stream(lambdaFields).map(LambdaUtils::getAttributeName).collect(Collectors.toList());
     }
+
+    /**
+     * Converts data list to table format compatible with Excel or CSV.
+     *
+     * @param fields the field list responsible for the column headers
+     * @param data the list of data rows to be filled into the file
+     * @return List of List for table writing
+     */
+    public static List<List<Object>> convertToTableData(List<String> fields, List<Map<String, Object>> data) {
+        return data.stream()
+                .map(row -> fields.stream()
+                        .map(row::get)
+                        .collect(Collectors.toList()))
+                .collect(Collectors.toList());
+    }
+
 }

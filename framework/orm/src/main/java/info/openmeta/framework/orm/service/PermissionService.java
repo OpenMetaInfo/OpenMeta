@@ -49,7 +49,7 @@ public interface PermissionService {
      * @param fields field set
      * @param accessType   access type
      */
-    void checkModelFieldsAccess(String model, Set<String> fields, AccessType accessType);
+    void checkModelFieldsAccess(String model, Collection<String> fields, AccessType accessType);
 
     /**
      * Ids data range permission check.

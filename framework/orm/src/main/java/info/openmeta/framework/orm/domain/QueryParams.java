@@ -6,7 +6,6 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * General query parameters object specifically designed for API request parameter transmission.
@@ -19,12 +18,12 @@ import java.util.Set;
  *      AggFunctions: ["MAX", "createdTime", "newestTime"],
  *      GroupBy: ["deptId"],
  */
-@Schema(name = "QueryParams")
 @Data
+@Schema(name = "QueryParams")
 public class QueryParams {
 
-    @Schema(description = "Fields to get, empty means all fields.", example = "[\"id\", \"name\"]")
-    private Set<String> fields;
+    @Schema(description = "Fields list to get, empty means all fields of the model.", example = "[\"id\", \"name\"]")
+    private List<String> fields;
 
     private Filters filters;
 

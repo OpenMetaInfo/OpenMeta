@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Sub query conditions, used to specify the fields, filters, orders, pageNumber, pageSize of the sub query.
@@ -34,8 +34,8 @@ import java.util.Collection;
 @AllArgsConstructor
 public class SubQuery {
 
-    @Schema(description = "Sub query fields.", example = "[\"id\", \"name\"]")
-    private Collection<String> fields;
+    @Schema(description = "Sub query fields list.", example = "[\"id\", \"name\"]")
+    private List<String> fields;
 
     private Filters filters;
 
@@ -47,7 +47,7 @@ public class SubQuery {
     @Schema(description = "TopN query on OneToMany field, using with `orders`.", example = "3")
     private Integer topN;
 
-    public SubQuery(Collection<String> fields) {
+    public SubQuery(List<String> fields) {
         this.fields = fields;
     }
 
