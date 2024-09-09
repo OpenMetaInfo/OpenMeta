@@ -19,6 +19,7 @@
         <module>cron-starter</module>
         <module>flow-starter</module>
         <module>es-starter</module>
+        <module>file-starter</module>
     </modules>
 
     <properties>

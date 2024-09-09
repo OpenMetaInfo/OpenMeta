@@ -16,13 +16,19 @@
         <dependency>
             <groupId>info.openmeta</groupId>
             <artifactId>metadata-starter</artifactId>
-            <version>0.5.6</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>info.openmeta</groupId>
             <artifactId>es-starter</artifactId>
-            <version>0.5.4</version>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.openmeta</groupId>
+            <artifactId>file-starter</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

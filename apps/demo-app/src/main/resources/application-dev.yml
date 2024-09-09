@@ -38,7 +38,7 @@ spring:
       changelog: demo_dev_changelog
 
 rocketmq:
-  name-server: 10.89.152.172:9876
+  name-server: localhost:9876
   producer:
     group: my-producer-group
     send-message-timeout: 3000
