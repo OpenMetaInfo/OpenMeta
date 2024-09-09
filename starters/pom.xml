@@ -6,7 +6,7 @@
     <parent>
         <artifactId>openmeta</artifactId>
         <groupId>info.openmeta</groupId>
-        <version>0.5.6</version>
+        <version>0.6.0</version>
     </parent>
 
     <artifactId>starters</artifactId>
@@ -19,6 +19,7 @@
         <module>cron-starter</module>
         <module>flow-starter</module>
         <module>es-starter</module>
+        <module>file-starter</module>
     </modules>
 
     <properties>

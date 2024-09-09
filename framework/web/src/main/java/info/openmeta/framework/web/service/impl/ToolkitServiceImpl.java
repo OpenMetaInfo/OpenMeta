@@ -71,13 +71,7 @@ public class ToolkitServiceImpl implements ToolkitService {
         dependedFields.addAll(ModelManager.isTimelineModel(modelName) ? Sets.newHashSet(ModelConstant.ID, ModelConstant.SLICE_ID) : Sets.newHashSet(ModelConstant.ID));
         // Construct FlexQuery to read dependent fields for pagination
         FlexQuery flexQuery = new FlexQuery(dependedFields).acrossTimelineData();
-        Page<Map<String, Object>> page = Page.of(BaseConstant.DEFAULT_PAGE_NUMBER, BaseConstant.DEFAULT_BATCH_SIZE, true, false);
-        // Avoid internal count query by fetching the total count of historical data
-        Long total = modelService.count(modelName, null);
-        if (total == 0) {
-            return;
-        }
-        page.setTotal(total);
+        Page<Map<String, Object>> page = Page.ofCursorPage(BaseConstant.DEFAULT_BATCH_SIZE);
         // Paginate requests for dependent fields and trigger updates by batch processing each page
         do {
             page = modelService.searchPage(modelName, flexQuery, page);
@@ -109,13 +103,7 @@ public class ToolkitServiceImpl implements ToolkitService {
         FlexQuery flexQuery = new FlexQuery(readFields).acrossTimelineData();
         // Get the original data from database without expansion or conversion.
         flexQuery.setConvertType(ConvertType.NONE);
-        Page<Map<String, Object>> page = Page.of(BaseConstant.DEFAULT_PAGE_NUMBER, BaseConstant.DEFAULT_BATCH_SIZE, true, false);
-        // Avoid internal count query by fetching the total count of historical data
-        Long total = modelService.count(modelName, null);
-        if (total == 0) {
-            return 0L;
-        }
-        page.setTotal(total);
+        Page<Map<String, Object>> page = Page.ofCursorPage(BaseConstant.DEFAULT_BATCH_SIZE);
         // Paginate requests for data and process each page
         do {
             page = modelService.searchPage(modelName, flexQuery, page);

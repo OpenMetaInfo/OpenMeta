@@ -56,10 +56,10 @@ public class OrderByBuilder extends BaseBuilder implements SqlClauseBuilder {
                 String aliasField = this.parseLogicField(order.get(0));
                 sqlWrapper.orderBy(aliasField, order.get(1));
             }
-            // For infinite scroll paging queries, if there is no `id` in the orders parameter,
+            // For stable order paging queries, if there is no `id` in the orders parameter,
             // automatically add `t.id ASC` at the end of the order condition,
             // to ensure that different page data is as non-repetitive as possible.
-            if (page != null && page.isScroll() && !orders.getFields().contains(ModelConstant.ID)) {
+            if (page != null && page.isCursorPage() && !orders.getFields().contains(ModelConstant.ID)) {
                 sqlWrapper.orderBy(SqlWrapper.MAIN_TABLE_ALIAS + "." + ModelConstant.ID, Orders.ASC);
             }
         }

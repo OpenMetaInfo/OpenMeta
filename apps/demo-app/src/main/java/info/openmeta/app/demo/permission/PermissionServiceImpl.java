@@ -59,7 +59,7 @@ public class PermissionServiceImpl implements PermissionService {
      * @param accessType access type
      */
     @Override
-    public void checkModelFieldsAccess(String model, Set<String> fields, AccessType accessType) {
+    public void checkModelFieldsAccess(String model, Collection<String> fields, AccessType accessType) {
 
     }
 
