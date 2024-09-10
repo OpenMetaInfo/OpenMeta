@@ -9,7 +9,6 @@ import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.entity.ExportTemplateField;
 import info.openmeta.starter.file.service.ExportTemplateFieldService;
-import info.openmeta.starter.file.service.ExportTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,10 +24,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class ExportByTemplate extends BaseExport {
-
-    @Autowired
-    private ExportTemplateService exportTemplateService;
+public class ExportByTemplate extends CommonExport {
 
     @Autowired
     private ExportTemplateFieldService exportTemplateFieldService;
@@ -39,17 +35,15 @@ public class ExportByTemplate extends BaseExport {
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
      * @param modelName the model name to be exported
-     * @param exportTemplateId the ID of the export template
      * @param flexQuery the flex query to be used for data retrieval
+     * @param exportTemplate exportTemplate object
      * @return fileInfo object with download URL
      */
-    public FileInfo export(String modelName, Long exportTemplateId, FlexQuery flexQuery) {
-        ExportTemplate exportTemplate = exportTemplateService.readOne(exportTemplateId);
-        this.validateFileTemplate(modelName, exportTemplate);
+    public FileInfo export(String modelName, FlexQuery flexQuery, ExportTemplate exportTemplate) {
         // Construct the headers order by sequence of the export fields
         List<String> fieldNames = new ArrayList<>();
         List<List<String>> headerList = new ArrayList<>();
-        this.extractFieldsAndLabels(modelName, exportTemplateId, fieldNames, headerList);
+        this.extractFieldsAndLabels(modelName, exportTemplate.getId(), fieldNames, headerList);
         // Get the data to be exported
         flexQuery.setFields(fieldNames);
         List<Map<String, Object>> rows = this.getExportedData(modelName, flexQuery);
@@ -57,7 +51,7 @@ public class ExportByTemplate extends BaseExport {
         // Generate the Excel file
         FileInfo fileInfo = this.generateFileAndUpload(exportTemplate.getName(), headerList, rowsTable);
         // Generate an export history record
-        this.generateExportHistory(exportTemplateId, fileInfo.getFileId());
+        this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
     }
 

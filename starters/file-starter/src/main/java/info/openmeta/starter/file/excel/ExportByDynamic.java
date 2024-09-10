@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class ExportByDynamic extends BaseExport {
+public class ExportByDynamic extends CommonExport {
 
     @Autowired
     private FileRecordService fileRecordService;
@@ -45,7 +45,7 @@ public class ExportByDynamic extends BaseExport {
     public FileInfo export(String modelName, FlexQuery flexQuery) {
         // Get the data to be exported
         List<List<String>> headerList = new ArrayList<>();
-        List<List<Object>> rowsTable = this.extractDataTable(modelName, flexQuery, headerList);
+        List<List<Object>> rowsTable = this.extractDataTableFromDB(modelName, flexQuery, headerList);
         // Generate the Excel file
         String modelLabel = ModelManager.getModel(modelName).getLabelName();
         FileInfo fileInfo = this.generateFileAndUpload(modelLabel, headerList, rowsTable);
@@ -64,14 +64,14 @@ public class ExportByDynamic extends BaseExport {
      * @return fileInfo object with download URL
      */
     public FileInfo exportMultiSheet(String fileName, Map<String, FlexQuery> flexQueryMap) {
-        FileInfo fileInfo = null;
+        FileInfo fileInfo;
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
             for (Map.Entry<String, FlexQuery> entry : flexQueryMap.entrySet()) {
                 List<List<String>> headerList = new ArrayList<>();
-                List<List<Object>> rowsTable = this.extractDataTable(entry.getKey(), entry.getValue(), headerList);
+                List<List<Object>> rowsTable = this.extractDataTableFromDB(entry.getKey(), entry.getValue(), headerList);
                 // Write the header and data
                 WriteSheet writeSheet = EasyExcel.writerSheet().head(headerList).build();
                 excelWriter.write(rowsTable, writeSheet);
@@ -89,13 +89,14 @@ public class ExportByDynamic extends BaseExport {
     }
 
     /**
-     * Extract the fields and labels from the export template.
+     * Extract the data table from the database by the given model name and flexQuery.
+     * And extract the header list from the model fields.
      *
      * @param modelName the model name to be exported
      * @param flexQuery the flexQuery object
      * @param headerList the list of header labels
      */
-    private List<List<Object>> extractDataTable(String modelName, FlexQuery flexQuery, List<List<String>> headerList) {
+    private List<List<Object>> extractDataTableFromDB(String modelName, FlexQuery flexQuery, List<List<String>> headerList) {
         // Construct the headers order by sequence of the fields
         List<String> fieldNames = flexQuery.getFields();
         fieldNames.forEach(fieldName -> {

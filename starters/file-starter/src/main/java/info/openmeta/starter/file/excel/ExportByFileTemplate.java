@@ -4,14 +4,12 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.exception.BusinessException;
-import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.enums.FileSource;
-import info.openmeta.starter.file.service.ExportTemplateService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -36,28 +34,21 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
-public class ExportByFileTemplate extends BaseExport {
+public class ExportByFileTemplate extends CommonExport {
 
     @Autowired
     private FileRecordService fileRecordService;
-
-    @Autowired
-    private ExportTemplateService exportTemplateService;
 
     /**
      * Export data rows by file template.
      * The file template is a template file that contains the variables to be filled in.
      *
      * @param modelName the model name to be exported
-     * @param exportTemplateId the ID of the export template
      * @param flexQuery the flexQuery of the exported conditions
+     * @param exportTemplate exportTemplate object
      * @return fileInfo object with download URL
      */
-    public FileInfo export(String modelName, Long exportTemplateId, FlexQuery flexQuery) {
-        ExportTemplate exportTemplate = exportTemplateService.readOne(exportTemplateId);
-        this.validateFileTemplate(modelName, exportTemplate);
-        Assert.isTrue(exportTemplate.getFileId() != null,
-                "The export template does not have a file template.");
+    public FileInfo export(String modelName, FlexQuery flexQuery, ExportTemplate exportTemplate) {
         // TODO: cache the extracted fields in the exportTemplate
         Set<String> fields = extractVariablesOfFileTemplate(exportTemplate.getFileId());
         flexQuery.setFields(fields);
@@ -65,7 +56,7 @@ public class ExportByFileTemplate extends BaseExport {
         // Fill in the data into the file template
         FileInfo fileInfo = this.generateByFileTemplateAndUpload(exportTemplate.getFileId(), exportTemplate.getName(), rows);
         // Generate export history
-        this.generateExportHistory(exportTemplateId, fileInfo.getFileId());
+        this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
     }
 

@@ -38,7 +38,7 @@ public class ExportController {
     public ApiResponse<FileInfo> dynamicExport(@RequestParam String modelName,
                                                   @RequestBody QueryParams queryParams) {
         ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
+        FlexQuery flexQuery = new FlexQuery(queryParams.getFields(), queryParams.getFilters(), queryParams.getOrders());
         flexQuery.setConvertType(ConvertType.DISPLAY);
         if (!CollectionUtils.isEmpty(queryParams.getGroupBy())) {
             flexQuery.setGroupBy(queryParams.getGroupBy());
