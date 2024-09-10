@@ -9,11 +9,13 @@ import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.SheetInfo;
 import info.openmeta.starter.file.enums.FileSource;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -39,16 +41,20 @@ public class ExportByDynamic extends CommonExport {
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
      * @param modelName the model name to be exported
+     * @param fileName the name of the Excel file to be generated
+     * @param sheetName the name of the sheet in the Excel file
      * @param flexQuery the flex query to be used for data retrieval
      * @return fileInfo object with download URL
      */
-    public FileInfo export(String modelName, FlexQuery flexQuery) {
+    public FileInfo export(String modelName, String fileName, String sheetName, FlexQuery flexQuery) {
         // Get the data to be exported
         List<List<String>> headerList = new ArrayList<>();
         List<List<Object>> rowsTable = this.extractDataTableFromDB(modelName, flexQuery, headerList);
         // Generate the Excel file
         String modelLabel = ModelManager.getModel(modelName).getLabelName();
-        FileInfo fileInfo = this.generateFileAndUpload(modelLabel, headerList, rowsTable);
+        fileName = StringUtils.hasText(fileName) ? fileName : modelLabel;
+        sheetName = StringUtils.hasText(sheetName) ? sheetName : fileName;
+        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headerList, rowsTable);
         // Generate an export history record
         this.generateExportHistory(null, fileInfo.getFileId());
         return fileInfo;
@@ -60,20 +66,22 @@ public class ExportByDynamic extends CommonExport {
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
      * @param fileName the name of the Excel file to be exported
-     * @param flexQueryMap the map of {modelName: flexQuery}
+     * @param sheetInfoList the list of sheetInfo objects
      * @return fileInfo object with download URL
      */
-    public FileInfo exportMultiSheet(String fileName, Map<String, FlexQuery> flexQueryMap) {
+    public FileInfo exportMultiSheet(String fileName, List<SheetInfo> sheetInfoList) {
         FileInfo fileInfo;
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
-            for (Map.Entry<String, FlexQuery> entry : flexQueryMap.entrySet()) {
+            for (int i = 0; i < sheetInfoList.size(); i++) {
+                SheetInfo sheetInfo = sheetInfoList.get(i);
                 List<List<String>> headerList = new ArrayList<>();
-                List<List<Object>> rowsTable = this.extractDataTableFromDB(entry.getKey(), entry.getValue(), headerList);
+                List<List<Object>> rowsTable = this.extractDataTableFromDB(sheetInfo.getModelName(), sheetInfo.getFlexQuery(), headerList);
                 // Write the header and data
-                WriteSheet writeSheet = EasyExcel.writerSheet().head(headerList).build();
+                String sheetName = StringUtils.hasText(sheetInfo.getSheetName()) ? sheetInfo.getSheetName() : sheetInfo.getModelName();
+                WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetName).head(headerList).build();
                 excelWriter.write(rowsTable, writeSheet);
             }
             excelWriter.finish();

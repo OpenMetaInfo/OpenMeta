@@ -89,4 +89,13 @@ public enum FileType {
     public static FileType ofExtension(String extension) {
         return typeMap.get(extension);
     }
+
+    /**
+     * Get the file extension, `.` is included.
+     *
+     * @return the file extension
+     */
+    public String getExtension() {
+        return "." + type;
+    }
 }

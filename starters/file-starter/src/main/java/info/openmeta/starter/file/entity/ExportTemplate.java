@@ -19,8 +19,11 @@ public class ExportTemplate extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "Template Name")
-    private String name;
+    @Schema(description = "File Name")
+    private String fileName;
+
+    @Schema(description = "Sheet Name")
+    private String sheetName;
 
     @Schema(description = "Model Name")
     private String modelName;

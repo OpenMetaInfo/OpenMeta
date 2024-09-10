@@ -5,7 +5,6 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.BusinessException;
-import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
 import info.openmeta.framework.orm.enums.FileType;
@@ -67,18 +66,19 @@ public class CommonExport {
      * Generate the Excel file and upload it to the file storage.
      *
      * @param fileName the name of the file
+     * @param sheetName the name of the sheet
      * @param headerList the list of header labels
      * @param rowsTable the data table of the rows
      * @return the file info object with download URL
      */
-    public FileInfo generateFileAndUpload(String fileName, List<List<String>> headerList, List<List<Object>> rowsTable) {
-        fileName = fileName + DateUtils.getCurrentSimpleDateString();
+    public FileInfo generateFileAndUpload(String fileName, String sheetName,
+                                          List<List<String>> headerList, List<List<Object>> rowsTable) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
             // Write the header and data
-            WriteSheet writeSheet = EasyExcel.writerSheet().head(headerList).build();
+            WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).head(headerList).build();
             if (!CollectionUtils.isEmpty(rowsTable)) {
                 excelWriter.write(rowsTable, writeSheet);
             }

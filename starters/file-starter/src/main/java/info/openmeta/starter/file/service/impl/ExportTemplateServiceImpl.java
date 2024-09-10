@@ -36,7 +36,7 @@ public class ExportTemplateServiceImpl extends EntityServiceImpl<ExportTemplate,
         }
         FileRecord fileRecord = fileRecordService.readOne(template.getFileId());
         if (fileRecord == null) {
-            throw new BusinessException("The file record of export template {0} does not exist", template.getName());
+            throw new BusinessException("The file record of export template {0} does not exist", template.getFileName());
         }
         return fileRecord;
     }

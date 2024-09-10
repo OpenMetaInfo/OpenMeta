@@ -98,6 +98,23 @@ public class FileUtils {
     }
 
     /**
+     * Gets the fileName without extension.
+     *
+     * @param file The uploaded multipart file object
+     * @return The fileName without extension
+     */
+    public static String getShortFileName(MultipartFile file) {
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName != null && originalFileName.contains(".")) {
+            // Get the index of the last dot
+            int dotIndex = originalFileName.lastIndexOf('.');
+            return originalFileName.substring(0, dotIndex);
+        }
+        // If the file has no extension or the name is empty, return the original name
+        return originalFileName;
+    }
+
+    /**
      * Gets the actual fileType of the uploaded file.
      *
      * @param file The uploaded file

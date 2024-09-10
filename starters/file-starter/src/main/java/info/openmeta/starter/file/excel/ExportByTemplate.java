@@ -34,12 +34,12 @@ public class ExportByTemplate extends CommonExport {
      * The convertType should be set to DISPLAY to get the display values of the fields.
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
-     * @param modelName the model name to be exported
      * @param flexQuery the flex query to be used for data retrieval
      * @param exportTemplate exportTemplate object
      * @return fileInfo object with download URL
      */
-    public FileInfo export(String modelName, FlexQuery flexQuery, ExportTemplate exportTemplate) {
+    public FileInfo export(FlexQuery flexQuery, ExportTemplate exportTemplate) {
+        String modelName = exportTemplate.getModelName();
         // Construct the headers order by sequence of the export fields
         List<String> fieldNames = new ArrayList<>();
         List<List<String>> headerList = new ArrayList<>();
@@ -49,7 +49,9 @@ public class ExportByTemplate extends CommonExport {
         List<Map<String, Object>> rows = this.getExportedData(modelName, flexQuery);
         List<List<Object>> rowsTable = ListUtils.convertToTableData(fieldNames, rows);
         // Generate the Excel file
-        FileInfo fileInfo = this.generateFileAndUpload(exportTemplate.getName(), headerList, rowsTable);
+        String fileName = exportTemplate.getFileName();
+        String sheetName = StringUtils.hasText(exportTemplate.getSheetName()) ? exportTemplate.getSheetName() : fileName;
+        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headerList, rowsTable);
         // Generate an export history record
         this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
