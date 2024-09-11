@@ -125,18 +125,18 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     /**
      * Upload a file to the OSS and create a FileRecord.
      *
+     * @param fileName the name of the file to be uploaded
      * @param file the file to be uploaded
      * @return fileId
      */
     @Override
-    public Long uploadFile(MultipartFile file) {
-        String fileName = FileUtils.getShortFileName(file);
+    public Long uploadFile(String fileName, MultipartFile file) {
         FileType fileType = FileUtils.getActualFileType(file);
         try {
             FileInfo fileInfo = uploadFile(fileName, fileType, file.getInputStream(), FileSource.UPLOAD);
             return fileInfo.getFileId();
         } catch (IOException e) {
-            throw new SystemException("Failed to upload file {0}.", fileName, e);
+            throw new SystemException("Failed to upload file {0}.", fileName + fileType.getExtension() , e);
         }
     }
 
