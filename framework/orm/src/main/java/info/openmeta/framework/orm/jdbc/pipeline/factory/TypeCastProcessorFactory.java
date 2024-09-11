@@ -1,9 +1,6 @@
 package info.openmeta.framework.orm.jdbc.pipeline.factory;
 
-import info.openmeta.framework.orm.jdbc.pipeline.processor.FieldProcessor;
-import info.openmeta.framework.orm.jdbc.pipeline.processor.FilterProcessor;
-import info.openmeta.framework.orm.jdbc.pipeline.processor.JsonProcessor;
-import info.openmeta.framework.orm.jdbc.pipeline.processor.MultiStringProcessor;
+import info.openmeta.framework.orm.jdbc.pipeline.processor.*;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.enums.FieldType;
 
@@ -31,8 +28,10 @@ public class TypeCastProcessorFactory implements FieldProcessorFactory {
             // to convert the field value between List and String object.
             // But in the expand case, using `MultiOptionProcessor` processor to expand the field value.
             return new MultiStringProcessor(metaField);
-        } else if (FieldType.FILTER.equals(fieldType)) {
-            return new FilterProcessor(metaField);
+        } else if (FieldType.FILTERS.equals(fieldType)) {
+            return new FiltersProcessor(metaField);
+        } else if (FieldType.ORDERS.equals(fieldType)) {
+            return new OrdersProcessor(metaField);
         }
         return null;
     }

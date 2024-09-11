@@ -8,6 +8,7 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.domain.Filters;
+import info.openmeta.framework.orm.domain.Orders;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,8 @@ public enum FieldType {
     MULTI_OPTION("MultiOption", "Multi-Option", new ArrayList<>(0), List.class, Types.VARCHAR),
     MULTI_STRING("MultiString", "Multi-String", new ArrayList<>(0), List.class, Types.VARCHAR),
     JSON("JSON", "JSON", null, JsonNode.class, Types.LONGVARCHAR),
-    FILTER("Filter", "Filter", null, Filters.class, Types.VARCHAR),
+    FILTERS("Filters", "Filter", null, Filters.class, Types.VARCHAR),
+    ORDERS("Orders", "Orders", null, Orders.class, Types.VARCHAR),
 
     // Relational fields
     ONE_TO_ONE("OneToOne", "OneToOne", null, null, Types.BIGINT),

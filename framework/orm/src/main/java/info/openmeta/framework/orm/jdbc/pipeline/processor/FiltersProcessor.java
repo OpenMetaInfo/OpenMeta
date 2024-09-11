@@ -11,9 +11,9 @@ import java.util.Map;
 /**
  * Filter field processor
  */
-public class FilterProcessor extends BaseProcessor {
+public class FiltersProcessor extends BaseProcessor {
 
-    public FilterProcessor(MetaField metaField) {
+    public FiltersProcessor(MetaField metaField) {
         super(metaField);
     }
 
