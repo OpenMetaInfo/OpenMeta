@@ -2,19 +2,14 @@ package info.openmeta.framework.orm.meta;
 
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.jdbc.JdbcService;
-import info.openmeta.framework.orm.model.SysOptionItemTrans;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Global option set cache manager
@@ -35,14 +30,7 @@ public class OptionManager {
         META_OPTION_SET_MAP.clear();
         // Select all optionItems from the database, and order by optionItem sequence
         List<MetaOptionItem> metaOptionItems = jdbcService.selectMetaEntityList("SysOptionItem", MetaOptionItem.class, "sequence");
-        List<SysOptionItemTrans> translations = jdbcService.selectMetaEntityList(SysOptionItemTrans.class, null);
-        // {rowId: {languageCode: translation}}
-        Map<Serializable, Map<String, SysOptionItemTrans>> groupedTranslations = translations.stream()
-                .collect(Collectors.groupingBy(SysOptionItemTrans::getRowId,
-                        Collectors.toMap(SysOptionItemTrans::getLanguageCode, Function.identity())));
         metaOptionItems.forEach(item -> {
-            // Set the translations
-            item.setTranslations(groupedTranslations.getOrDefault(item.getId(), Collections.emptyMap()));
             // Update the optionSet cache
             if (META_OPTION_SET_MAP.containsKey(item.getOptionSetCode())) {
                 META_OPTION_SET_MAP.get(item.getOptionSetCode()).put(item.getItemCode(), item);
