@@ -1,6 +1,7 @@
 package info.openmeta.starter.file.entity;
 
 import info.openmeta.framework.orm.domain.Filters;
+import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.entity.BaseModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -35,7 +36,7 @@ public class ExportTemplate extends BaseModel {
     private Filters filters;
 
     @Schema(description = "Orders")
-    private String orders;
+    private Orders orders;
 
     @Schema(description = "Enable Transpose")
     private Boolean enableTranspose;

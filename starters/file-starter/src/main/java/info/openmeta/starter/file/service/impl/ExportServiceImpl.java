@@ -99,6 +99,29 @@ public class ExportServiceImpl implements ExportService {
     }
 
     /**
+     * Export multiple sheets merged to on Excel file by specifying multi export templates.
+     * The convertType should be set to DISPLAY to get the display values of the fields.
+     * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
+     *
+     * @param fileName the name of the Excel file to be exported
+     * @param ids the list of export template id
+     * @return fileInfo object with download URL
+     */
+    public FileInfo exportByMultiTemplate(String fileName, List<Long> ids) {
+        List<ExportTemplate> exportTemplates = exportTemplateService.readList(ids);
+        List<String> sheetNames = new ArrayList<>();
+        exportTemplates.forEach(template -> {
+            String sheetName = StringUtils.hasText(template.getSheetName()) ? template.getSheetName() : template.getFileName();
+            sheetNames.add(sheetName);
+            this.validateExportTemplate(template);
+        });
+        Assert.isTrue(sheetNames.size() == new HashSet<>(sheetNames).size(),
+                "The excel sheet name must be unique! {0}", sheetNames);
+
+        return exportByTemplate.exportMultiSheet(fileName, exportTemplates);
+    }
+
+    /**
      * Export one or multiple rows of data by file template.
      * The file template is a template file that contains the variables to be filled in.
      *

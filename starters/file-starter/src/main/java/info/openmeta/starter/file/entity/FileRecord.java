@@ -26,9 +26,6 @@ public class FileRecord extends BaseModel {
     @Schema(description = "OSS Key")
     private String ossKey;
 
-    @Schema(description = "OSS URL")
-    private String url;
-
     @Schema(description = "File Type")
     private FileType fileType;
 
