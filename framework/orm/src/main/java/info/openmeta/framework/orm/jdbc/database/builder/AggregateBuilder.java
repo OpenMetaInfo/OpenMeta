@@ -140,7 +140,8 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
         String selectSegment = type.name() + "(" + SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName() + ")";
         if (AggFunctionType.AVG.equals(type)) {
             // ROUND(AVG(column_name), 2)
-            int scale = metaField.getScale() == null ? BaseConstant.DEFAULT_SCALE : metaField.getScale();
+            int scale = metaField.getScale() == null || metaField.getScale() <= 0 ?
+                    BaseConstant.DEFAULT_SCALE : metaField.getScale();
             selectSegment = "ROUND(" + selectSegment + ", " + scale + ")";
         }
         // `SUM(column_name) AS fieldAlias` or `ROUND(AVG(column_name), 2) AS fieldAlias`
