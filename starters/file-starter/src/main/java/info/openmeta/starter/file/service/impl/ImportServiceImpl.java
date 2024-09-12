@@ -1,4 +1,4 @@
-package info.openmeta.starter.file.excel;
+package info.openmeta.starter.file.service.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
@@ -16,14 +16,13 @@ import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.entity.ImportTemplate;
 import info.openmeta.starter.file.entity.ImportTemplateField;
 import info.openmeta.starter.file.enums.ImportStatus;
+import info.openmeta.starter.file.excel.CommonExport;
 import info.openmeta.starter.file.excel.handler.ImportDataHandler;
-import info.openmeta.starter.file.service.FileRecordService;
-import info.openmeta.starter.file.service.ImportHistoryService;
-import info.openmeta.starter.file.service.ImportTemplateFieldService;
-import info.openmeta.starter.file.service.ImportTemplateService;
+import info.openmeta.starter.file.service.*;
+import info.openmeta.starter.file.vo.ImportFileVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -33,12 +32,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-/**
- * Import by dynamic parameters
- */
 @Slf4j
-@Component
-public class ImportByTemplate {
+@Service
+public class ImportServiceImpl implements ImportService {
 
     private static final String FAILED_LABEL = "Failed";
 
@@ -74,6 +70,7 @@ public class ImportByTemplate {
      * @param templateId template ID
      * @return import template fileInfo
      */
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public FileInfo getTemplateFile(Long templateId) {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
@@ -87,7 +84,15 @@ public class ImportByTemplate {
         return commonExport.generateFileAndUpload(fileName, sheetName, headers, null);
     }
 
-    public ImportHistory importFile(Long templateId, MultipartFile file) {
+    /**
+     * Import data from the uploaded file and the import template ID
+     *
+     * @param templateId       the ID of the import template
+     * @param file             the uploaded file
+     * @return the import result
+     */
+    @Override
+    public ImportHistory importByTemplate(Long templateId, MultipartFile file) {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
         this.validateImportTemplate(importTemplate);
         String modelName = importTemplate.getModelName();
@@ -107,6 +112,31 @@ public class ImportByTemplate {
         }
         // Generate an export history record
         return this.generateExportHistory(fileName, templateId, fileId, failedFileId);
+    }
+
+    /**
+     * Import data from the uploaded file and dynamic import settings
+     *
+     * @return the import result
+     */
+    @Override
+    public ImportHistory importByDynamic(ImportFileVO importFileVO) {
+        Map<String, String> headerToFieldMap = importFileVO.getHeaderFieldMap();
+        List<String> headers = headerToFieldMap.keySet().stream().toList();
+        List<String> fields = headerToFieldMap.values().stream().toList();
+        List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, importFileVO.getFile());
+        List<Map<String, Object>> validDataList = new ArrayList<>();
+        List<Map<String, Object>> failedDataList = new ArrayList<>();
+
+        dataHandler.importData(allDataList);
+        String fileName = importFileVO.getFileName();
+        Long fileId = fileRecordService.uploadFile(fileName, importFileVO.getFile());
+        Long failedFileId = null;
+        if (!CollectionUtils.isEmpty(failedDataList)) {
+            failedFileId = generateFailedExcel(fileName, headers, fields, failedDataList);
+        }
+        // Generate an export history record
+        return this.generateExportHistory(fileName, null, fileId, failedFileId);
     }
 
     /**

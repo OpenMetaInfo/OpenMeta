@@ -6,7 +6,7 @@ import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.entity.ImportTemplate;
-import info.openmeta.starter.file.excel.ImportByTemplate;
+import info.openmeta.starter.file.service.ImportService;
 import info.openmeta.starter.file.service.ImportTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +27,7 @@ public class ImportTemplateController extends EntityController<ImportTemplateSer
     private ImportTemplateService importTemplateService;
 
     @Autowired
-    private ImportByTemplate importByTemplate;
+    private ImportService importService;
 
     /**
      * List all import templates of the specified model
@@ -55,7 +55,7 @@ public class ImportTemplateController extends EntityController<ImportTemplateSer
             The fileInfo contains the download URL.""")
     @GetMapping("/getTemplateFile")
     public ApiResponse<FileInfo> getTemplateFile(@RequestParam(name = "id") Long id) {
-        return ApiResponse.success(importByTemplate.getTemplateFile(id));
+        return ApiResponse.success(importService.getTemplateFile(id));
     }
 
 }
