@@ -1,8 +1,10 @@
 package info.openmeta.starter.file.service.impl;
 
 import info.openmeta.framework.base.utils.Assert;
+import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.ExportTemplateDTO;
 import info.openmeta.starter.file.dto.SheetInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.excel.ExportByDynamic;
@@ -17,6 +19,8 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ExportServiceImpl implements ExportService {
@@ -119,6 +123,23 @@ public class ExportServiceImpl implements ExportService {
                 "The excel sheet name must be unique! {0}", sheetNames);
 
         return exportByTemplate.exportMultiSheet(fileName, exportTemplates);
+    }
+
+    public FileInfo dynamicExportByMultiTemplate(String fileName, List<ExportTemplateDTO> dtoList) {
+        Map<Long, Filters> dynamicTemplateMap = dtoList.stream().collect(Collectors.toMap(ExportTemplateDTO::getTemplateId, ExportTemplateDTO::getFilters));
+
+        List<ExportTemplate> exportTemplates = exportTemplateService.readList(new ArrayList<>(dynamicTemplateMap.keySet()));
+        List<String> sheetNames = new ArrayList<>();
+        exportTemplates.forEach(template -> {
+            String sheetName = StringUtils.hasText(template.getSheetName()) ? template.getSheetName() : template.getFileName();
+            sheetNames.add(sheetName);
+            this.validateExportTemplate(template);
+        });
+        Assert.isTrue(sheetNames.size() == new HashSet<>(sheetNames).size(),
+                "The excel sheet name must be unique! {0}", sheetNames);
+
+
+        return exportByTemplate.dynamicExportMultiSheet(fileName, exportTemplates, dynamicTemplateMap);
     }
 
     /**

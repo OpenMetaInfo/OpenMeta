@@ -2,6 +2,7 @@ package info.openmeta.starter.file.service;
 
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.ExportTemplateDTO;
 import info.openmeta.starter.file.dto.SheetInfo;
 
 import java.util.List;
@@ -53,6 +54,8 @@ public interface ExportService {
      * @return fileInfo object with download URL
      */
     FileInfo exportByMultiTemplate(String fileName, List<Long> ids);
+
+    FileInfo dynamicExportByMultiTemplate(String fileName, List<ExportTemplateDTO> dtoList);
 
     /**
      * Export one or multiple rows of data by file template.
