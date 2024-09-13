@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.web.utils.FileUtils;
+import info.openmeta.starter.file.enums.ImportRule;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,9 @@ public class ImportFileVO {
 
     @Schema(description = "Uploaded file name", hidden = true)
     private String fileName;
+
+    @Schema(description = "Import Rule")
+    private ImportRule importRule;
 
     @Schema(description = "Number of header rows", defaultValue = "1")
     private int headerRows = 1;

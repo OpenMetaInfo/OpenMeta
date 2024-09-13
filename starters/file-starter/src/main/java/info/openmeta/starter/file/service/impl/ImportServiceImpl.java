@@ -15,9 +15,10 @@ import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.entity.ImportTemplate;
 import info.openmeta.starter.file.entity.ImportTemplateField;
+import info.openmeta.starter.file.enums.ImportRule;
 import info.openmeta.starter.file.enums.ImportStatus;
 import info.openmeta.starter.file.excel.CommonExport;
-import info.openmeta.starter.file.excel.handler.ImportDataHandler;
+import info.openmeta.starter.file.excel.ImportHandlerManager;
 import info.openmeta.starter.file.service.*;
 import info.openmeta.starter.file.vo.ImportFileVO;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +55,7 @@ public class ImportServiceImpl implements ImportService {
     private ImportHistoryService importHistoryService;
 
     @Autowired
-    private ImportDataHandler dataHandler;
+    private ImportHandlerManager dataHandler;
 
     public void validateImportTemplate(ImportTemplate importTemplate) {
         Assert.notNull(importTemplate, "Import template cannot be null");
@@ -101,10 +102,8 @@ public class ImportServiceImpl implements ImportService {
         List<String> headers = headerToFieldMap.keySet().stream().toList();
         List<String> fields = headerToFieldMap.values().stream().toList();
         List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, file);
-        List<Map<String, Object>> validDataList = new ArrayList<>();
-        List<Map<String, Object>> failedDataList = new ArrayList<>();
-
-        dataHandler.importData(allDataList);
+        ImportRule importRule = importTemplate.getImportRule();
+        List<Map<String, Object>> failedDataList = dataHandler.importData(modelName, fields, allDataList, importRule);
         Long fileId = fileRecordService.uploadFile(fileName, file);
         Long failedFileId = null;
         if (!CollectionUtils.isEmpty(failedDataList)) {
@@ -121,14 +120,13 @@ public class ImportServiceImpl implements ImportService {
      */
     @Override
     public ImportHistory importByDynamic(ImportFileVO importFileVO) {
+        String modelName = importFileVO.getModelName();
         Map<String, String> headerToFieldMap = importFileVO.getHeaderFieldMap();
         List<String> headers = headerToFieldMap.keySet().stream().toList();
         List<String> fields = headerToFieldMap.values().stream().toList();
         List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, importFileVO.getFile());
-        List<Map<String, Object>> validDataList = new ArrayList<>();
-        List<Map<String, Object>> failedDataList = new ArrayList<>();
-
-        dataHandler.importData(allDataList);
+        ImportRule importRule = importFileVO.getImportRule();
+        List<Map<String, Object>> failedDataList = dataHandler.importData(modelName, fields, allDataList, importRule);
         String fileName = importFileVO.getFileName();
         Long fileId = fileRecordService.uploadFile(fileName, importFileVO.getFile());
         Long failedFileId = null;

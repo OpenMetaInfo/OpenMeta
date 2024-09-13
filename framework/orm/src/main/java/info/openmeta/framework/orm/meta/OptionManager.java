@@ -49,7 +49,7 @@ public class OptionManager {
      * @param optionSetCode option set code
      * @return ordered optionItems {itemCode: itemName}
      */
-    public static Map<String, String> getMetaOptionItems(String optionSetCode){
+    public static Map<String, String> getMetaOptionItems(String optionSetCode) {
         Assert.isTrue(META_OPTION_SET_MAP.containsKey(optionSetCode),
                 "optionSetCode {0} does not exist in OptionSet metadata.", optionSetCode);
         Map<String, String> orderedOptionItems = new LinkedHashMap<>();
@@ -65,9 +65,48 @@ public class OptionManager {
      * @param itemCode option item code
      * @return optionItem object
      */
-    public static MetaOptionItem getMetaOptionItem(String optionSetCode, String itemCode){
+    public static MetaOptionItem getMetaOptionItem(String optionSetCode, String itemCode) {
         Assert.isTrue(META_OPTION_SET_MAP.containsKey(optionSetCode),
                 "optionSetCode {0} does not exist in OptionSet metadata.", optionSetCode);
         return META_OPTION_SET_MAP.get(optionSetCode).get(itemCode);
+    }
+
+    /**
+     * Get the optionItem name by optionSetCode and optionItemCode, return null if not exists.
+     *
+     * @param optionSetCode option set code
+     * @param itemCode option item code
+     * @return optionItem name
+     */
+    public static String getItemNameByCode(String optionSetCode, String itemCode) {
+        MetaOptionItem metaOptionItem = getMetaOptionItem(optionSetCode, itemCode);
+        return metaOptionItem == null ? null : metaOptionItem.getItemName();
+    }
+
+    /**
+     * Get the optionItem code by optionSetCode and optionItemName, return null if not exists.
+     *
+     * @param optionSetCode option set code
+     * @param itemName option item name
+     * @return optionItem code
+     */
+    public static String getItemCodeByName(String optionSetCode, String itemName) {
+        for (MetaOptionItem metaOptionItem : META_OPTION_SET_MAP.get(optionSetCode).values()) {
+            if (metaOptionItem.getItemName().equals(itemName)) {
+                return metaOptionItem.getItemCode();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if the optionItem exists by optionSetCode and optionItemCode.
+     *
+     * @param optionSetCode option set code
+     * @param itemCode option item code
+     * @return true if exists
+     */
+    public static boolean existsItemCode(String optionSetCode, String itemCode) {
+        return META_OPTION_SET_MAP.containsKey(optionSetCode) && META_OPTION_SET_MAP.get(optionSetCode).containsKey(itemCode);
     }
 }
