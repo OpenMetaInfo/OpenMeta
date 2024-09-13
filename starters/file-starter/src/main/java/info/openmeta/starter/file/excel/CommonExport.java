@@ -79,9 +79,7 @@ public class CommonExport {
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
             // Write the header and data
             WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).head(headerList).build();
-            if (!CollectionUtils.isEmpty(rowsTable)) {
-                excelWriter.write(rowsTable, writeSheet);
-            }
+            excelWriter.write(rowsTable, writeSheet);
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
