@@ -2,19 +2,14 @@ package info.openmeta.framework.orm.meta;
 
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.jdbc.JdbcService;
-import info.openmeta.framework.orm.model.SysOptionItemTrans;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Global option set cache manager
@@ -35,14 +30,7 @@ public class OptionManager {
         META_OPTION_SET_MAP.clear();
         // Select all optionItems from the database, and order by optionItem sequence
         List<MetaOptionItem> metaOptionItems = jdbcService.selectMetaEntityList("SysOptionItem", MetaOptionItem.class, "sequence");
-        List<SysOptionItemTrans> translations = jdbcService.selectMetaEntityList(SysOptionItemTrans.class, null);
-        // {rowId: {languageCode: translation}}
-        Map<Serializable, Map<String, SysOptionItemTrans>> groupedTranslations = translations.stream()
-                .collect(Collectors.groupingBy(SysOptionItemTrans::getRowId,
-                        Collectors.toMap(SysOptionItemTrans::getLanguageCode, Function.identity())));
         metaOptionItems.forEach(item -> {
-            // Set the translations
-            item.setTranslations(groupedTranslations.getOrDefault(item.getId(), Collections.emptyMap()));
             // Update the optionSet cache
             if (META_OPTION_SET_MAP.containsKey(item.getOptionSetCode())) {
                 META_OPTION_SET_MAP.get(item.getOptionSetCode()).put(item.getItemCode(), item);
@@ -61,7 +49,7 @@ public class OptionManager {
      * @param optionSetCode option set code
      * @return ordered optionItems {itemCode: itemName}
      */
-    public static Map<String, String> getMetaOptionItems(String optionSetCode){
+    public static Map<String, String> getMetaOptionItems(String optionSetCode) {
         Assert.isTrue(META_OPTION_SET_MAP.containsKey(optionSetCode),
                 "optionSetCode {0} does not exist in OptionSet metadata.", optionSetCode);
         Map<String, String> orderedOptionItems = new LinkedHashMap<>();
@@ -77,9 +65,48 @@ public class OptionManager {
      * @param itemCode option item code
      * @return optionItem object
      */
-    public static MetaOptionItem getMetaOptionItem(String optionSetCode, String itemCode){
+    public static MetaOptionItem getMetaOptionItem(String optionSetCode, String itemCode) {
         Assert.isTrue(META_OPTION_SET_MAP.containsKey(optionSetCode),
                 "optionSetCode {0} does not exist in OptionSet metadata.", optionSetCode);
         return META_OPTION_SET_MAP.get(optionSetCode).get(itemCode);
+    }
+
+    /**
+     * Get the optionItem name by optionSetCode and optionItemCode, return null if not exists.
+     *
+     * @param optionSetCode option set code
+     * @param itemCode option item code
+     * @return optionItem name
+     */
+    public static String getItemNameByCode(String optionSetCode, String itemCode) {
+        MetaOptionItem metaOptionItem = getMetaOptionItem(optionSetCode, itemCode);
+        return metaOptionItem == null ? null : metaOptionItem.getItemName();
+    }
+
+    /**
+     * Get the optionItem code by optionSetCode and optionItemName, return null if not exists.
+     *
+     * @param optionSetCode option set code
+     * @param itemName option item name
+     * @return optionItem code
+     */
+    public static String getItemCodeByName(String optionSetCode, String itemName) {
+        for (MetaOptionItem metaOptionItem : META_OPTION_SET_MAP.get(optionSetCode).values()) {
+            if (metaOptionItem.getItemName().equals(itemName)) {
+                return metaOptionItem.getItemCode();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if the optionItem exists by optionSetCode and optionItemCode.
+     *
+     * @param optionSetCode option set code
+     * @param itemCode option item code
+     * @return true if exists
+     */
+    public static boolean existsItemCode(String optionSetCode, String itemCode) {
+        return META_OPTION_SET_MAP.containsKey(optionSetCode) && META_OPTION_SET_MAP.get(optionSetCode).containsKey(itemCode);
     }
 }

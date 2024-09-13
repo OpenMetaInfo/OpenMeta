@@ -241,9 +241,9 @@ public class DataUpdatePipeline extends DataPipeline {
      *
      * @param modelName model name
      * @param fieldName field name
-     * @param newValue new value of the field, for Date and Datetime type fields, the field value needs to be
+     * @param newValue new value of the field, for Date and DateTime type fields, the field value needs to be
      *                converted to String for comparison, to avoid unequal equals due to different object class.
-     * @param oldValue old value of the field, for Date and Datetime type fields,
+     * @param oldValue old value of the field, for Date and DateTime type fields,
      *                 the original value read from database is already String
      * @return whether the field value has been modified
      */

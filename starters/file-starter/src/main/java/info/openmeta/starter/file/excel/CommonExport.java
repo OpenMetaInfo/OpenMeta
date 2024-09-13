@@ -5,22 +5,19 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.BusinessException;
-import info.openmeta.framework.base.utils.Assert;
-import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ExportHistory;
-import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.enums.FileSource;
 import info.openmeta.starter.file.service.ExportHistoryService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,7 +31,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-class BaseExport {
+public class CommonExport {
 
     @Autowired
     private ModelService<?> modelService;
@@ -44,20 +41,6 @@ class BaseExport {
 
     @Autowired
     private ExportHistoryService exportHistoryService;
-
-    /**
-     * Validate the exported by file template configuration.
-     *
-     * @param modelName the model name to be exported
-     * @param exportTemplate the export template to be validated
-     */
-    protected void validateFileTemplate(String modelName, ExportTemplate exportTemplate) {
-        Assert.notNull(exportTemplate, "The export template does not exist.");
-        Assert.isTrue(StringUtils.hasText(exportTemplate.getModelName()),
-                "The model name in the export template cannot be empty.");
-        Assert.isTrue(exportTemplate.getModelName().equals(modelName),
-                "The model name in the export template is inconsistent with the model name to be exported");
-    }
 
     /**
      * Get the data to be exported.
@@ -83,18 +66,19 @@ class BaseExport {
      * Generate the Excel file and upload it to the file storage.
      *
      * @param fileName the name of the file
+     * @param sheetName the name of the sheet
      * @param headerList the list of header labels
      * @param rowsTable the data table of the rows
      * @return the file info object with download URL
      */
-    public FileInfo generateFileAndUpload(String fileName, List<List<String>> headerList, List<List<Object>> rowsTable) {
-        fileName = fileName + DateUtils.getCurrentSimpleDateString();
+    public FileInfo generateFileAndUpload(String fileName, String sheetName,
+                                          List<List<String>> headerList, List<List<Object>> rowsTable) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
             // Write the header and data
-            WriteSheet writeSheet = EasyExcel.writerSheet().head(headerList).build();
+            WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).head(headerList).build();
             excelWriter.write(rowsTable, writeSheet);
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload

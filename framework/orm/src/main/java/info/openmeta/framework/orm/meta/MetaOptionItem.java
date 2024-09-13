@@ -3,10 +3,10 @@ package info.openmeta.framework.orm.meta;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.orm.model.SysOptionItemTrans;
 import lombok.Data;
+import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Map;
 
 /**
  * MetaOptionItem
@@ -37,9 +37,6 @@ public class MetaOptionItem implements Serializable {
 
     private String description;
 
-    // {languageCode: SysOptionItemTrans}
-    private Map<String, SysOptionItemTrans> translations;
-
     /**
      * Get item name by language code from translations.
      * If the translation is not found, return the item name.
@@ -48,10 +45,12 @@ public class MetaOptionItem implements Serializable {
      */
     public String getItemName() {
         String languageCode = ContextHolder.getContext().getLanguage().getCode();
-        if (translations != null && translations.containsKey(languageCode)) {
-            return translations.get(languageCode).getItemName();
-        } else {
+        SysOptionItemTrans itemTrans = MetaTranslationCache.getOptionItemTrans(languageCode, id);
+        if (itemTrans == null) {
             return itemName;
+        } else {
+            String translation = itemTrans.getItemName();
+            return StringUtils.hasText(translation) ? translation : itemName;
         }
     }
 }

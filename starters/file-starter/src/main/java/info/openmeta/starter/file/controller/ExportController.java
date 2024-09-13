@@ -31,19 +31,25 @@ public class ExportController {
      * The convertType is set to DISPLAY to get the display values of the fields.
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
+     * @param modelName the model name to be exported
+     * @param fileName the name of the Excel file to be generated
+     * @param sheetName the name of the sheet in the Excel file
+     * @param queryParams the query parameters of the data to be exported
      * @return fileInfo object with download URL
      */
     @Operation(description = "Export data by dynamic fields and QueryParams, without export template.")
     @PostMapping(value = "/dynamicExport")
     public ApiResponse<FileInfo> dynamicExport(@RequestParam String modelName,
-                                                  @RequestBody QueryParams queryParams) {
+                                               @RequestParam(required = false) String fileName,
+                                               @RequestParam(required = false) String sheetName,
+                                               @RequestBody QueryParams queryParams) {
         ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
+        FlexQuery flexQuery = new FlexQuery(queryParams.getFields(), queryParams.getFilters(), queryParams.getOrders());
         flexQuery.setConvertType(ConvertType.DISPLAY);
         if (!CollectionUtils.isEmpty(queryParams.getGroupBy())) {
             flexQuery.setGroupBy(queryParams.getGroupBy());
         }
-        return ApiResponse.success(exportService.dynamicExport(modelName, flexQuery));
+        return ApiResponse.success(exportService.dynamicExport(modelName, fileName, sheetName, flexQuery));
     }
 
     /**
@@ -57,8 +63,7 @@ public class ExportController {
     @Operation(description = "Exported by exportTemplate with dynamic fields and QueryParams")
     @PostMapping(value = "/exportByTemplate")
     @Parameter(name = "exportTemplateId", description = "The id of the ExportTemplate.")
-    public ApiResponse<FileInfo> exportByTemplate(@RequestParam String modelName,
-                                                  @RequestParam Long exportTemplateId,
+    public ApiResponse<FileInfo> exportByTemplate(@RequestParam Long exportTemplateId,
                                                   @RequestBody QueryParams queryParams) {
         ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
         FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
@@ -66,7 +71,7 @@ public class ExportController {
         if (!CollectionUtils.isEmpty(queryParams.getGroupBy())) {
             flexQuery.setGroupBy(queryParams.getGroupBy());
         }
-        return ApiResponse.success(exportService.exportByTemplate(modelName, exportTemplateId, flexQuery));
+        return ApiResponse.success(exportService.exportByTemplate(exportTemplateId, flexQuery));
     }
 
     /**
@@ -75,7 +80,6 @@ public class ExportController {
      * The convertType is set to DISPLAY to get the display values of the fields.
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
-     * @param modelName the model name to be exported
      * @param exportTemplateId the ID of the export template
      * @param queryParams the query parameters of the data to be exported
      * @return fileInfo object with download URL
@@ -83,9 +87,8 @@ public class ExportController {
     @Operation(description = "Exported by file template and QueryParams")
     @PostMapping(value = "/exportByFileTemplate")
     @Parameter(name = "exportTemplateId", description = "The id of the ExportTemplate.")
-    public ApiResponse<FileInfo> exportByFileTemplate(@RequestParam String modelName,
-                                                         @RequestParam Long exportTemplateId,
-                                                         @RequestBody QueryParams queryParams) {
+    public ApiResponse<FileInfo> exportByFileTemplate(@RequestParam Long exportTemplateId,
+                                                      @RequestBody QueryParams queryParams) {
         Assert.notNull(exportTemplateId, "Export template ID cannot be null.");
         ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
         FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
@@ -93,7 +96,7 @@ public class ExportController {
         if (!CollectionUtils.isEmpty(queryParams.getGroupBy())) {
             flexQuery.setGroupBy(queryParams.getGroupBy());
         }
-        return ApiResponse.success(exportService.exportByFileTemplate(modelName, exportTemplateId, flexQuery));
+        return ApiResponse.success(exportService.exportByFileTemplate(exportTemplateId, flexQuery));
     }
 
 }

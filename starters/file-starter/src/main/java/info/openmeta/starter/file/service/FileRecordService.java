@@ -53,10 +53,11 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
     /**
      * Upload a file to the OSS and create a FileRecord
      *
+     * @param fileName the name of the file to be uploaded
      * @param file the file to be uploaded
      * @return fileId
      */
-    Long uploadFile(MultipartFile file);
+    Long uploadFile(String fileName, MultipartFile file);
 
     /**
      * Upload a file to the OSS and create a corresponding FileRecord to associate with a business model and rowId.

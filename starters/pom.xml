@@ -6,7 +6,7 @@
     <parent>
         <artifactId>openmeta</artifactId>
         <groupId>info.openmeta</groupId>
-        <version>0.6.0</version>
+        <version>0.6.7</version>
     </parent>
 
     <artifactId>starters</artifactId>
@@ -21,9 +21,5 @@
         <module>es-starter</module>
         <module>file-starter</module>
     </modules>
-
-    <properties>
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
 
 </project>

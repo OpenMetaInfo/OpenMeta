@@ -4,6 +4,7 @@ import com.github.f4b6a3.tsid.TsidCreator;
 import com.google.common.collect.Lists;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
+import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.framework.web.dto.FileInfo;
@@ -49,11 +50,12 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      * @return the fileRecord object
      */
     private FileRecord uploadAndSaveRecord(String fileName, FileType fileType, byte[] fileData, FileSource source) {
-        String ossKey = fileName + "_" + TsidCreator.getTsid();
+        String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+        String ossKey = TsidCreator.getTsid() + "/" + fullFileName;
         String checksum = ossClientService.uploadByteToOSS(ossKey, fileData, fileName);
         // Create file record
         FileRecord fileRecord = new FileRecord();
-        fileRecord.setFileName(fileName);
+        fileRecord.setFileName(fullFileName);
         fileRecord.setFileType(fileType);
         fileRecord.setOssKey(ossKey);
         fileRecord.setFileSize(fileData.length / 1024);
@@ -97,7 +99,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     /**
      * Upload a file to the OSS and create a corresponding FileRecord.
      *
-     * @param fileName the name of the file to be uploaded
+     * @param fileName the name of the file with the file extension
      * @param fileType the type of the file to be uploaded
      * @param inputStream the input stream of the file to be uploaded
      * @param source the source of the file (e.g., UPLOAD, IMPORT)
@@ -105,11 +107,12 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileInfo uploadFile(String fileName, FileType fileType, InputStream inputStream, FileSource source) {
-        String ossKey = fileName + "_" + TsidCreator.getTsid();
+        String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+        String ossKey = TsidCreator.getTsid() + "/" + fullFileName;
         String checksum = ossClientService.uploadStreamToOSS(ossKey, inputStream, fileName);
         // Create file record
         FileRecord fileRecord = new FileRecord();
-        fileRecord.setFileName(fileName);
+        fileRecord.setFileName(fullFileName);
         fileRecord.setFileType(fileType);
         fileRecord.setOssKey(ossKey);
         fileRecord.setSource(source);
@@ -120,20 +123,20 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     }
 
     /**
-     * Upload a file to the OSS and create a FileRecord .
+     * Upload a file to the OSS and create a FileRecord.
      *
+     * @param fileName the name of the file to be uploaded
      * @param file the file to be uploaded
      * @return fileId
      */
     @Override
-    public Long uploadFile(MultipartFile file) {
-        String fileName = file.getOriginalFilename();
+    public Long uploadFile(String fileName, MultipartFile file) {
         FileType fileType = FileUtils.getActualFileType(file);
         try {
             FileInfo fileInfo = uploadFile(fileName, fileType, file.getInputStream(), FileSource.UPLOAD);
             return fileInfo.getFileId();
         } catch (IOException e) {
-            throw new SystemException("Failed to upload file {0}.", fileName, e);
+            throw new SystemException("Failed to upload file {0}.", fileName + fileType.getExtension() , e);
         }
     }
 

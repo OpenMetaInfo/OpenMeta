@@ -4,20 +4,18 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.exception.BusinessException;
-import info.openmeta.framework.base.utils.Assert;
-import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.enums.FileSource;
-import info.openmeta.starter.file.service.ExportTemplateService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,55 +34,47 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
-public class ExportByFileTemplate extends BaseExport {
+public class ExportByFileTemplate extends CommonExport {
 
     @Autowired
     private FileRecordService fileRecordService;
-
-    @Autowired
-    private ExportTemplateService exportTemplateService;
 
     /**
      * Export data rows by file template.
      * The file template is a template file that contains the variables to be filled in.
      *
-     * @param modelName the model name to be exported
-     * @param exportTemplateId the ID of the export template
      * @param flexQuery the flexQuery of the exported conditions
+     * @param exportTemplate exportTemplate object
      * @return fileInfo object with download URL
      */
-    public FileInfo export(String modelName, Long exportTemplateId, FlexQuery flexQuery) {
-        ExportTemplate exportTemplate = exportTemplateService.readOne(exportTemplateId);
-        this.validateFileTemplate(modelName, exportTemplate);
-        Assert.isTrue(exportTemplate.getFileId() != null,
-                "The export template does not have a file template.");
+    public FileInfo export(FlexQuery flexQuery, ExportTemplate exportTemplate) {
         // TODO: cache the extracted fields in the exportTemplate
         Set<String> fields = extractVariablesOfFileTemplate(exportTemplate.getFileId());
         flexQuery.setFields(fields);
-        List<Map<String, Object>> rows = this.getExportedData(modelName, flexQuery);
+        List<Map<String, Object>> rows = this.getExportedData(exportTemplate.getModelName(), flexQuery);
         // Fill in the data into the file template
-        FileInfo fileInfo = this.generateByFileTemplateAndUpload(exportTemplate.getFileId(), exportTemplate.getName(), rows);
+        FileInfo fileInfo = this.generateByFileTemplateAndUpload(exportTemplate, rows);
         // Generate export history
-        this.generateExportHistory(exportTemplateId, fileInfo.getFileId());
+        this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
     }
 
     /**
      * Renders data into a file template and uploads the generated file to OSS.
      *
-     * @param fileId the ID of the file template
-     * @param templateName the name of the export template
+     * @param exportTemplate the export template object
      * @param data the data to be filled into the file template
      * @return fileInfo object with download URL
      */
-    private FileInfo generateByFileTemplateAndUpload(Long fileId, String templateName, Object data) {
-        String fileName = templateName + DateUtils.getCurrentSimpleDateString();
-        try (InputStream inputStream = fileRecordService.downloadStream(fileId);
+    private FileInfo generateByFileTemplateAndUpload(ExportTemplate exportTemplate, Object data) {
+        String fileName = exportTemplate.getFileName();
+        String sheetName = StringUtils.hasText(exportTemplate.getSheetName()) ? exportTemplate.getSheetName() : fileName;
+        try (InputStream inputStream = fileRecordService.downloadStream(exportTemplate.getFileId());
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the template and fill in the data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).withTemplate(inputStream).build()) {
             // Create a write sheet and fill in the data
-            WriteSheet writeSheet = EasyExcel.writerSheet().build();
+            WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).build();
             excelWriter.fill(data, writeSheet);
             // TODO: fill in the ENV related to current user
             excelWriter.finish();
@@ -92,7 +82,7 @@ public class ExportByFileTemplate extends BaseExport {
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
             return fileRecordService.uploadFile(fileName, FileType.XLSX, resultStream, FileSource.DOWNLOAD);
         } catch (Exception e) {
-            throw new BusinessException("Failed to fill data into the file template {}.", templateName, e);
+            throw new BusinessException("Failed to fill data into the file template {}.", fileName, e);
         }
     }
 

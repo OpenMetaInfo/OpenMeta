@@ -1,5 +1,6 @@
 package info.openmeta.framework.orm.jdbc.database.builder;
 
+import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.orm.domain.AggFunctions;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.AggFunctionType;
@@ -116,8 +117,34 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
             boolean isValid = AggFunctionType.validateFunctionType(aggFunction.getType(), metaField.getFieldType());
             Assert.isTrue(isValid, "Aggregate function {0} does not support field type: {1}",
                     aggFunction, metaField.getFieldType().getType());
-            String alias = aggFunction.getType().getFunc() + Character.toUpperCase(field.charAt(0)) + field.substring(1);
-            sqlWrapper.select(aggFunction.getType().name() + "(" + SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName() + ") AS " + alias);
+            String selectSegment = this.generateAggSegment(aggFunction.getType(), field, metaField);
+            sqlWrapper.select(selectSegment);
         });
+    }
+
+    /**
+     * Generate aggregation segment.
+     * Scenarios that do not need to deal with decimals, such as `SUM`, `COUNT`, `MAX`, `MIN`.
+     *      SUM(column_name) AS fieldAlias
+     * Scenarios that need to deal with decimals, such as `AVG`, `ROUND(AVG(column_name), 2)`.
+     *      ROUND(AVG(column_name), 2) AS fieldAlias
+     *
+     * @param type aggregation function type
+     * @param field field name
+     * @param metaField metaField
+     * @return aggregation segment
+     */
+    private String generateAggSegment(AggFunctionType type, String field, MetaField metaField) {
+        String alias = type.getFunc() + Character.toUpperCase(field.charAt(0)) + field.substring(1);
+        // SUM(column_name)
+        String selectSegment = type.name() + "(" + SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName() + ")";
+        if (AggFunctionType.AVG.equals(type)) {
+            // ROUND(AVG(column_name), 2)
+            int scale = metaField.getScale() == null || metaField.getScale() <= 0 ?
+                    BaseConstant.DEFAULT_SCALE : metaField.getScale();
+            selectSegment = "ROUND(" + selectSegment + ", " + scale + ")";
+        }
+        // `SUM(column_name) AS fieldAlias` or `ROUND(AVG(column_name), 2) AS fieldAlias`
+        return selectSegment + " AS " + alias;
     }
 }

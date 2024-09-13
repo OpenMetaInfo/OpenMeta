@@ -1,8 +1,11 @@
 package info.openmeta.framework.orm.meta;
 
-import info.openmeta.framework.orm.enums.MaskingType;
+import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.orm.enums.FieldType;
+import info.openmeta.framework.orm.enums.MaskingType;
+import info.openmeta.framework.orm.model.SysFieldTrans;
 import lombok.Data;
+import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -89,4 +92,20 @@ public class MetaField implements Serializable {
 
     private MaskingType maskingType;
 
+    /**
+     * Get translation by language code from translations.
+     * If the translation is not found, return the original name.
+     *
+     * @return label name
+     */
+    public String getLabelName() {
+        String languageCode = ContextHolder.getContext().getLanguage().getCode();
+        SysFieldTrans labelTrans = MetaTranslationCache.getFieldTrans(languageCode, id);
+        if (labelTrans == null) {
+            return labelName;
+        } else {
+            String translation = labelTrans.getLabelName();
+            return StringUtils.hasText(translation) ? translation : labelName;
+        }
+    }
 }

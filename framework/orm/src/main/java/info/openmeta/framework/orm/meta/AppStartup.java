@@ -15,10 +15,13 @@ import org.springframework.stereotype.Component;
 public class AppStartup implements InitializingBean {
 
     @Autowired
-    ModelManager modelManager;
+    private ModelManager modelManager;
 
     @Autowired
-    OptionManager optionManager;
+    private OptionManager optionManager;
+
+    @Autowired
+    private MetaTranslationCache translationCache;
 
     @Override
     public void afterPropertiesSet() {
@@ -27,6 +30,8 @@ public class AppStartup implements InitializingBean {
             modelManager.init();
             // 2. init option manager
             optionManager.init();
+            // 3. init meta cache
+            translationCache.init();
         } catch (CannotGetJdbcConnectionException e) {
             throw new RuntimeException("Database connection failed, please check the database configuration.");
         }

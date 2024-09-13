@@ -45,6 +45,11 @@ public class AggFunctions {
         return this;
     }
 
+    public AggFunctions add(AggFunctionType type, String field, String alias) {
+        this.functionList.add(new AggFunction(type, field, alias));
+        return this;
+    }
+
     public static boolean isEmpty(AggFunctions aggFunctions) {
         return aggFunctions == null || aggFunctions.getFunctionList().isEmpty();
     }
