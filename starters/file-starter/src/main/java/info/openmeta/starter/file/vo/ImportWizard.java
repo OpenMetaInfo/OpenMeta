@@ -4,16 +4,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.web.utils.FileUtils;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import info.openmeta.starter.file.enums.ImportRule;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
 @Data
-@Schema(name = "ImportFileVO")
-public class ImportFileVO {
+@Schema(name = "ImportWizard")
+public class ImportWizard {
 
     @Schema(description = "Model name", hidden = true)
     private String modelName;
@@ -30,11 +31,17 @@ public class ImportFileVO {
     @Schema(description = "Number of header rows", defaultValue = "1")
     private int headerRows = 1;
 
-    @Schema(description = "JSON string of header to fieldName map, e.g. {\"Product Code\":\"productCode\",\"Product Name\":\"name\"}")
-    private String headerFieldJSON;
+    @Schema(description = "Unique Constraints")
+    private String uniqueConstraints;
 
-    @Schema(description = "Header to fieldName mapping", hidden = true)
-    private LinkedHashMap<String, String> headerFieldMap;
+    @Schema(description = """
+            JSON string of the import fields info. e.g.
+                [{"header": "Product Code", "fieldName": "productCode", "required": true},
+                 {"header": "Product Name", "fieldName": "productName", "required": true}]""")
+    private String importFieldStr;
+
+    @Schema(hidden = true)
+    private List<ImportFieldDTO> importFieldDTOList;
 
     @Schema(description = "Whether to ignore empty values")
     private Boolean ignoreEmpty;
@@ -53,17 +60,17 @@ public class ImportFileVO {
     }
 
     /**
-     * Set the headerFieldJSON and parse it into a LinkedHashMap.
+     * Set the importFieldStr and parse it into a list of ImportFieldDTO.
      *
-     * @param headerFieldJSON the JSON string of header to fieldName map
+     * @param importFieldStr the JSON string of the ImportFieldDTO list
      */
-    public void setHeaderFieldJSON(String headerFieldJSON) {
-        this.headerFieldJSON = headerFieldJSON;
+    public void setImportFieldStr(String importFieldStr) {
+        this.importFieldStr = importFieldStr;
         try {
-            TypeReference<LinkedHashMap<String, String>> typeRef = new TypeReference<>() {};
-            this.headerFieldMap = JsonMapper.stringToObject(headerFieldJSON, typeRef);
+            TypeReference<List<ImportFieldDTO>> typeRef = new TypeReference<>() {};
+            this.importFieldDTOList = JsonMapper.stringToObject(importFieldStr, typeRef);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Header-field JSON must be in JSON format: {0}", headerFieldJSON, e);
+            throw new IllegalArgumentException("The JSON string of the import fields must be in JSON format: {0}", importFieldStr, e);
         }
     }
 }

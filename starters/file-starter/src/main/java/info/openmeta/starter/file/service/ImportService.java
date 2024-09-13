@@ -2,7 +2,7 @@ package info.openmeta.starter.file.service;
 
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ImportHistory;
-import info.openmeta.starter.file.vo.ImportFileVO;
+import info.openmeta.starter.file.vo.ImportWizard;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ImportService {
@@ -29,5 +29,5 @@ public interface ImportService {
      *
      * @return the import result
      */
-    ImportHistory importByDynamic(ImportFileVO importFileVO);
+    ImportHistory importByDynamic(ImportWizard importWizard);
 }

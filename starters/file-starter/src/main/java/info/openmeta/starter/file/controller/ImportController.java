@@ -4,7 +4,7 @@ import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.service.ImportService;
-import info.openmeta.starter.file.vo.ImportFileVO;
+import info.openmeta.starter.file.vo.ImportWizard;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +36,7 @@ public class ImportController {
                                                        @RequestParam(name = "file") MultipartFile file) {
         String fileName = file.getOriginalFilename();
         Assert.isTrue(StringUtils.hasText(fileName), "File name cannot be empty!");
+        Assert.notNull(file, "File cannot be empty!");
         return ApiResponse.success(importService.importByTemplate(templateId, file));
     }
 
@@ -46,9 +47,12 @@ public class ImportController {
      */
     @Operation(description = "Import data from the uploaded file")
     @PostMapping(value = "/dynamicImport")
-    public ApiResponse<ImportHistory> importWithoutTemplate(@ModelAttribute ImportFileVO importFileVO) {
-        Assert.isTrue(StringUtils.hasText(importFileVO.getFileName()), "File name cannot be empty!");
-        return ApiResponse.success(importService.importByDynamic(importFileVO));
+    public ApiResponse<ImportHistory> importWithoutTemplate(@ModelAttribute ImportWizard importWizard) {
+        Assert.isTrue(StringUtils.hasText(importWizard.getFileName()), "File name cannot be empty!");
+        Assert.notNull(importWizard.getFile(), "File cannot be empty!");
+        Assert.notNull(importWizard.getImportRule(),
+                "Import template `{0}` importRule cannot be null.", importWizard.getFileName());
+        return ApiResponse.success(importService.importByDynamic(importWizard));
     }
 
 }

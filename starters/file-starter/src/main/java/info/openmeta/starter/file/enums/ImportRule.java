@@ -10,8 +10,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ImportRule {
+    CREATE_OR_UPDATE("CreateOrUpdate", "Create or Update"),
     ONLY_UPDATE("OnlyUpdate", "Only Update"),
-    CREATE_AND_UPDATE("CreateAndUpdate", "Create and Update"),
     ONLY_CREATE("OnlyCreate", "Only Create");
 
     @JsonValue

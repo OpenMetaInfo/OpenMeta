@@ -3,6 +3,8 @@ package info.openmeta.starter.file.excel;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
+import info.openmeta.starter.file.dto.ImportConfigDTO;
+import info.openmeta.starter.file.dto.ImportDataDTO;
 import info.openmeta.starter.file.enums.ImportRule;
 import info.openmeta.starter.file.excel.handler.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,17 +26,14 @@ public class ImportHandlerManager {
     /**
      * Import data
      *
-     * @param modelName  The model name
-     * @param fieldNames The field names
-     * @param rows       The rows
-     * @param importRule The import rule
-     * @return the failed rows cannot be imported
+     * @param importConfigDTO The import config DTO
+     * @param importDataDTO  The import data DTO
      */
-    public List<Map<String, Object>> importData(String modelName, List<String> fieldNames,
-                                                List<Map<String, Object>> rows, ImportRule importRule) {
+    public void importData(ImportConfigDTO importConfigDTO, ImportDataDTO importDataDTO) {
         // convert data
+        String modelName = importConfigDTO.getModelName();
         List<BaseImportHandler> handlers = new ArrayList<>();
-        for (String fieldName : fieldNames) {
+        for (String fieldName : importDataDTO.getFields()) {
             if (ModelManager.existField(modelName, fieldName)) {
                 MetaField metaField = ModelManager.getModelField(modelName, fieldName);
                 BaseImportHandler handler = this.createHandler(metaField);
@@ -44,10 +43,9 @@ public class ImportHandlerManager {
             }
         }
         for (BaseImportHandler handler : handlers) {
-            handler.handleRows(rows);
+            handler.handleRows(importDataDTO.getRows());
         }
-        this.createOrUpdate(modelName, rows, importRule);
-        return new ArrayList<>();
+        this.createOrUpdate(importConfigDTO, importDataDTO.getRows());
     }
 
     /**
@@ -67,13 +65,21 @@ public class ImportHandlerManager {
         };
     }
 
-    private void createOrUpdate(String modelName, List<Map<String, Object>> rows, ImportRule importRule) {
-        if (ImportRule.ONLY_CREATE.equals(importRule)) {
+    /**
+     * Create or update the data by the import rule
+     *
+     * @param importConfigDTO The importConfigDTO object
+     * @param rows       The rows
+     */
+    private void createOrUpdate(ImportConfigDTO importConfigDTO, List<Map<String, Object>> rows) {
+        String modelName = importConfigDTO.getModelName();
+        ImportRule importRule = importConfigDTO.getImportRule();
+        if (ImportRule.CREATE_OR_UPDATE.equals(importRule)) {
+            modelService.createList(modelName, rows);
+        } else if (ImportRule.ONLY_CREATE.equals(importRule)) {
             modelService.createList(modelName, rows);
         } else if (ImportRule.ONLY_UPDATE.equals(importRule)) {
             modelService.updateList(modelName, rows);
-        } else {
-            modelService.createList(modelName, rows);
         }
     }
 }
