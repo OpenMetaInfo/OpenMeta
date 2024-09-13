@@ -11,8 +11,8 @@ import org.springframework.util.StringUtils;
  */
 public class OptionHandler extends BaseImportHandler {
 
-    public OptionHandler(MetaField metaField) {
-        super(metaField);
+    public OptionHandler(MetaField metaField, boolean required) {
+        super(metaField, required);
     }
 
     /**

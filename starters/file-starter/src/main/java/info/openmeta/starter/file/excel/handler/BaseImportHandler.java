@@ -1,7 +1,9 @@
 package info.openmeta.starter.file.excel.handler;
 
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -15,12 +17,14 @@ public abstract class BaseImportHandler {
     protected final String fieldName;
     protected final FieldType fieldType;
     protected final MetaField metaField;
+    protected final boolean required;
 
-    public BaseImportHandler(MetaField metaField) {
+    public BaseImportHandler(MetaField metaField, boolean required) {
         this.modelName = metaField.getModelName();
         this.fieldName = metaField.getFieldName();
         this.fieldType = metaField.getFieldType();
         this.metaField = metaField;
+        this.required = required;
     }
 
     /**
@@ -38,7 +42,9 @@ public abstract class BaseImportHandler {
      * @param row The row
      */
     public void handleRow(Map<String, Object> row) {
-        row.put(fieldName, handleValue(row.get(fieldName)));
+        Object value = row.get(fieldName);
+        checkRequired(value);
+        row.put(fieldName, handleValue(value));
     }
 
     /**
@@ -50,5 +56,18 @@ public abstract class BaseImportHandler {
     public Object handleValue(Object value) {
         // handle value
         return value;
+    }
+
+    /**
+     * Check required
+     *
+     * @param value The value
+     */
+    public void checkRequired(Object value) {
+        if (required &&
+                (value == null ||
+                        (value instanceof String valueStr && !StringUtils.hasText(valueStr)))) {
+            throw new IllegalArgumentException("The field `{0}` is required", fieldName);
+        }
     }
 }

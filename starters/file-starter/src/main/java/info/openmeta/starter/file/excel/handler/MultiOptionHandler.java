@@ -14,8 +14,8 @@ import java.util.List;
  */
 public class MultiOptionHandler extends BaseImportHandler {
 
-    public MultiOptionHandler(MetaField metaField) {
-        super(metaField);
+    public MultiOptionHandler(MetaField metaField, boolean required) {
+        super(metaField, required);
     }
 
     /**

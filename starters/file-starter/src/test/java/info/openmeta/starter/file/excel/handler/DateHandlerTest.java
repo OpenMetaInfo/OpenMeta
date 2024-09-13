@@ -13,7 +13,7 @@ class DateHandlerTest {
     @BeforeEach
     void setUp() {
         MetaField metaField = new MetaField();
-        dateHandler = new DateHandler(metaField);
+        dateHandler = new DateHandler(metaField, false);
     }
 
     @Test
