@@ -82,7 +82,7 @@ public class ImportServiceImpl implements ImportService {
         // Generate the Excel file
         String fileName = importTemplate.getName();
         String sheetName = importTemplate.getName();
-        return commonExport.generateFileAndUpload(fileName, sheetName, headers, null);
+        return commonExport.generateFileAndUpload(fileName, sheetName, headers, Collections.emptyList());
     }
 
     /**
