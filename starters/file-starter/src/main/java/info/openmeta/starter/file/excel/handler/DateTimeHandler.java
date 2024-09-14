@@ -18,8 +18,8 @@ import java.util.regex.Pattern;
  */
 public class DateTimeHandler extends BaseImportHandler {
 
-    public DateTimeHandler(MetaField metaField) {
-        super(metaField);
+    public DateTimeHandler(MetaField metaField, boolean required) {
+        super(metaField, required);
     }
 
     /**

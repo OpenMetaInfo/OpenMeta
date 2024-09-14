@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
  */
 public class DateHandler extends BaseImportHandler {
 
-    public DateHandler(MetaField metaField) {
-        super(metaField);
+    public DateHandler(MetaField metaField, boolean required) {
+        super(metaField, required);
     }
 
     /**

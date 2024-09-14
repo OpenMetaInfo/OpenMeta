@@ -12,8 +12,8 @@ import org.springframework.util.StringUtils;
  */
 public class BooleanHandler extends BaseImportHandler {
 
-    public BooleanHandler(MetaField metaField) {
-        super(metaField);
+    public BooleanHandler(MetaField metaField, boolean required) {
+        super(metaField, required);
     }
 
     /**
