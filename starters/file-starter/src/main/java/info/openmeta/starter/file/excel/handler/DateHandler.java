@@ -1,6 +1,7 @@
 package info.openmeta.starter.file.excel.handler;
 
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
 
 import java.util.regex.Matcher;
@@ -22,8 +23,8 @@ import java.util.regex.Pattern;
  */
 public class DateHandler extends BaseImportHandler {
 
-    public DateHandler(MetaField metaField, boolean required) {
-        super(metaField, required);
+    public DateHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
+        super(metaField, importFieldDTO);
     }
 
     /**

@@ -33,6 +33,9 @@ public class ImportTemplateField extends BaseModel {
     @Schema(description = "Required")
     private Boolean required;
 
+    @Schema(description = "Default Value")
+    private String defaultValue;
+
     @Schema(description = "Description")
     private String description;
 

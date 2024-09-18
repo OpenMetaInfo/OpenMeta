@@ -49,6 +49,9 @@ public class ImportWizard {
     @Schema(description = "Whether to continue importing next row data when encountering error.")
     private Boolean skipException;
 
+    @Schema(description = "Custom Handler")
+    private String customHandler;
+
     /**
      * Set the uploaded file and extract the file name.
      *

@@ -3,6 +3,7 @@ package info.openmeta.starter.file.excel.handler;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.OptionManager;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -14,8 +15,8 @@ import java.util.List;
  */
 public class MultiOptionHandler extends BaseImportHandler {
 
-    public MultiOptionHandler(MetaField metaField, boolean required) {
-        super(metaField, required);
+    public MultiOptionHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
+        super(metaField, importFieldDTO);
     }
 
     /**

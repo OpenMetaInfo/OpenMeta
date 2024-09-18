@@ -12,7 +12,7 @@ import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
-import info.openmeta.starter.file.dto.ImportConfigDTO;
+import info.openmeta.starter.file.dto.ImportTemplateDTO;
 import info.openmeta.starter.file.dto.ImportDataDTO;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
 import info.openmeta.starter.file.entity.ImportHistory;
@@ -80,9 +80,11 @@ public class ImportServiceImpl implements ImportService {
     public FileInfo getTemplateFile(Long templateId) {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
         validateImportTemplate(importTemplate);
-        // Construct the headers order by sequence of the export fields
-        Map<String, ImportFieldDTO> headerToFieldDTOMap = this.getHeaderToFieldDTOMap(importTemplate);
-        List<List<String>> headers = headerToFieldDTOMap.keySet().stream().map(Collections::singletonList).toList();
+        // Construct the importTemplateDTO object
+        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate);
+        List<List<String>> headers = importTemplateDTO.getImportFields().stream()
+                .map(ImportFieldDTO::getHeader)
+                .map(Collections::singletonList).toList();
         // Generate the Excel file
         String fileName = importTemplate.getName();
         String sheetName = importTemplate.getName();
@@ -100,17 +102,16 @@ public class ImportServiceImpl implements ImportService {
     public ImportHistory importByTemplate(Long templateId, MultipartFile file) {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
         this.validateImportTemplate(importTemplate);
-        // generate the ImportDataDTO object and ImportConfigDTO object
-        Map<String, ImportFieldDTO> headerToFieldDTOMap = this.getHeaderToFieldDTOMap(importTemplate);
-        ImportDataDTO importDataDTO = this.generateImportDataDTO(headerToFieldDTOMap, file);
-        ImportConfigDTO importConfigDTO = this.convertToImportConfigDTO(importTemplate);
+        // generate the ImportDataDTO object and ImportTemplateDTO object
+        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate);
+        ImportDataDTO importDataDTO = this.generateImportDataDTO(importTemplateDTO, file);
         // import and return the failed data
-        dataHandler.importData(importConfigDTO, importDataDTO);
+        dataHandler.importData(importTemplateDTO, importDataDTO);
         String fileName = FileUtils.getShortFileName(file);
         Long fileId = fileRecordService.uploadFile(fileName, file);
         Long failedFileId = null;
         if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
-            failedFileId = generateFailedExcel(fileName, importDataDTO);
+            failedFileId = generateFailedExcel(fileName, importTemplateDTO, importDataDTO);
         }
         // Generate an export history record
         return this.generateExportHistory(fileName, templateId, fileId, failedFileId);
@@ -123,19 +124,16 @@ public class ImportServiceImpl implements ImportService {
      */
     @Override
     public ImportHistory importByDynamic(ImportWizard importWizard) {
-        List<ImportFieldDTO> importFieldDTOList = importWizard.getImportFieldDTOList();
-        Map<String, ImportFieldDTO> headerToFieldDTOMap = new LinkedHashMap<>();
-        importFieldDTOList.forEach(importFieldDTO -> headerToFieldDTOMap.put(importFieldDTO.getHeader(), importFieldDTO));
-        // generate the ImportDataDTO object and ImportConfigDTO object
-        ImportDataDTO importDataDTO = this.generateImportDataDTO(headerToFieldDTOMap, importWizard.getFile());
-        ImportConfigDTO importConfigDTO = this.convertToImportConfigDTO(importWizard);
+        ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importWizard);
+        // generate the ImportDataDTO object and ImportTemplateDTO object
+        ImportDataDTO importDataDTO = this.generateImportDataDTO(importTemplateDTO, importWizard.getFile());
         // import and return the failed data
-        dataHandler.importData(importConfigDTO, importDataDTO);
+        dataHandler.importData(importTemplateDTO, importDataDTO);
         String fileName = importWizard.getFileName();
         Long fileId = fileRecordService.uploadFile(fileName, importWizard.getFile());
         Long failedFileId = null;
         if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
-            failedFileId = generateFailedExcel(fileName, importDataDTO);
+            failedFileId = generateFailedExcel(fileName, importTemplateDTO, importDataDTO);
         }
         // Generate an export history record
         return this.generateExportHistory(fileName, null, fileId, failedFileId);
@@ -144,94 +142,97 @@ public class ImportServiceImpl implements ImportService {
     /**
      * Generate the ImportDataDTO object to store the data during the import process.
      *
-     * @param headerToFieldDTOMap the mapping of the header to ImportFieldDTO
+     * @param importTemplateDTO the importTemplateDTO object
      * @param file           the uploaded file to be imported
      * @return the generated ImportDataDTO object
      */
-    private ImportDataDTO generateImportDataDTO(Map<String, ImportFieldDTO> headerToFieldDTOMap, MultipartFile file) {
-        List<String> headers = new ArrayList<>();
-        List<String> fields = new ArrayList<>();
-        Set<String> requiredFields = new HashSet<>();
-        headerToFieldDTOMap.forEach((header, importField) -> {
-            headers.add(header);
-            fields.add(importField.getFieldName());
-            if (Boolean.TRUE.equals(importField.getRequired())) {
-                requiredFields.add(importField.getFieldName());
-            }
-        });
-        List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldDTOMap, file);
-        ImportDataDTO importDataDTO = new ImportDataDTO(fields, requiredFields, allDataList);
-        importDataDTO.setHeaders(headers);
+    private ImportDataDTO generateImportDataDTO(ImportTemplateDTO importTemplateDTO, MultipartFile file) {
+        Map<String, String> headerToFieldMap = new HashMap<>();
+        importTemplateDTO.getImportFields()
+                .forEach(importField -> headerToFieldMap.put(importField.getHeader(), importField.getFieldName()));
+        List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, file);
+        ImportDataDTO importDataDTO = new ImportDataDTO();
+        importDataDTO.setRows(allDataList);
         return importDataDTO;
     }
 
     /**
-     * Get the mapping of the header to the import field.
+     * Get the ImportTemplateDTO object by importTemplate
      *
      * @param importTemplate the import template object
+     * @return importTemplateDTO object
      */
-    public Map<String, ImportFieldDTO> getHeaderToFieldDTOMap(ImportTemplate importTemplate) {
-        Map<String, ImportFieldDTO> headerToFieldMap = new LinkedHashMap<>();
+    public ImportTemplateDTO getImportTemplateDTO(ImportTemplate importTemplate) {
+        ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importTemplate);
         // Construct the headers order by sequence of the export fields
         Filters filters = Filters.eq(ImportTemplateField::getTemplateId, importTemplate.getId());
         Orders orders = Orders.ofAsc(ImportTemplateField::getSequence);
         List<ImportTemplateField> importTemplateFields = importTemplateFieldService.searchList(new FlexQuery(filters, orders));
         importTemplateFields.forEach(importTemplateField -> {
-            ImportFieldDTO importFieldDTO = convertToImportFieldDTO(importTemplate.getModelName(), importTemplateField);
-            headerToFieldMap.put(importFieldDTO.getHeader(), importFieldDTO);
+            ImportFieldDTO importFieldDTO = convertToImportFieldDTO(importTemplate, importTemplateField);
+            importTemplateDTO.addImportField(importFieldDTO);
         });
-        return headerToFieldMap;
+        return importTemplateDTO;
     }
 
     /**
-     * Convert the importTemplate to the importConfigDTO.
+     * Convert the importTemplate to the importTemplateDTO.
      *
      * @param importTemplate the importTemplate object
-     * @return the converted importConfigDTO
+     * @return the converted importTemplateDTO
      */
-    private ImportConfigDTO convertToImportConfigDTO(ImportTemplate importTemplate) {
-        ImportConfigDTO importConfigDTO = new ImportConfigDTO();
-        importConfigDTO.setModelName(importTemplate.getModelName());
-        importConfigDTO.setImportRule(importTemplate.getImportRule());
-        importConfigDTO.setIgnoreEmpty(importTemplate.getIgnoreEmpty());
-        importConfigDTO.setSkipException(importTemplate.getSkipException());
-        importConfigDTO.setUniqueConstraints(importTemplate.getUniqueConstraints());
-        return importConfigDTO;
+    private ImportTemplateDTO convertToImportTemplateDTO(ImportTemplate importTemplate) {
+        ImportTemplateDTO importTemplateDTO = new ImportTemplateDTO();
+        importTemplateDTO.setModelName(importTemplate.getModelName());
+        importTemplateDTO.setImportRule(importTemplate.getImportRule());
+        importTemplateDTO.setIgnoreEmpty(importTemplate.getIgnoreEmpty());
+        importTemplateDTO.setSkipException(importTemplate.getSkipException());
+        importTemplateDTO.setCustomHandler(importTemplate.getCustomHandler());
+        importTemplateDTO.setUniqueConstraints(importTemplate.getUniqueConstraints());
+        return importTemplateDTO;
     }
 
     /**
-     * Convert the importWizard to the importConfigDTO.
+     * Convert the importWizard to the importTemplateDTO.
      *
      * @param importWizard the importWizard object
-     * @return the converted importConfigDTO
+     * @return the converted importTemplateDTO
      */
-    private ImportConfigDTO convertToImportConfigDTO(ImportWizard importWizard) {
-        ImportConfigDTO importConfigDTO = new ImportConfigDTO();
-        importConfigDTO.setModelName(importWizard.getModelName());
-        importConfigDTO.setImportRule(importWizard.getImportRule());
-        importConfigDTO.setIgnoreEmpty(importWizard.getIgnoreEmpty());
-        importConfigDTO.setSkipException(importWizard.getSkipException());
+    private ImportTemplateDTO convertToImportTemplateDTO(ImportWizard importWizard) {
+        ImportTemplateDTO importTemplateDTO = new ImportTemplateDTO();
+        importTemplateDTO.setModelName(importWizard.getModelName());
+        importTemplateDTO.setImportRule(importWizard.getImportRule());
+        importTemplateDTO.setIgnoreEmpty(importWizard.getIgnoreEmpty());
+        importTemplateDTO.setSkipException(importWizard.getSkipException());
+        importTemplateDTO.setCustomHandler(importWizard.getCustomHandler());
         List<String> uniqueConstraints = StringUtils.hasText(importWizard.getUniqueConstraints()) ?
                 List.of(importWizard.getUniqueConstraints().split(",")) : Collections.emptyList();
-        importConfigDTO.setUniqueConstraints(uniqueConstraints);
-        return importConfigDTO;
+        importTemplateDTO.setUniqueConstraints(uniqueConstraints);
+        // set the import fields
+        importTemplateDTO.setImportFields(importWizard.getImportFieldDTOList());
+        // update the `ignoreEmpty` of the import fields
+        importTemplateDTO.getImportFields()
+                .forEach(importFieldDTO -> importFieldDTO.setIgnoreEmpty(importTemplateDTO.getIgnoreEmpty()));
+        return importTemplateDTO;
     }
 
     /**
      * Convert the import template field to the import field DTO.
      *
-     * @param modelName          the name of the model
+     * @param importTemplate      the import template
      * @param importTemplateField the import template field
      * @return the converted import field DTO
      */
-    private ImportFieldDTO convertToImportFieldDTO(String modelName, ImportTemplateField importTemplateField) {
+    private ImportFieldDTO convertToImportFieldDTO(ImportTemplate importTemplate, ImportTemplateField importTemplateField) {
         ImportFieldDTO importFieldDTO = new ImportFieldDTO();
         importFieldDTO.setFieldName(importTemplateField.getFieldName());
         importFieldDTO.setRequired(importTemplateField.getRequired());
+        importFieldDTO.setDefaultValue(importTemplateField.getDefaultValue());
+        importFieldDTO.setIgnoreEmpty(importTemplate.getIgnoreEmpty());
         if (StringUtils.hasText(importTemplateField.getCustomHeader())) {
             importFieldDTO.setHeader(importTemplateField.getCustomHeader());
         } else {
-            String labelName = ModelManager.getCascadingFieldLabelName(modelName, importTemplateField.getFieldName());
+            String labelName = ModelManager.getCascadingFieldLabelName(importTemplate.getModelName(), importTemplateField.getFieldName());
             importFieldDTO.setHeader(labelName);
         }
         return importFieldDTO;
@@ -240,10 +241,10 @@ public class ImportServiceImpl implements ImportService {
     /**
      * Extract the fields and labels from the export template.
      *
-     * @param headerToFieldDTOMap the mapping of the header to ImportFieldDTO
+     * @param headerToFieldMap the mapping of the header to fieldName
      * @param file the uploaded file to be imported
      */
-    private List<Map<String, Object>> extractDataFromExcel(Map<String, ImportFieldDTO> headerToFieldDTOMap, MultipartFile file) {
+    private List<Map<String, Object>> extractDataFromExcel(Map<String, String> headerToFieldMap, MultipartFile file) {
         List<Map<String, Object>> rows = new ArrayList<>();
         try (InputStream inputStream = file.getInputStream()) {
             EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
@@ -256,7 +257,7 @@ public class ImportServiceImpl implements ImportService {
                     Map<String, Object> mappedRow = new HashMap<>();
                     for (Map.Entry<Integer, String> entry : rowData.entrySet()) {
                         String headerName = headerMap.get(entry.getKey());
-                        String fieldName = headerToFieldDTOMap.get(headerName).getFieldName();
+                        String fieldName = headerToFieldMap.get(headerName);
                         if (fieldName != null) {
                             mappedRow.put(fieldName, entry.getValue());
                         }
@@ -305,16 +306,21 @@ public class ImportServiceImpl implements ImportService {
      * Generate an Excel file consist of failed data.
      *
      * @param fileName the name of the file with failed data
+     * @param importTemplateDTO the import template DTO
      * @param importDataDTO the import data DTO
      * @return the fileId of the generated Excel file with failed data
      */
-    private Long generateFailedExcel(String fileName, ImportDataDTO importDataDTO) {
+    private Long generateFailedExcel(String fileName, ImportTemplateDTO importTemplateDTO, ImportDataDTO importDataDTO) {
         fileName = fileName + "_" + FAILED_LABEL;
+        List<List<String>> headers = new ArrayList<>();
+        List<String> fields = new ArrayList<>();
+        importTemplateDTO.getImportFields().forEach(importFieldDTO -> {
+            fields.add(importFieldDTO.getHeader());
+            headers.add(Collections.singletonList(importFieldDTO.getHeader()));
+        });
         // Get the data to be exported
-        List<List<String>> headerList = importDataDTO.getHeaders().stream().map(Collections::singletonList).toList();
-        // Get the data to be exported
-        List<List<Object>> rowsTable = ListUtils.convertToTableData(importDataDTO.getFields(), importDataDTO.getFailedRows());
-        FileInfo fileInfo = commonExport.generateFileAndUpload(fileName, FAILED_LABEL, headerList, rowsTable);
+        List<List<Object>> rowsTable = ListUtils.convertToTableData(fields, importDataDTO.getFailedRows());
+        FileInfo fileInfo = commonExport.generateFileAndUpload(fileName, FAILED_LABEL, headers, rowsTable);
         return fileInfo.getFileId();
     }
 

@@ -4,6 +4,7 @@ import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.OptionManager;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
 
 /**
@@ -12,8 +13,8 @@ import org.springframework.util.StringUtils;
  */
 public class BooleanHandler extends BaseImportHandler {
 
-    public BooleanHandler(MetaField metaField, boolean required) {
-        super(metaField, required);
+    public BooleanHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
+        super(metaField, importFieldDTO);
     }
 
     /**

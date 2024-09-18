@@ -1,10 +1,12 @@
 package info.openmeta.starter.file.excel.handler;
 
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DateTimeHandlerTest {
 
@@ -13,7 +15,8 @@ class DateTimeHandlerTest {
     @BeforeEach
     void setUp() {
         MetaField metaField = new MetaField();
-        datetimeHandler = new DateTimeHandler(metaField, false);
+        ImportFieldDTO importFieldDTO = new ImportFieldDTO();
+        datetimeHandler = new DateTimeHandler(metaField, importFieldDTO);
     }
 
     @Test

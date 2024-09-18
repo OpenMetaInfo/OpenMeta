@@ -38,6 +38,9 @@ public class ImportTemplate extends BaseModel {
     @Schema(description = "Skip Abnormal Data")
     private Boolean skipException;
 
+    @Schema(description = "Custom Handler")
+    private String customHandler;
+
     @Schema(description = "Include Import Description")
     private Boolean includeDescription;
 

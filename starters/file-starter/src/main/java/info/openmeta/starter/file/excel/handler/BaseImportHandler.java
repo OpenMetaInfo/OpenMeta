@@ -3,6 +3,7 @@ package info.openmeta.starter.file.excel.handler;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -15,16 +16,14 @@ public abstract class BaseImportHandler {
 
     protected final String modelName;
     protected final String fieldName;
-    protected final FieldType fieldType;
     protected final MetaField metaField;
-    protected final boolean required;
+    protected final ImportFieldDTO importFieldDTO;
 
-    public BaseImportHandler(MetaField metaField, boolean required) {
+    public BaseImportHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
         this.modelName = metaField.getModelName();
         this.fieldName = metaField.getFieldName();
-        this.fieldType = metaField.getFieldType();
         this.metaField = metaField;
-        this.required = required;
+        this.importFieldDTO = importFieldDTO;
     }
 
     /**
@@ -38,13 +37,27 @@ public abstract class BaseImportHandler {
 
     /**
      * Handle the row
+     * Properties of the row will be modified:
+     *      - Check if the field is required
+     *      - Set the default value if the field is empty and the default value is set
+     *      - Remove the field if the field is empty and ignoreEmpty is true
      *
      * @param row The row
      */
     public void handleRow(Map<String, Object> row) {
         Object value = row.get(fieldName);
-        checkRequired(value);
-        row.put(fieldName, handleValue(value));
+        boolean isEmpty = valueIsEmpty(value);
+        if (isEmpty) {
+            checkRequired();
+            if (StringUtils.hasText(importFieldDTO.getDefaultValue())) {
+                Object defaultValue = FieldType.convertStringToObject(metaField.getFieldType(), importFieldDTO.getDefaultValue());
+                row.put(fieldName, defaultValue);
+            } else if (Boolean.TRUE.equals(importFieldDTO.getIgnoreEmpty())) {
+                row.remove(fieldName);
+            }
+        } else {
+            row.put(fieldName, handleValue(value));
+        }
     }
 
     /**
@@ -59,15 +72,23 @@ public abstract class BaseImportHandler {
     }
 
     /**
-     * Check required
+     * Check whether the value is empty
      *
      * @param value The value
+     * @return Whether the value is empty
      */
-    public void checkRequired(Object value) {
-        if (required &&
-                (value == null ||
-                        (value instanceof String valueStr && !StringUtils.hasText(valueStr)))) {
+    public boolean valueIsEmpty(Object value) {
+        return value == null || (value instanceof String valueStr && !StringUtils.hasText(valueStr));
+    }
+
+
+    /**
+     * Check required
+     */
+    public void checkRequired() {
+        if (Boolean.TRUE.equals(importFieldDTO.getRequired())) {
             throw new IllegalArgumentException("The field `{0}` is required", fieldName);
         }
     }
+
 }
