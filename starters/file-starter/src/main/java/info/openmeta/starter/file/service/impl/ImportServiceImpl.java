@@ -5,9 +5,12 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.utils.Assert;
+import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
+import info.openmeta.framework.orm.enums.FieldType;
+import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
@@ -81,7 +84,7 @@ public class ImportServiceImpl implements ImportService {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
         validateImportTemplate(importTemplate);
         // Construct the importTemplateDTO object
-        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate);
+        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, null);
         List<List<String>> headers = importTemplateDTO.getImportFields().stream()
                 .map(ImportFieldDTO::getHeader)
                 .map(Collections::singletonList).toList();
@@ -94,16 +97,17 @@ public class ImportServiceImpl implements ImportService {
     /**
      * Import data from the uploaded file and the import template ID
      *
-     * @param templateId       the ID of the import template
-     * @param file             the uploaded file
+     * @param templateId the ID of the import template
+     * @param file the uploaded file
+     * @param env the environment variables
      * @return the import result
      */
     @Override
-    public ImportHistory importByTemplate(Long templateId, MultipartFile file) {
+    public ImportHistory importByTemplate(Long templateId, MultipartFile file, Map<String, Object> env) {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
         this.validateImportTemplate(importTemplate);
         // generate the ImportDataDTO object and ImportTemplateDTO object
-        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate);
+        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, env);
         ImportDataDTO importDataDTO = this.generateImportDataDTO(importTemplateDTO, file);
         // import and return the failed data
         dataHandler.importData(importTemplateDTO, importDataDTO);
@@ -162,14 +166,14 @@ public class ImportServiceImpl implements ImportService {
      * @param importTemplate the import template object
      * @return importTemplateDTO object
      */
-    public ImportTemplateDTO getImportTemplateDTO(ImportTemplate importTemplate) {
-        ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importTemplate);
+    public ImportTemplateDTO getImportTemplateDTO(ImportTemplate importTemplate, Map<String, Object> env) {
+        ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importTemplate, env);
         // Construct the headers order by sequence of the export fields
         Filters filters = Filters.eq(ImportTemplateField::getTemplateId, importTemplate.getId());
         Orders orders = Orders.ofAsc(ImportTemplateField::getSequence);
         List<ImportTemplateField> importTemplateFields = importTemplateFieldService.searchList(new FlexQuery(filters, orders));
         importTemplateFields.forEach(importTemplateField -> {
-            ImportFieldDTO importFieldDTO = convertToImportFieldDTO(importTemplate, importTemplateField);
+            ImportFieldDTO importFieldDTO = convertToImportFieldDTO(importTemplateDTO, importTemplateField);
             importTemplateDTO.addImportField(importFieldDTO);
         });
         return importTemplateDTO;
@@ -179,9 +183,10 @@ public class ImportServiceImpl implements ImportService {
      * Convert the importTemplate to the importTemplateDTO.
      *
      * @param importTemplate the importTemplate object
+     * @param env the environment variables
      * @return the converted importTemplateDTO
      */
-    private ImportTemplateDTO convertToImportTemplateDTO(ImportTemplate importTemplate) {
+    private ImportTemplateDTO convertToImportTemplateDTO(ImportTemplate importTemplate, Map<String, Object> env) {
         ImportTemplateDTO importTemplateDTO = new ImportTemplateDTO();
         importTemplateDTO.setModelName(importTemplate.getModelName());
         importTemplateDTO.setImportRule(importTemplate.getImportRule());
@@ -189,6 +194,7 @@ public class ImportServiceImpl implements ImportService {
         importTemplateDTO.setSkipException(importTemplate.getSkipException());
         importTemplateDTO.setCustomHandler(importTemplate.getCustomHandler());
         importTemplateDTO.setUniqueConstraints(importTemplate.getUniqueConstraints());
+        importTemplateDTO.setEnv(env);
         return importTemplateDTO;
     }
 
@@ -219,23 +225,45 @@ public class ImportServiceImpl implements ImportService {
     /**
      * Convert the import template field to the import field DTO.
      *
-     * @param importTemplate      the import template
+     * @param importTemplateDTO      the importTemplateDTO object
      * @param importTemplateField the import template field
      * @return the converted import field DTO
      */
-    private ImportFieldDTO convertToImportFieldDTO(ImportTemplate importTemplate, ImportTemplateField importTemplateField) {
+    private ImportFieldDTO convertToImportFieldDTO(ImportTemplateDTO importTemplateDTO, ImportTemplateField importTemplateField) {
         ImportFieldDTO importFieldDTO = new ImportFieldDTO();
         importFieldDTO.setFieldName(importTemplateField.getFieldName());
         importFieldDTO.setRequired(importTemplateField.getRequired());
-        importFieldDTO.setDefaultValue(importTemplateField.getDefaultValue());
-        importFieldDTO.setIgnoreEmpty(importTemplate.getIgnoreEmpty());
+        importFieldDTO.setIgnoreEmpty(importTemplateDTO.getIgnoreEmpty());
+        // Get the metaField object of the last field in cascading `fieldName`.
+        MetaField lastField = ModelManager.getLastFieldOfCascaded(importTemplateDTO.getModelName(), importTemplateField.getFieldName());
+        // Set the default value of the imported field
+        if (StringUtils.hasText(importTemplateField.getDefaultValue())) {
+            Object defaultValue = this.getDefaultValue(lastField.getFieldType(), importTemplateField.getDefaultValue(), importTemplateDTO.getEnv());
+            importFieldDTO.setDefaultValue(defaultValue);
+        }
+        // If the custom header is not set, use the labelName of the field as the header
         if (StringUtils.hasText(importTemplateField.getCustomHeader())) {
             importFieldDTO.setHeader(importTemplateField.getCustomHeader());
         } else {
-            String labelName = ModelManager.getCascadingFieldLabelName(importTemplate.getModelName(), importTemplateField.getFieldName());
-            importFieldDTO.setHeader(labelName);
+            importFieldDTO.setHeader(lastField.getLabelName());
         }
         return importFieldDTO;
+    }
+
+    /**
+     * Get the default value of the field.
+     *
+     * @param fieldType the field type
+     * @param defaultValue the default value
+     * @param env the environment variables
+     * @return the default value
+     */
+    private Object getDefaultValue(FieldType fieldType, String defaultValue, Map<String, Object> env) {
+        if (StringTools.isVariable(defaultValue)) {
+            return StringTools.extractVariable(defaultValue, env);
+        } else {
+            return FieldType.convertStringToObject(fieldType, defaultValue);
+        }
     }
 
     /**

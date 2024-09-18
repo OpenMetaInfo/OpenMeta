@@ -8,6 +8,7 @@ import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.enums.FileType;
+import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
@@ -130,8 +131,8 @@ public class ExportByTemplate extends CommonExport {
             if (StringUtils.hasText(exportField.getCustomHeader())) {
                 headerList.add(Collections.singletonList(exportField.getCustomHeader()));
             } else {
-                String labelName = ModelManager.getCascadingFieldLabelName(modelName, exportField.getFieldName());
-                headerList.add(Collections.singletonList(labelName));
+                MetaField lastField = ModelManager.getLastFieldOfCascaded(modelName, exportField.getFieldName());
+                headerList.add(Collections.singletonList(lastField.getLabelName()));
             }
         });
     }

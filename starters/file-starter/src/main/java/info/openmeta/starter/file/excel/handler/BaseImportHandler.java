@@ -1,7 +1,6 @@
 package info.openmeta.starter.file.excel.handler;
 
 import info.openmeta.framework.base.exception.IllegalArgumentException;
-import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
@@ -49,9 +48,8 @@ public abstract class BaseImportHandler {
         boolean isEmpty = valueIsEmpty(value);
         if (isEmpty) {
             checkRequired();
-            if (StringUtils.hasText(importFieldDTO.getDefaultValue())) {
-                Object defaultValue = FieldType.convertStringToObject(metaField.getFieldType(), importFieldDTO.getDefaultValue());
-                row.put(fieldName, defaultValue);
+            if (importFieldDTO.getDefaultValue() != null) {
+                row.put(fieldName, importFieldDTO.getDefaultValue());
             } else if (Boolean.TRUE.equals(importFieldDTO.getIgnoreEmpty())) {
                 row.remove(fieldName);
             }

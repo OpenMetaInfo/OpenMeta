@@ -17,7 +17,7 @@ public class ImportFieldDTO {
     private Boolean required;
 
     @Schema(description = "Default Value")
-    private String defaultValue;
+    private Object defaultValue;
 
     @Schema(hidden = true)
     private Boolean ignoreEmpty;

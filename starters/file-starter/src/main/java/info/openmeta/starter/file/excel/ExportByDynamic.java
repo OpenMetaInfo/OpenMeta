@@ -6,6 +6,7 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.FileType;
+import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
@@ -108,8 +109,8 @@ public class ExportByDynamic extends CommonExport {
         // Construct the headers order by sequence of the fields
         List<String> fieldNames = flexQuery.getFields();
         fieldNames.forEach(fieldName -> {
-            String labelName = ModelManager.getCascadingFieldLabelName(modelName, fieldName);
-            headerList.add(Collections.singletonList(labelName));
+            MetaField lastField = ModelManager.getLastFieldOfCascaded(modelName, fieldName);
+            headerList.add(Collections.singletonList(lastField.getLabelName()));
         });
         // Get the data to be exported
         List<Map<String, Object>> rows = this.getExportedData(modelName, flexQuery);

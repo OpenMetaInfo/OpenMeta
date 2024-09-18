@@ -76,7 +76,7 @@ public class FlowUtils {
         rowTemplate.forEach((field, value) -> {
             if (value instanceof String && StringTools.isVariable((String) value)) {
                 // Extract variable parameters `#{}` from the environment variables.
-                Object fieldValue = extractVariable((String) value, actionContext);
+                Object fieldValue = StringTools.extractVariable((String) value, actionContext.getEnv());
                 rowMap.put(field, fieldValue);
             } else if (value instanceof String && StringTools.isExpression((String) value)) {
                 // When the field value is a formula `${}`, the calculation result is converted to the actual value.
@@ -88,36 +88,6 @@ public class FlowUtils {
             }
         });
         return rowMap;
-    }
-
-    /**
-     * Extract the value of the variable parameter `#{}` from the action context variables.
-     *
-     * @param variableLabel Variable parameter label
-     * @param actionContext Action context
-     * @return Variable parameter value
-     */
-    public static Object extractVariable(String variableLabel, ActionContext actionContext) {
-        // Remove the string variable parameter placeholder `#{}`.
-        String variable = variableLabel.substring(2, variableLabel.length() - 1);
-        Assert.notBlank(variable, "Variable parameter {0} cannot be empty.", variable);
-        if (variable.contains(".")) {
-            // Cascade variable parameters, split into two variable parameters.
-            String[] variableNames = StringUtils.split(variable, ".", 2);
-            Assert.isTrue(actionContext.containsKey(variableNames[0]),
-                    "Variable parameter {0} does not exist in the action context!", variable);
-            Object value = actionContext.get(variableNames[0]);
-            if (value instanceof Map) {
-                return ((Map<?, ?>) value).get(variableNames[1]);
-            } else {
-                throw new IllegalArgumentException(
-                        "The variable parameter {0} cannot retrieve its value from the action context: {1}!", variable, value);
-            }
-        } else {
-            Assert.isTrue(actionContext.containsKey(variable),
-                    "Variable parameter {0} does not exist in the action context!", variable);
-            return actionContext.get(variable);
-        }
     }
 
     /**
@@ -167,7 +137,7 @@ public class FlowUtils {
             String paramValue = (String) filterUnit.getValue();
             if (StringTools.isVariable(paramValue)) {
                 // Extract variable parameter values `#{}`.
-                Object value = extractVariable(paramValue, actionContext);
+                Object value = StringTools.extractVariable(paramValue, actionContext.getEnv());
                 filterUnit.setValue(value);
                 validateFilterUnitValue(filterUnit, paramValue);
             } else if (StringTools.isExpression(paramValue)) {

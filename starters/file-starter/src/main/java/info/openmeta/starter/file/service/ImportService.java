@@ -5,6 +5,8 @@ import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.vo.ImportWizard;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 public interface ImportService {
 
     /**
@@ -20,9 +22,10 @@ public interface ImportService {
      *
      * @param templateId       the ID of the import template
      * @param file             the uploaded file
+     * @param env the environment variables
      * @return the import result
      */
-    ImportHistory importByTemplate(Long templateId, MultipartFile file);
+    ImportHistory importByTemplate(Long templateId, MultipartFile file, Map<String, Object> env);
 
     /**
      * Import data from the uploaded file and dynamic import settings
