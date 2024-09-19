@@ -125,7 +125,7 @@ public class ExportByTemplate extends CommonExport {
                 this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headerList);
                 // Get the data to be exported
                 FlexQuery flexQuery = new FlexQuery(fieldNames, template.getFilters(), template.getOrders());
-                flexQuery.getFilters().and(dynamicTemplateMap.get(template.getId()));
+                flexQuery.setFilters(Filters.merge(flexQuery.getFilters(), dynamicTemplateMap.get(template.getId())));
                 flexQuery.setFields(fieldNames);
                 List<Map<String, Object>> rows = this.getExportedData(template.getModelName(), flexQuery);
                 List<List<Object>> rowsTable = ListUtils.convertToTableData(fieldNames, rows);
