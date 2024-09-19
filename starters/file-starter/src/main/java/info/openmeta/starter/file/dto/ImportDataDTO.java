@@ -17,4 +17,6 @@ public class ImportDataDTO {
 
     private List<Map<String, Object>> failedRows;
 
+    private Map<String, Object> env;
+
 }

@@ -195,6 +195,7 @@ public class ImportServiceImpl implements ImportService {
         List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, inputStream);
         ImportDataDTO importDataDTO = new ImportDataDTO();
         importDataDTO.setRows(allDataList);
+        importDataDTO.setEnv(importTemplateDTO.getEnv());
         return importDataDTO;
     }
 
