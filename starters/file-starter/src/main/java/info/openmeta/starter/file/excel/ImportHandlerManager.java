@@ -54,7 +54,7 @@ public class ImportHandlerManager {
             handler.handleRows(importDataDTO.getRows());
         }
         // execute custom handler
-        this.executeCustomHandler(importTemplateDTO.getCustomHandler(), importDataDTO.getRows());
+        this.executeCustomHandler(importTemplateDTO.getCustomHandler(), importDataDTO);
         // persist to database
         this.persistToDatabase(importTemplateDTO, importDataDTO.getRows());
     }
@@ -80,16 +80,16 @@ public class ImportHandlerManager {
      * Execute the custom handler
      *
      * @param handlerName The handler name
-     * @param rows        The rows
+     * @param importDataDTO The import data DTO
      */
-    private void executeCustomHandler(String handlerName, List<Map<String, Object>> rows) {
+    private void executeCustomHandler(String handlerName, ImportDataDTO importDataDTO) {
         if (StringUtils.hasText(handlerName)) {
             if (!StringTools.isModelName(handlerName)) {
                 throw new IllegalArgumentException("The name of custom handler `{0}` is invalid.", handlerName);
             }
             try {
                 CustomImportHandler handler = SpringContextUtils.getBean(handlerName, CustomImportHandler.class);
-                handler.handleRows(rows);
+                handler.handleImportData(importDataDTO);
             } catch (NoSuchBeanDefinitionException e) {
                 throw new IllegalArgumentException("The custom handler `{0}` is not found.", handlerName);
             }
