@@ -80,36 +80,11 @@ public class ExportByTemplate extends CommonExport {
      * @return fileInfo object with download URL
      */
     public FileInfo exportMultiSheet(String fileName, List<ExportTemplate> exportTemplates) {
-        FileInfo fileInfo;
-        // Generate the Excel file
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-             // Use EasyExcel to write the file with dynamic headers and data
-             ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
-            for (int i = 0; i < exportTemplates.size(); i++) {
-                ExportTemplate template = exportTemplates.get(i);
-                List<String> fieldNames = new ArrayList<>();
-                List<List<String>> headerList = new ArrayList<>();
-                this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headerList);
-                // Get the data to be exported
-                FlexQuery flexQuery = new FlexQuery(fieldNames, template.getFilters(), template.getOrders());
-                flexQuery.setFields(fieldNames);
-                List<Map<String, Object>> rows = this.getExportedData(template.getModelName(), flexQuery);
-                List<List<Object>> rowsTable = ListUtils.convertToTableData(fieldNames, rows);
-                // Write the header and data
-                String sheetName = StringUtils.hasText(template.getSheetName()) ? template.getSheetName() : template.getFileName();
-                WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetName).head(headerList).build();
-                excelWriter.write(rowsTable, writeSheet);
-            }
-            excelWriter.finish();
-            // Convert ByteArrayOutputStream to InputStream for return and upload
-            InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            fileInfo = fileRecordService.uploadFile(fileName, FileType.XLSX, resultStream, FileSource.DOWNLOAD);
-        } catch (Exception e) {
-            throw new BusinessException("Error generating Excel {0} with the provided data.", fileName, e);
-        }
-        // Generate an export history record
-        this.generateExportHistory(null, fileInfo.getFileId());
-        return fileInfo;
+        return this.getFileInfo(fileName, exportTemplates, Collections.emptyMap());
+    }
+
+    public FileInfo dynamicExportMultiSheet(String fileName, List<ExportTemplate> exportTemplates, Map<Long, Filters> dynamicTemplateMap) {
+        return this.getFileInfo(fileName, exportTemplates, dynamicTemplateMap);
     }
 
     /**
@@ -136,4 +111,39 @@ public class ExportByTemplate extends CommonExport {
             }
         });
     }
+
+    private FileInfo getFileInfo(String fileName, List<ExportTemplate> exportTemplates, Map<Long, Filters> dynamicTemplateMap) {
+        FileInfo fileInfo;
+        // Generate the Excel file
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+             // Use EasyExcel to write the file with dynamic headers and data
+             ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
+            for (int i = 0; i < exportTemplates.size(); i++) {
+                ExportTemplate template = exportTemplates.get(i);
+                List<String> fieldNames = new ArrayList<>();
+                List<List<String>> headerList = new ArrayList<>();
+                this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headerList);
+                // Get the data to be exported
+                FlexQuery flexQuery = new FlexQuery(fieldNames, template.getFilters(), template.getOrders());
+                flexQuery.getFilters().and(dynamicTemplateMap.get(template.getId()));
+                flexQuery.setFields(fieldNames);
+                List<Map<String, Object>> rows = this.getExportedData(template.getModelName(), flexQuery);
+                List<List<Object>> rowsTable = ListUtils.convertToTableData(fieldNames, rows);
+                // Write the header and data
+                String sheetName = StringUtils.hasText(template.getSheetName()) ? template.getSheetName() : template.getFileName();
+                WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetName).head(headerList).build();
+                excelWriter.write(rowsTable, writeSheet);
+            }
+            excelWriter.finish();
+            // Convert ByteArrayOutputStream to InputStream for return and upload
+            InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
+            fileInfo = fileRecordService.uploadFile(fileName, FileType.XLSX, resultStream, FileSource.DOWNLOAD);
+        } catch (Exception e) {
+            throw new BusinessException("Error generating Excel {0} with the provided data.", fileName, e);
+        }
+        // Generate an export history record
+        this.generateExportHistory(null, fileInfo.getFileId());
+        return fileInfo;
+    }
+
 }

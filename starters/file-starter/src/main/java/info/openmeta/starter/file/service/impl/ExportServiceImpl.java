@@ -1,8 +1,10 @@
 package info.openmeta.starter.file.service.impl;
 
 import info.openmeta.framework.base.utils.Assert;
+import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.ExportTemplateDTO;
 import info.openmeta.starter.file.dto.SheetInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.excel.ExportByDynamic;
@@ -17,6 +19,8 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ExportServiceImpl implements ExportService {
@@ -108,6 +112,17 @@ public class ExportServiceImpl implements ExportService {
      * @return fileInfo object with download URL
      */
     public FileInfo exportByMultiTemplate(String fileName, List<Long> ids) {
+        List<ExportTemplate> exportTemplates = this.getExportTemplates(ids);
+        return exportByTemplate.exportMultiSheet(fileName, exportTemplates);
+    }
+
+    public FileInfo dynamicExportByMultiTemplate(String fileName, List<ExportTemplateDTO> dtoList) {
+        Map<Long, Filters> dynamicTemplateMap = dtoList.stream().collect(Collectors.toMap(ExportTemplateDTO::getTemplateId, ExportTemplateDTO::getFilters));
+        List<ExportTemplate> exportTemplates = this.getExportTemplates(new ArrayList<>(dynamicTemplateMap.keySet()));
+        return exportByTemplate.dynamicExportMultiSheet(fileName, exportTemplates, dynamicTemplateMap);
+    }
+
+    private List<ExportTemplate> getExportTemplates(List<Long> ids) {
         List<ExportTemplate> exportTemplates = exportTemplateService.readList(ids);
         List<String> sheetNames = new ArrayList<>();
         exportTemplates.forEach(template -> {
@@ -117,8 +132,7 @@ public class ExportServiceImpl implements ExportService {
         });
         Assert.isTrue(sheetNames.size() == new HashSet<>(sheetNames).size(),
                 "The excel sheet name must be unique! {0}", sheetNames);
-
-        return exportByTemplate.exportMultiSheet(fileName, exportTemplates);
+        return exportTemplates;
     }
 
     /**
