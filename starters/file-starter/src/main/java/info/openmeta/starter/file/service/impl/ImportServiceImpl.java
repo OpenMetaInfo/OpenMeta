@@ -15,15 +15,16 @@ import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
-import info.openmeta.starter.file.dto.ImportTemplateDTO;
 import info.openmeta.starter.file.dto.ImportDataDTO;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
+import info.openmeta.starter.file.dto.ImportTemplateDTO;
 import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.entity.ImportTemplate;
 import info.openmeta.starter.file.entity.ImportTemplateField;
 import info.openmeta.starter.file.enums.ImportStatus;
 import info.openmeta.starter.file.excel.CommonExport;
 import info.openmeta.starter.file.excel.ImportHandlerManager;
+import info.openmeta.starter.file.message.AsyncImportProducer;
 import info.openmeta.starter.file.service.*;
 import info.openmeta.starter.file.vo.ImportWizard;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,9 @@ public class ImportServiceImpl implements ImportService {
 
     @Autowired
     private ImportHandlerManager dataHandler;
+
+    @Autowired
+    private AsyncImportProducer asyncImportProducer;
 
     public void validateImportTemplate(ImportTemplate importTemplate) {
         Assert.notNull(importTemplate, "Import template cannot be null");
@@ -106,19 +110,47 @@ public class ImportServiceImpl implements ImportService {
     public ImportHistory importByTemplate(Long templateId, MultipartFile file, Map<String, Object> env) {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
         this.validateImportTemplate(importTemplate);
-        // generate the ImportDataDTO object and ImportTemplateDTO object
-        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, env);
-        ImportDataDTO importDataDTO = this.generateImportDataDTO(importTemplateDTO, file);
-        // import and return the failed data
-        dataHandler.importData(importTemplateDTO, importDataDTO);
         String fileName = FileUtils.getShortFileName(file);
         Long fileId = fileRecordService.uploadFile(fileName, file);
-        Long failedFileId = null;
-        if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
-            failedFileId = generateFailedExcel(fileName, importTemplateDTO, importDataDTO);
-        }
         // Generate an export history record
-        return this.generateExportHistory(fileName, templateId, fileId, failedFileId);
+        ImportHistory importHistory = this.generateImportHistory(fileName, templateId, fileId);
+        // generate the ImportDataDTO object and ImportTemplateDTO object
+        ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, env);
+        importTemplateDTO.setFileId(fileId);
+        importTemplateDTO.setHistoryId(importHistory.getId());
+        importTemplateDTO.setFileName(fileName);
+        if (Boolean.TRUE.equals(importTemplate.getSyncImport())) {
+            try (InputStream inputStream = file.getInputStream()) {
+                return this.syncImport(importTemplateDTO, inputStream, importHistory);
+            } catch (IOException e) {
+                throw new BusinessException("Failed to read uploaded Excel file {0}", fileName, e);
+            }
+        } else {
+            asyncImportProducer.sendAsyncImport(importTemplateDTO);
+        }
+        return importHistory;
+    }
+
+    /**
+     * Synchronous import data from the uploaded file and import template
+     *
+     * @param importTemplateDTO the import template DTO
+     * @param inputStream the input stream of the uploaded file
+     * @param importHistory the import history object
+     * @return the import history object
+     */
+    public ImportHistory syncImport(ImportTemplateDTO importTemplateDTO, InputStream inputStream, ImportHistory importHistory) {
+        ImportDataDTO importDataDTO = this.generateImportDataDTO(importTemplateDTO, inputStream);
+        dataHandler.importData(importTemplateDTO, importDataDTO);
+        if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
+            Long failedFileId = generateFailedExcel(importTemplateDTO.getFileName(), importTemplateDTO, importDataDTO);
+            importHistory.setFailedFileId(failedFileId);
+            importHistory.setStatus(ImportStatus.PARTIAL_FAILURE);
+        } else {
+            importHistory.setStatus(ImportStatus.SUCCESS);
+        }
+        importHistoryService.updateOne(importHistory);
+        return importHistory;
     }
 
     /**
@@ -128,33 +160,39 @@ public class ImportServiceImpl implements ImportService {
      */
     @Override
     public ImportHistory importByDynamic(ImportWizard importWizard) {
-        ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importWizard);
-        // generate the ImportDataDTO object and ImportTemplateDTO object
-        ImportDataDTO importDataDTO = this.generateImportDataDTO(importTemplateDTO, importWizard.getFile());
-        // import and return the failed data
-        dataHandler.importData(importTemplateDTO, importDataDTO);
         String fileName = importWizard.getFileName();
         Long fileId = fileRecordService.uploadFile(fileName, importWizard.getFile());
-        Long failedFileId = null;
-        if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
-            failedFileId = generateFailedExcel(fileName, importTemplateDTO, importDataDTO);
-        }
         // Generate an export history record
-        return this.generateExportHistory(fileName, null, fileId, failedFileId);
+        ImportHistory importHistory = this.generateImportHistory(fileName, null, fileId);
+        // generate the ImportDataDTO object and ImportTemplateDTO object
+        ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importWizard);
+        importTemplateDTO.setFileId(fileId);
+        importTemplateDTO.setHistoryId(importHistory.getId());
+        importTemplateDTO.setFileName(fileName);
+        if (Boolean.TRUE.equals(importWizard.getSyncImport())) {
+            try (InputStream inputStream = importWizard.getFile().getInputStream()) {
+                return this.syncImport(importTemplateDTO, inputStream, importHistory);
+            } catch (IOException e) {
+                throw new BusinessException("Failed to read uploaded Excel file {0}", fileName, e);
+            }
+        } else {
+            asyncImportProducer.sendAsyncImport(importTemplateDTO);
+        }
+        return importHistory;
     }
 
     /**
      * Generate the ImportDataDTO object to store the data during the import process.
      *
      * @param importTemplateDTO the importTemplateDTO object
-     * @param file           the uploaded file to be imported
+     * @param inputStream the input stream of the uploaded file
      * @return the generated ImportDataDTO object
      */
-    private ImportDataDTO generateImportDataDTO(ImportTemplateDTO importTemplateDTO, MultipartFile file) {
+    private ImportDataDTO generateImportDataDTO(ImportTemplateDTO importTemplateDTO, InputStream inputStream) {
         Map<String, String> headerToFieldMap = new HashMap<>();
         importTemplateDTO.getImportFields()
                 .forEach(importField -> headerToFieldMap.put(importField.getHeader(), importField.getFieldName()));
-        List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, file);
+        List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, inputStream);
         ImportDataDTO importDataDTO = new ImportDataDTO();
         importDataDTO.setRows(allDataList);
         return importDataDTO;
@@ -188,6 +226,7 @@ public class ImportServiceImpl implements ImportService {
      */
     private ImportTemplateDTO convertToImportTemplateDTO(ImportTemplate importTemplate, Map<String, Object> env) {
         ImportTemplateDTO importTemplateDTO = new ImportTemplateDTO();
+        importTemplateDTO.setTemplateId(importTemplate.getId());
         importTemplateDTO.setModelName(importTemplate.getModelName());
         importTemplateDTO.setImportRule(importTemplate.getImportRule());
         importTemplateDTO.setIgnoreEmpty(importTemplate.getIgnoreEmpty());
@@ -270,44 +309,39 @@ public class ImportServiceImpl implements ImportService {
      * Extract the fields and labels from the export template.
      *
      * @param headerToFieldMap the mapping of the header to fieldName
-     * @param file the uploaded file to be imported
+     * @param inputStream the input stream of the uploaded file
      */
-    private List<Map<String, Object>> extractDataFromExcel(Map<String, String> headerToFieldMap, MultipartFile file) {
+    private List<Map<String, Object>> extractDataFromExcel(Map<String, String> headerToFieldMap, InputStream inputStream) {
         List<Map<String, Object>> rows = new ArrayList<>();
-        try (InputStream inputStream = file.getInputStream()) {
-            EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
-                // The mapping of column index and header name
-                private Map<Integer, String> headerMap = new HashMap<>();
+        EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
+            // The mapping of column index and header name
+            private Map<Integer, String> headerMap = new HashMap<>();
 
-                @Override
-                public void invoke(Map<Integer, String> rowData, AnalysisContext context) {
-                    // Create a row data Map
-                    Map<String, Object> mappedRow = new HashMap<>();
-                    for (Map.Entry<Integer, String> entry : rowData.entrySet()) {
-                        String headerName = headerMap.get(entry.getKey());
-                        String fieldName = headerToFieldMap.get(headerName);
-                        if (fieldName != null) {
-                            mappedRow.put(fieldName, entry.getValue());
-                        }
+            @Override
+            public void invoke(Map<Integer, String> rowData, AnalysisContext context) {
+                // Create a row data Map
+                Map<String, Object> mappedRow = new HashMap<>();
+                for (Map.Entry<Integer, String> entry : rowData.entrySet()) {
+                    String headerName = headerMap.get(entry.getKey());
+                    String fieldName = headerToFieldMap.get(headerName);
+                    if (fieldName != null) {
+                        mappedRow.put(fieldName, entry.getValue());
                     }
-                    rows.add(mappedRow);
                 }
+                rows.add(mappedRow);
+            }
 
-                // Save the header mapping
-                @Override
-                public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-                    this.headerMap = headMap;
-                }
+            // Save the header mapping
+            @Override
+            public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
+                this.headerMap = headMap;
+            }
 
-                @Override
-                public void doAfterAllAnalysed(AnalysisContext context) {
-                    log.info("All data processed!");
-                }
-            }).sheet(0).doRead();
-        } catch (IOException e) {
-            String fileName = file.getOriginalFilename();
-            throw new BusinessException("Failed to read uploaded Excel file {0}", fileName, e);
-        }
+            @Override
+            public void doAfterAllAnalysed(AnalysisContext context) {
+                log.info("All data processed!");
+            }
+        }).sheet(0).doRead();
         return rows;
     }
 
@@ -318,12 +352,11 @@ public class ImportServiceImpl implements ImportService {
      * @param fileId the fileId of the exported file in FileRecord model
      * @return the generated importHistory object
      */
-    protected ImportHistory generateExportHistory(String fileName, Long importTemplateId, Long fileId, Long failedFileId) {
+    protected ImportHistory generateImportHistory(String fileName, Long importTemplateId, Long fileId) {
         ImportHistory importHistory = new ImportHistory();
         importHistory.setFileName(fileName);
         importHistory.setTemplateId(importTemplateId);
         importHistory.setFileId(fileId);
-        importHistory.setFailedFileId(failedFileId);
         importHistory.setStatus(ImportStatus.PROCESSING);
         Long id = importHistoryService.createOne(importHistory);
         importHistory.setId(id);

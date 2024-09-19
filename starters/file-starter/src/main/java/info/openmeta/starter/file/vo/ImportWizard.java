@@ -52,6 +52,9 @@ public class ImportWizard {
     @Schema(description = "Custom Handler")
     private String customHandler;
 
+    @Schema(description = "Synchronous Import")
+    private Boolean syncImport;
+
     /**
      * Set the uploaded file and extract the file name.
      *

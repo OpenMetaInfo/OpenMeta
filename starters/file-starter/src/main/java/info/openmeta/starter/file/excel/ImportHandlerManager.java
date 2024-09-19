@@ -3,6 +3,8 @@ package info.openmeta.starter.file.excel;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.SpringContextUtils;
 import info.openmeta.framework.base.utils.StringTools;
+import info.openmeta.framework.orm.domain.Filters;
+import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
@@ -16,9 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * ImportHandlerManager
@@ -88,7 +88,7 @@ public class ImportHandlerManager {
                 throw new IllegalArgumentException("The name of custom handler `{0}` is invalid.", handlerName);
             }
             try {
-                CustomHandler handler = SpringContextUtils.getBean(handlerName, CustomHandler.class);
+                CustomImportHandler handler = SpringContextUtils.getBean(handlerName, CustomImportHandler.class);
                 handler.handleRows(rows);
             } catch (NoSuchBeanDefinitionException e) {
                 throw new IllegalArgumentException("The custom handler `{0}` is not found.", handlerName);
@@ -103,36 +103,99 @@ public class ImportHandlerManager {
      * @param rows       The rows
      */
     private void persistToDatabase(ImportTemplateDTO importTemplateDTO, List<Map<String, Object>> rows) {
-        String modelName = importTemplateDTO.getModelName();
         ImportRule importRule = importTemplateDTO.getImportRule();
         if (ImportRule.CREATE_OR_UPDATE.equals(importRule)) {
-            this.createOrUpdate(modelName, importTemplateDTO.getUniqueConstraints(), rows);
+            this.createOrUpdate(importTemplateDTO, rows, false);
         } else if (ImportRule.ONLY_CREATE.equals(importRule)) {
-            modelService.createList(modelName, rows);
+            modelService.createList(importTemplateDTO.getModelName(), rows);
         } else if (ImportRule.ONLY_UPDATE.equals(importRule)) {
-            this.update(modelName, rows);
+            this.createOrUpdate(importTemplateDTO, rows, true);
         }
     }
 
     /**
      * Create or update the data
      *
-     * @param modelName The model name
-     * @param uniqueConstraints The unique constraints
+     * @param importTemplateDTO The model name
      * @param rows      The rows
+     * @param onlyUpdate The only update flag
      */
-    private void createOrUpdate(String modelName, List<String> uniqueConstraints, List<Map<String, Object>> rows) {
-        List<Map<String, Object>> tempRows = new ArrayList<>();
-        modelService.createList(modelName, rows);
+    private void createOrUpdate(ImportTemplateDTO importTemplateDTO, List<Map<String, Object>> rows, boolean onlyUpdate) {
+        String modelName = importTemplateDTO.getModelName();
+        List<String> uniqueConstraints = importTemplateDTO.getUniqueConstraints();
+        List<Map<String, Object>> createDataList = new ArrayList<>();
+        List<Map<String, Object>> updateDataList = new ArrayList<>();
+
+        // Step 1: Get the unique key to row map
+        Map<String, Map<String, Object>> rowKeyMap = new HashMap<>();
+        Map<String, Set<Object>> uniqueValuesMap = new HashMap<>();
+        for (String field : uniqueConstraints) {
+            uniqueValuesMap.put(field, new HashSet<>());
+        }
+        for (Map<String, Object> row : rows) {
+            uniqueValuesMap.forEach((k, v) -> v.add(row.get(k)));
+            String key = generateUniqueKey(row, uniqueConstraints);
+            rowKeyMap.put(key, row);
+        }
+
+        // Step 2: Get the row key map from the database by the values of unique constraints
+        Map<String, Map<String, Object>> dbRowKeyMap = this.getRowKeyMapFromDB(importTemplateDTO, uniqueValuesMap);
+
+        // Step 3: Compare the row key map from the database and the import data, to get the data to be created and updated
+        for (Map.Entry<String, Map<String, Object>> entry : rowKeyMap.entrySet()) {
+            String key = entry.getKey();
+            Map<String, Object> row = entry.getValue();
+            if (dbRowKeyMap.containsKey(key)) {
+                updateDataList.add(row);
+            } else {
+                createDataList.add(row);
+            }
+        }
+        // Step 4: Execute the create or update operation
+        if (onlyUpdate && !createDataList.isEmpty()) {
+            throw new IllegalArgumentException("The data to be created is not allowed in the only update mode.");
+        }
+        if (!updateDataList.isEmpty()) {
+            modelService.updateList(modelName, updateDataList);
+        }
+        if (!createDataList.isEmpty()) {
+            modelService.createList(modelName, createDataList);
+        }
     }
 
     /**
-     * Update the data
+     * Get the row key map from the database
      *
-     * @param modelName The model name
-     * @param rows      The rows
+     * @param importTemplateDTO The import template DTO
+     * @param uniqueValuesMap The unique values map
+     * @return The row key map
      */
-    private void update(String modelName, List<Map<String, Object>> rows) {
-        modelService.updateList(modelName, rows);
+    private Map<String, Map<String, Object>> getRowKeyMapFromDB(ImportTemplateDTO importTemplateDTO, Map<String, Set<Object>> uniqueValuesMap) {
+        Filters filters = Filters.merge(uniqueValuesMap.entrySet().stream()
+                .map(e -> Filters.in(e.getKey(), e.getValue()))
+                .toArray(Filters[]::new));
+        List<Map<String, Object>> dbRows = modelService.searchList(importTemplateDTO.getModelName(), new FlexQuery(filters));
+        Map<String, Map<String, Object>> dbRowKeyMap = new HashMap<>();
+        for (Map<String, Object> dbRow : dbRows) {
+            String key = generateUniqueKey(dbRow, importTemplateDTO.getUniqueConstraints());
+            dbRowKeyMap.put(key, dbRow);
+        }
+        return dbRowKeyMap;
+    }
+
+    /**
+     * Generate the unique key
+     *
+     * @param data The data
+     * @param uniqueConstraints The unique constraints
+     * @return The unique key
+     */
+    private String generateUniqueKey(Map<String, Object> data, List<String> uniqueConstraints) {
+        StringBuilder keyBuilder = new StringBuilder();
+        for (String field : uniqueConstraints) {
+            Object value = data.get(field);
+            keyBuilder.append(value != null ? value.toString() : "").append(" && ");
+        }
+        return keyBuilder.toString();
     }
 }

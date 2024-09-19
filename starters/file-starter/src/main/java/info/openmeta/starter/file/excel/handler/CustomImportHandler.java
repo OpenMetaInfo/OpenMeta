@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * CustomHandler for custom business logic
+ * CustomImportHandler for custom business logic
  */
-public interface CustomHandler {
+public interface CustomImportHandler {
 
     /**
      * Handle the rows
