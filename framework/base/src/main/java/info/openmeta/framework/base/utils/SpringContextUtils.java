@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import java.beans.Introspector;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
@@ -38,6 +39,7 @@ public class SpringContextUtils implements ApplicationContextAware {
     @SuppressWarnings("unchecked")
     public static <T> T getBeanByName(String name) {
         checkApplicationContext();
+        name = convertToBeanName(name);
         return (T) getApplicationContext().getBean(name);
     }
 
@@ -62,6 +64,7 @@ public class SpringContextUtils implements ApplicationContextAware {
      */
     public static <T> T getBean(String name, Class<T> clazz) {
         checkApplicationContext();
+        name = convertToBeanName(name);
         return getApplicationContext().getBean(name, clazz);
     }
 
@@ -74,6 +77,18 @@ public class SpringContextUtils implements ApplicationContextAware {
         }
     }
 
+    /**
+     * Convert the class name to the bean name according to the Spring naming convention
+     * Examples:
+     *      MyService -> myService: Convert the first letter to lowercase when the second letter is lowercase.
+     *      URLParser -> URLParser: Return the original string if the first two letters are uppercase.
+     *
+     * @param name The class name or bean name
+     * @return The converted bean name of Spring
+     */
+    public static String convertToBeanName(String name) {
+        return Introspector.decapitalize(name);
+    }
 }
 
 
