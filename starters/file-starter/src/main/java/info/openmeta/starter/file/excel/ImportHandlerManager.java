@@ -3,6 +3,7 @@ package info.openmeta.starter.file.excel;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.SpringContextUtils;
 import info.openmeta.framework.base.utils.StringTools;
+import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.meta.MetaField;
@@ -146,6 +147,7 @@ public class ImportHandlerManager {
             String key = entry.getKey();
             Map<String, Object> row = entry.getValue();
             if (dbRowKeyMap.containsKey(key)) {
+                row.put(ModelConstant.ID, dbRowKeyMap.get(key).get(ModelConstant.ID));
                 updateDataList.add(row);
             } else {
                 createDataList.add(row);
@@ -174,7 +176,8 @@ public class ImportHandlerManager {
         Filters filters = Filters.merge(uniqueValuesMap.entrySet().stream()
                 .map(e -> Filters.in(e.getKey(), e.getValue()))
                 .toArray(Filters[]::new));
-        List<Map<String, Object>> dbRows = modelService.searchList(importTemplateDTO.getModelName(), new FlexQuery(filters));
+        FlexQuery flexQuery = new FlexQuery(importTemplateDTO.getUniqueConstraints(), filters);
+        List<Map<String, Object>> dbRows = modelService.searchList(importTemplateDTO.getModelName(), flexQuery);
         Map<String, Map<String, Object>> dbRowKeyMap = new HashMap<>();
         for (Map<String, Object> dbRow : dbRows) {
             String key = generateUniqueKey(dbRow, importTemplateDTO.getUniqueConstraints());
