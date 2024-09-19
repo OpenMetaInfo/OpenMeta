@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * Flow event consumer
  */
 @Component
-@RocketMQMessageListener(topic = "${rocketmq.topics.flow-event}", consumerGroup = "${rocketmq.topics.flow-event}" + "_flow")
+@RocketMQMessageListener(topic = "${rocketmq.topics.flow-event.topic}", consumerGroup = "${rocketmq.topics.flow-event.group}")
 public class FlowEventConsumer implements RocketMQListener<FlowEventMessage> {
 
     @Autowired

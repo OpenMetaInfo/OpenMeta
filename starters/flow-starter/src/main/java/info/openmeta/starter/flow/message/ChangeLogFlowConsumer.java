@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * Change log consumer for Flow
  */
 @Component
-@RocketMQMessageListener(topic = "${rocketmq.topics.change-log}", consumerGroup = "${rocketmq.topics.change-log}" + "_flow")
+@RocketMQMessageListener(topic = "${rocketmq.topics.change-log.topic}", consumerGroup = "${rocketmq.topics.change-log.flow-group}")
 public class ChangeLogFlowConsumer implements RocketMQListener<ChangeLogMessage> {
 
     @Autowired

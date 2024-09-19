@@ -34,17 +34,3 @@ spring:
 #    password: your_password
 #    index:
 #      changelog: demo_test_changelog
-
-#rocketmq:
-#  name-server: 127.0.0.1:9876
-#  producer:
-#    group: my-producer-group
-#    send-message-timeout: 3000
-#  consumer:
-#    group: my-consumer-group
-#  topics:
-#    cron-task:
-#    change-log:
-#    flow-async-task:
-#    flow-event:
-#    reload-metadata:

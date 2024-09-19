@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FlowEventProducer {
 
-    @Value("${rocketmq.topics.flow-event}")
+    @Value("${rocketmq.topics.flow-event.topic}")
     private String flowEventTopic;
 
     @Autowired

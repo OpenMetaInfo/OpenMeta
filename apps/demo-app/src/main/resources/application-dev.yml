@@ -45,8 +45,22 @@ rocketmq:
   consumer:
     group: my-consumer-group
   topics:
+    async-import:
+      topic: dev_demo_async_import
+      group: dev_demo_async_import_group
     cron-task:
-    change-log: dev_demo_change_log
+      topic: dev_demo_cron_task
+      flow-group: dev_demo_cron_task_flow_group
+    change-log:
+      topic: dev_demo_change_log
+      flow-group: dev_demo_change_log_flow_group
+      persist-group: dev_demo_change_log_persist_group
     flow-async-task:
+      topic: dev_demo_flow_async_task
+      group: dev_demo_flow_async_task_group
     flow-event:
-    inner-broadcast: openmeta-platform-inner-broadcast
+      topic: dev_demo_flow_event
+      group: dev_demo_flow_event_group
+    inner-broadcast:
+      topic: dev_demo_inner_broadcast
+      group: dev_demo_inner_broadcast_group

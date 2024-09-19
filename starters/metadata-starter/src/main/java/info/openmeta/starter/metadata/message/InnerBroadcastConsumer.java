@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@RocketMQMessageListener(messageModel = MessageModel.BROADCASTING, topic = "${rocketmq.topics.inner-broadcast}",
-        consumerGroup = "${rocketmq.topics.inner-broadcast}" + "_0")
+@RocketMQMessageListener(messageModel = MessageModel.BROADCASTING, topic = "${rocketmq.topics.inner-broadcast.topic}",
+        consumerGroup = "${rocketmq.topics.inner-broadcast.group}")
 public class InnerBroadcastConsumer implements RocketMQListener<InnerBroadcastMessage> {
 
     @Autowired

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FlowAsyncTaskProducer {
 
-    @Value("${rocketmq.topics.flow-async-task}")
+    @Value("${rocketmq.topics.flow-async-task.topic}")
     private String asyncTaskTopic;
 
     @Autowired

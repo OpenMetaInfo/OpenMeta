@@ -1,3 +1,9 @@
 # Configuration
 ## MQ Topic:
-    rocketmq.topics.cron-task
+```yml
+rocketmq:
+  topics:
+    cron-task:
+      topic: dev_demo_cron_task
+      flow-group: dev_demo_cron_task_flow_group
+```

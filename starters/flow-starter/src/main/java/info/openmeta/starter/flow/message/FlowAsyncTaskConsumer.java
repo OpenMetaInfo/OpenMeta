@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * Flow async task consumer, also the async task executor
  */
 @Component
-@RocketMQMessageListener(topic = "${rocketmq.topics.flow-async-task}", consumerGroup = "${rocketmq.topics.flow-async-task}" + "_flow")
+@RocketMQMessageListener(topic = "${rocketmq.topics.flow-async-task.topic}", consumerGroup = "${rocketmq.topics.flow-async-task.group}")
 public class FlowAsyncTaskConsumer implements RocketMQListener<FlowAsyncTaskMessage> {
 
     @Autowired

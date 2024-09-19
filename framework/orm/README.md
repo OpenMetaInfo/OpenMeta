@@ -1,3 +1,8 @@
 # Configuration
 ## MQ Topic:
-    rocketmq.topics.change-log
+```yml
+rocketmq:
+  topics:
+    change-log:
+      topic: rocketmq.topics.change-log
+```
