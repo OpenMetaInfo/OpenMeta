@@ -6,7 +6,7 @@
     <parent>
         <artifactId>apps</artifactId>
         <groupId>info.openmeta</groupId>
-        <version>0.6.12</version>
+        <version>0.6.13</version>
     </parent>
 
     <artifactId>demo-app</artifactId>

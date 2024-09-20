@@ -36,7 +36,7 @@ public class MultiOptionHandler extends BaseImportHandler {
                     // Treat the option string as itemName
                     String optionItemCode = OptionManager.getItemCodeByName(optionSetCode, optionStr);
                     if (optionItemCode == null) {
-                        throw new ValidationException("The option item does not exist {0}", optionStr);
+                        throw new ValidationException("The option item `{0}` does not exist", optionStr);
                     }
                     codeList.add(optionItemCode);
                 }
