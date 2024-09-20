@@ -85,7 +85,7 @@ public class ImportHandlerManager {
      */
     private void executeCustomHandler(String handlerName, ImportDataDTO importDataDTO) {
         if (StringUtils.hasText(handlerName)) {
-            if (!StringTools.isModelName(handlerName)) {
+            if (!StringTools.isBeanName(handlerName)) {
                 throw new IllegalArgumentException("The name of custom handler `{0}` is invalid.", handlerName);
             }
             try {

@@ -225,6 +225,18 @@ public class StringTools {
     }
 
     /**
+     * Check whether the bean name is valid.
+     * Matching examples: myBean, MyBean, 123MyBean, my_bean, myBean123, my_bean_123, 123_my_bean
+     *
+     * @param name bean name
+     * @return true / false
+     */
+    public static boolean isBeanName(@NotNull String name) {
+        String pattern = "^[a-zA-Z0-9_-]+$";
+        return Pattern.matches(pattern, name);
+    }
+
+    /**
      * Check whether the field name is valid,
      * matching a string starting with a lowercase letter + at least one letter or number.
      * For example,
