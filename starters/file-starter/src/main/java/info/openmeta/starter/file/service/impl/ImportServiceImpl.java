@@ -377,7 +377,7 @@ public class ImportServiceImpl implements ImportService {
         List<String> headers = new ArrayList<>();
         List<String> fields = new ArrayList<>();
         importTemplateDTO.getImportFields().forEach(importFieldDTO -> {
-            fields.add(importFieldDTO.getHeader());
+            fields.add(importFieldDTO.getFieldName());
             headers.add(importFieldDTO.getHeader());
         });
         // Add the failed reason header and column
