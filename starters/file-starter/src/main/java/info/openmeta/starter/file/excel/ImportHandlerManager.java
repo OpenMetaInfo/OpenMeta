@@ -176,7 +176,9 @@ public class ImportHandlerManager {
         Filters filters = Filters.merge(uniqueValuesMap.entrySet().stream()
                 .map(e -> Filters.in(e.getKey(), e.getValue()))
                 .toArray(Filters[]::new));
-        FlexQuery flexQuery = new FlexQuery(importTemplateDTO.getUniqueConstraints(), filters);
+        List<String> fields = new ArrayList<>(List.of(ModelConstant.ID));
+        fields.addAll(importTemplateDTO.getUniqueConstraints());
+        FlexQuery flexQuery = new FlexQuery(fields, filters);
         List<Map<String, Object>> dbRows = modelService.searchList(importTemplateDTO.getModelName(), flexQuery);
         Map<String, Map<String, Object>> dbRowKeyMap = new HashMap<>();
         for (Map<String, Object> dbRow : dbRows) {
