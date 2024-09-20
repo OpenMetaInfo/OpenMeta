@@ -1,0 +1,22 @@
+[
+  {
+    "original": "Failed Data",
+    "translation": "失败数据"
+  },
+  {
+    "original": "Failed Reason",
+    "translation": "失败原因"
+  },
+  {
+    "original": "The field `{0}` is required",
+    "translation": "字段`{0}`是必填字段"
+  },
+  {
+    "original": "The Boolean item is incorrect `{0}`",
+    "translation": "布尔值`{0}`格式不正确"
+  },
+  {
+    "original": "The option item `{0}` does not exist",
+    "translation": "不存在选项 `{0}`"
+  }
+]
