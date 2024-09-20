@@ -17,12 +17,12 @@ import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -67,18 +67,19 @@ public class CommonExport {
      *
      * @param fileName the name of the file
      * @param sheetName the name of the sheet
-     * @param headerList the list of header labels
+     * @param headers the list of header label
      * @param rowsTable the data table of the rows
      * @return the file info object with download URL
      */
     public FileInfo generateFileAndUpload(String fileName, String sheetName,
-                                          List<List<String>> headerList, List<List<Object>> rowsTable) {
+                                          List<String> headers, List<List<Object>> rowsTable) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
-            // Write the header and data
-            WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).head(headerList).build();
+            // Write the header and data, EasyExcel requires the header to be a list of lists
+            List<List<String>> headersList = headers.stream().map(Collections::singletonList).toList();
+            WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).head(headersList).build();
             excelWriter.write(rowsTable, writeSheet);
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload

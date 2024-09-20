@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import info.openmeta.framework.base.exception.BusinessException;
+import info.openmeta.framework.base.i18n.I18n;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.domain.Filters;
@@ -15,6 +16,7 @@ import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
+import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.ImportDataDTO;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
 import info.openmeta.starter.file.dto.ImportTemplateDTO;
@@ -42,8 +44,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class ImportServiceImpl implements ImportService {
-
-    private static final String FAILED_LABEL = "Failed";
 
     @Autowired
     private FileRecordService fileRecordService;
@@ -89,9 +89,8 @@ public class ImportServiceImpl implements ImportService {
         validateImportTemplate(importTemplate);
         // Construct the importTemplateDTO object
         ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, null);
-        List<List<String>> headers = importTemplateDTO.getImportFields().stream()
-                .map(ImportFieldDTO::getHeader)
-                .map(Collections::singletonList).toList();
+        List<String> headers = importTemplateDTO.getImportFields().stream()
+                .map(ImportFieldDTO::getHeader).toList();
         // Generate the Excel file
         String fileName = importTemplate.getName();
         String sheetName = importTemplate.getName();
@@ -143,7 +142,7 @@ public class ImportServiceImpl implements ImportService {
         ImportDataDTO importDataDTO = this.generateImportDataDTO(importTemplateDTO, inputStream);
         dataHandler.importData(importTemplateDTO, importDataDTO);
         if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
-            Long failedFileId = generateFailedExcel(importTemplateDTO.getFileName(), importTemplateDTO, importDataDTO);
+            Long failedFileId = this.generateFailedExcel(importTemplateDTO.getFileName(), importTemplateDTO, importDataDTO);
             importHistory.setFailedFileId(failedFileId);
             importHistory.setStatus(ImportStatus.PARTIAL_FAILURE);
         } else {
@@ -307,7 +306,8 @@ public class ImportServiceImpl implements ImportService {
     }
 
     /**
-     * Extract the fields and labels from the export template.
+     * Extract the data from the uploaded Excel file.
+     * Load the first sheet of the Excel file by EasyExcel.read(file, {}).sheet(0).doRead().
      *
      * @param headerToFieldMap the mapping of the header to fieldName
      * @param inputStream the input stream of the uploaded file
@@ -373,16 +373,19 @@ public class ImportServiceImpl implements ImportService {
      * @return the fileId of the generated Excel file with failed data
      */
     private Long generateFailedExcel(String fileName, ImportTemplateDTO importTemplateDTO, ImportDataDTO importDataDTO) {
-        fileName = fileName + "_" + FAILED_LABEL;
-        List<List<String>> headers = new ArrayList<>();
+        fileName = fileName + "_" + FileConstant.FAILED_DATA;
+        List<String> headers = new ArrayList<>();
         List<String> fields = new ArrayList<>();
         importTemplateDTO.getImportFields().forEach(importFieldDTO -> {
             fields.add(importFieldDTO.getHeader());
-            headers.add(Collections.singletonList(importFieldDTO.getHeader()));
+            headers.add(importFieldDTO.getHeader());
         });
+        // Add the failed reason header and column
+        fields.add(FileConstant.FAILED_REASON);
+        headers.add(I18n.get(FileConstant.FAILED_REASON));
         // Get the data to be exported
         List<List<Object>> rowsTable = ListUtils.convertToTableData(fields, importDataDTO.getFailedRows());
-        FileInfo fileInfo = commonExport.generateFileAndUpload(fileName, FAILED_LABEL, headers, rowsTable);
+        FileInfo fileInfo = commonExport.generateFileAndUpload(fileName, FileConstant.FAILED_DATA, headers, rowsTable);
         return fileInfo.getFileId();
     }
 

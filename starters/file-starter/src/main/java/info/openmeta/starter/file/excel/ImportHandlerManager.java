@@ -9,6 +9,7 @@ import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
+import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.ImportDataDTO;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
 import info.openmeta.starter.file.dto.ImportTemplateDTO;
@@ -56,6 +57,8 @@ public class ImportHandlerManager {
         }
         // execute custom handler
         this.executeCustomHandler(importTemplateDTO.getCustomHandler(), importDataDTO);
+        // separate failed rows
+        this.separateFailedRows(importDataDTO);
         // persist to database
         this.persistToDatabase(importTemplateDTO, importDataDTO.getRows());
     }
@@ -90,11 +93,32 @@ public class ImportHandlerManager {
             }
             try {
                 CustomImportHandler handler = SpringContextUtils.getBean(handlerName, CustomImportHandler.class);
-                handler.handleImportData(importDataDTO);
+                handler.handleImportData(importDataDTO.getRows(), importDataDTO.getEnv());
             } catch (NoSuchBeanDefinitionException e) {
                 throw new IllegalArgumentException("The custom handler `{0}` is not found.", handlerName);
             }
         }
+    }
+
+    /**
+     * Separates failed rows from the 'rows' field in the ImportDataDTO object
+     * and moves them to the 'failedRows' field based on the presence of the key 'Failed Reason'.
+     *
+     * @param importDataDTO The ImportDataDTO object to process
+     */
+    public void separateFailedRows(ImportDataDTO importDataDTO) {
+        List<Map<String, Object>> failedRows = new ArrayList<>();
+        // Use an iterator to traverse the list to avoid ConcurrentModificationException
+        Iterator<Map<String, Object>> iterator = importDataDTO.getRows().iterator();
+        while (iterator.hasNext()) {
+            Map<String, Object> row = iterator.next();
+            if (row.containsKey(FileConstant.FAILED_REASON)) {
+                // Remove row containing "Failed Reason" from rows and add them to failedRows
+                iterator.remove();
+                failedRows.add(row);
+            }
+        }
+        importDataDTO.setFailedRows(failedRows);
     }
 
     /**

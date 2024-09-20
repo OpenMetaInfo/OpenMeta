@@ -1,6 +1,7 @@
 package info.openmeta.starter.file.excel.handler;
 
-import info.openmeta.starter.file.dto.ImportDataDTO;
+import java.util.List;
+import java.util.Map;
 
 /**
  * CustomImportHandler for custom business logic
@@ -10,7 +11,8 @@ public interface CustomImportHandler {
     /**
      * Handle the import data
      *
-     * @param importDataDTO The import data DTO
+     * @param rows The import data rows
+     * @param env The environment variables
      */
-    void handleImportData(ImportDataDTO importDataDTO);
+    void handleImportData(List<Map<String, Object>> rows, Map<String, Object> env);
 }

@@ -24,9 +24,6 @@ import java.util.List;
 public class ImportTemplateController extends EntityController<ImportTemplateService, ImportTemplate, Long> {
 
     @Autowired
-    private ImportTemplateService importTemplateService;
-
-    @Autowired
     private ImportService importService;
 
     /**
@@ -39,7 +36,7 @@ public class ImportTemplateController extends EntityController<ImportTemplateSer
     @PostMapping(value = "/listByModel")
     public ApiResponse<List<ImportTemplate>> listByModel(@RequestParam String modelName) {
         Filters filters = Filters.eq(ExportTemplate::getModelName, modelName);
-        List<ImportTemplate> templates = importTemplateService.searchList(filters);
+        List<ImportTemplate> templates = service.searchList(filters);
         return ApiResponse.success(templates);
     }
 
