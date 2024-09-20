@@ -55,8 +55,8 @@ public class ExportByTemplate extends CommonExport {
     public FileInfo export(FlexQuery flexQuery, ExportTemplate exportTemplate) {
         // Construct the headers order by sequence of the export fields
         List<String> fieldNames = new ArrayList<>();
-        List<List<String>> headerList = new ArrayList<>();
-        this.extractFieldsAndLabels(exportTemplate.getModelName(), exportTemplate.getId(), fieldNames, headerList);
+        List<String> headers = new ArrayList<>();
+        this.extractFieldsAndLabels(exportTemplate.getModelName(), exportTemplate.getId(), fieldNames, headers);
         // Get the data to be exported
         flexQuery.setFields(fieldNames);
         List<Map<String, Object>> rows = this.getExportedData(exportTemplate.getModelName(), flexQuery);
@@ -64,7 +64,7 @@ public class ExportByTemplate extends CommonExport {
         // Generate the Excel file
         String fileName = exportTemplate.getFileName();
         String sheetName = StringUtils.hasText(exportTemplate.getSheetName()) ? exportTemplate.getSheetName() : fileName;
-        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headerList, rowsTable);
+        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headers, rowsTable);
         // Generate an export history record
         this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
@@ -93,10 +93,10 @@ public class ExportByTemplate extends CommonExport {
      * @param modelName the model name to be exported
      * @param exportTemplateId the ID of the export template
      * @param fieldNames the list of field names
-     * @param headerList the list of header labels
+     * @param headers the list of header label
      */
     private void extractFieldsAndLabels(String modelName, Long exportTemplateId,
-                                        List<String> fieldNames, List<List<String>> headerList) {
+                                        List<String> fieldNames, List<String> headers) {
         // Construct the headers order by sequence of the export fields
         Filters filters = Filters.eq(ExportTemplateField::getTemplateId, exportTemplateId);
         Orders orders = Orders.ofAsc(ExportTemplateField::getSequence);
@@ -104,10 +104,10 @@ public class ExportByTemplate extends CommonExport {
         exportFields.forEach(exportField -> {
             fieldNames.add(exportField.getFieldName());
             if (StringUtils.hasText(exportField.getCustomHeader())) {
-                headerList.add(Collections.singletonList(exportField.getCustomHeader()));
+                headers.add(exportField.getCustomHeader());
             } else {
                 MetaField lastField = ModelManager.getLastFieldOfCascaded(modelName, exportField.getFieldName());
-                headerList.add(Collections.singletonList(lastField.getLabelName()));
+                headers.add(lastField.getLabelName());
             }
         });
     }
@@ -121,8 +121,8 @@ public class ExportByTemplate extends CommonExport {
             for (int i = 0; i < exportTemplates.size(); i++) {
                 ExportTemplate template = exportTemplates.get(i);
                 List<String> fieldNames = new ArrayList<>();
-                List<List<String>> headerList = new ArrayList<>();
-                this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headerList);
+                List<String> headers = new ArrayList<>();
+                this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headers);
                 // Get the data to be exported
                 FlexQuery flexQuery = new FlexQuery(fieldNames, template.getFilters(), template.getOrders());
                 flexQuery.setFilters(Filters.merge(flexQuery.getFilters(), dynamicTemplateMap.get(template.getId())));
@@ -131,6 +131,7 @@ public class ExportByTemplate extends CommonExport {
                 List<List<Object>> rowsTable = ListUtils.convertToTableData(fieldNames, rows);
                 // Write the header and data
                 String sheetName = StringUtils.hasText(template.getSheetName()) ? template.getSheetName() : template.getFileName();
+                List<List<String>> headerList = headers.stream().map(Collections::singletonList).toList();
                 WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetName).head(headerList).build();
                 excelWriter.write(rowsTable, writeSheet);
             }

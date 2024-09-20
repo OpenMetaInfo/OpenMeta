@@ -16,7 +16,7 @@ public enum ResponseCode {
 
     /** Client Exception */
     UNAUTHORIZED(4000, "Please login first!"),
-    VERIFY_EXCEPTION(4010, "Verify exception"),
+    VERIFICATION_EXCEPTION(4010, "Verification exception"),
     TOKEN_EXPIRED(4011, "Token expired"),
     TOKEN_INVALID(4012, "Token invalid"),
 

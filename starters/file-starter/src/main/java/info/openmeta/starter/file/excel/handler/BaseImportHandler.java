@@ -1,7 +1,8 @@
 package info.openmeta.starter.file.excel.handler;
 
-import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
 
@@ -26,12 +27,25 @@ public abstract class BaseImportHandler {
     }
 
     /**
-     * Handle the rows
+     * Handle the rows.
+     * Catch the ValidationException and set the failed reason to the row.
      *
      * @param rows The rows
      */
     public void handleRows(List<Map<String, Object>> rows) {
         rows.forEach(this::handleRow);
+        rows.forEach(row -> {
+            try {
+                handleRow(row);
+            } catch (ValidationException e) {
+                String failedReason = "";
+                if (row.get(FileConstant.FAILED_REASON) != null) {
+                    failedReason = row.get(FileConstant.FAILED_REASON) + "; ";
+                }
+                failedReason += e.getMessage();
+                row.put(FileConstant.FAILED_REASON, failedReason);
+            }
+        });
     }
 
     /**
@@ -79,13 +93,12 @@ public abstract class BaseImportHandler {
         return value == null || (value instanceof String valueStr && !StringUtils.hasText(valueStr));
     }
 
-
     /**
      * Check required
      */
     public void checkRequired() {
         if (Boolean.TRUE.equals(importFieldDTO.getRequired())) {
-            throw new IllegalArgumentException("The field `{0}` is required", fieldName);
+            throw new ValidationException("The field `{0}` is required", fieldName);
         }
     }
 
