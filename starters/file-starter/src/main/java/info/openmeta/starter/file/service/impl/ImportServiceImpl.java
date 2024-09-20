@@ -192,6 +192,7 @@ public class ImportServiceImpl implements ImportService {
         importTemplateDTO.getImportFields()
                 .forEach(importField -> headerToFieldMap.put(importField.getHeader(), importField.getFieldName()));
         List<Map<String, Object>> allDataList = this.extractDataFromExcel(headerToFieldMap, inputStream);
+        Assert.notEmpty(allDataList, "No data exists in the excel file `{0}`", importTemplateDTO.getFileName());
         ImportDataDTO importDataDTO = new ImportDataDTO();
         importDataDTO.setRows(allDataList);
         importDataDTO.setEnv(importTemplateDTO.getEnv());

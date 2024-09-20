@@ -1,6 +1,7 @@
 package info.openmeta.starter.file.excel;
 
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.SpringContextUtils;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.constant.ModelConstant;
@@ -18,6 +19,7 @@ import info.openmeta.starter.file.excel.handler.*;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -128,6 +130,9 @@ public class ImportHandlerManager {
      * @param rows       The rows
      */
     private void persistToDatabase(ImportTemplateDTO importTemplateDTO, List<Map<String, Object>> rows) {
+        if (CollectionUtils.isEmpty(rows)) {
+            return;
+        }
         ImportRule importRule = importTemplateDTO.getImportRule();
         if (ImportRule.CREATE_OR_UPDATE.equals(importRule)) {
             this.createOrUpdate(importTemplateDTO, rows, false);
@@ -159,7 +164,10 @@ public class ImportHandlerManager {
         }
         for (Map<String, Object> row : rows) {
             uniqueValuesMap.forEach((k, v) -> v.add(row.get(k)));
-            String key = generateUniqueKey(row, uniqueConstraints);
+            String key = this.generateUniqueKey(row, uniqueConstraints);
+            Assert.notTrue(rowKeyMap.containsKey(key),
+                    "The unique key `{0}` of uniqueConstraints `{1}` is duplicated in uploaded file `{2}`.",
+                    key, importTemplateDTO.getUniqueConstraints(), importTemplateDTO.getFileName());
             rowKeyMap.put(key, row);
         }
 
@@ -167,6 +175,7 @@ public class ImportHandlerManager {
         Map<String, Map<String, Object>> dbRowKeyMap = this.getRowKeyMapFromDB(importTemplateDTO, uniqueValuesMap);
 
         // Step 3: Compare the row key map from the database and the import data, to get the data to be created and updated
+        List<String> newKeys = new ArrayList<>();
         for (Map.Entry<String, Map<String, Object>> entry : rowKeyMap.entrySet()) {
             String key = entry.getKey();
             Map<String, Object> row = entry.getValue();
@@ -175,11 +184,12 @@ public class ImportHandlerManager {
                 updateDataList.add(row);
             } else {
                 createDataList.add(row);
+                newKeys.add(key);
             }
         }
         // Step 4: Execute the create or update operation
         if (onlyUpdate && !createDataList.isEmpty()) {
-            throw new IllegalArgumentException("The data to be created is not allowed in the only update mode.");
+            throw new IllegalArgumentException("In update-only mode, the following data does not exist:\n {0}", newKeys);
         }
         if (!updateDataList.isEmpty()) {
             modelService.updateList(modelName, updateDataList);
