@@ -198,6 +198,7 @@ public class ImportServiceImpl implements ImportService {
         ImportDataDTO importDataDTO = new ImportDataDTO();
         importDataDTO.setRows(allDataList);
         importDataDTO.setEnv(importTemplateDTO.getEnv());
+        importDataDTO.setOriginalRows(ListUtils.deepCopy(allDataList));
         return importDataDTO;
     }
 
