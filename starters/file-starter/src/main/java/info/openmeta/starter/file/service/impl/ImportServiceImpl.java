@@ -144,7 +144,9 @@ public class ImportServiceImpl implements ImportService {
         if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
             Long failedFileId = this.generateFailedExcel(importTemplateDTO.getFileName(), importTemplateDTO, importDataDTO);
             importHistory.setFailedFileId(failedFileId);
-            importHistory.setStatus(ImportStatus.PARTIAL_FAILURE);
+            ImportStatus status = importDataDTO.getFailedRows().size() == importDataDTO.getRows().size() ?
+                    ImportStatus.FAILURE : ImportStatus.PARTIAL_FAILURE;
+            importHistory.setStatus(status);
         } else {
             importHistory.setStatus(ImportStatus.SUCCESS);
         }

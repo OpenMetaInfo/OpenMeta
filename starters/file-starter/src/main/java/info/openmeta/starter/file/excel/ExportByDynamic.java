@@ -107,14 +107,14 @@ public class ExportByDynamic extends CommonExport {
      * @param headers the list of header label
      */
     private List<List<Object>> extractDataTableFromDB(String modelName, FlexQuery flexQuery, List<String> headers) {
+        // Get the data to be exported
+        List<Map<String, Object>> rows = this.getExportedData(modelName, flexQuery);
         // Construct the headers order by sequence of the fields
         List<String> fieldNames = flexQuery.getFields();
         fieldNames.forEach(fieldName -> {
             MetaField lastField = ModelManager.getLastFieldOfCascaded(modelName, fieldName);
             headers.add(lastField.getLabelName());
         });
-        // Get the data to be exported
-        List<Map<String, Object>> rows = this.getExportedData(modelName, flexQuery);
         return ListUtils.convertToTableData(fieldNames, rows);
     }
 }

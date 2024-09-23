@@ -16,7 +16,7 @@ import java.util.List;
 @Schema(name = "ImportWizard")
 public class ImportWizard {
 
-    @Schema(description = "Model name", hidden = true)
+    @Schema(description = "Model name")
     private String modelName;
 
     @Schema(description = "Uploaded file")
@@ -60,7 +60,7 @@ public class ImportWizard {
      *
      * @param file the uploaded file
      */
-    private void setFile(MultipartFile file) {
+    public void setFile(MultipartFile file) {
         this.file = file;
         this.fileName = FileUtils.getShortFileName(file);
     }

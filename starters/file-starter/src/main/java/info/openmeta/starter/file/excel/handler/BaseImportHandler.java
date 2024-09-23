@@ -33,7 +33,6 @@ public abstract class BaseImportHandler {
      * @param rows The rows
      */
     public void handleRows(List<Map<String, Object>> rows) {
-        rows.forEach(this::handleRow);
         rows.forEach(row -> {
             try {
                 handleRow(row);

@@ -64,8 +64,7 @@ public class ImportController {
     public ApiResponse<ImportHistory> importWithoutTemplate(@ModelAttribute ImportWizard importWizard) {
         Assert.isTrue(StringUtils.hasText(importWizard.getFileName()), "File name cannot be empty!");
         Assert.notNull(importWizard.getFile(), "File cannot be empty!");
-        Assert.notNull(importWizard.getImportRule(),
-                "Import template `{0}` importRule cannot be null.", importWizard.getFileName());
+        Assert.notNull(importWizard.getImportRule(), "ImportRule cannot be null.");
         return ApiResponse.success(importService.importByDynamic(importWizard));
     }
 
