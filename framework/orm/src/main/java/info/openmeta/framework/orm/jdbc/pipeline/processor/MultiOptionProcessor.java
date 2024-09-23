@@ -36,7 +36,12 @@ public class MultiOptionProcessor extends OptionProcessor {
         if (row.containsKey(fieldName)) {
             List<String> itemCodes = Cast.of(row.get(fieldName));
             List<Object> itemValues = itemCodes.stream().map(this::getOptionItemValue).collect(Collectors.toList());
-            row.put(fieldName, itemValues);
+            if (ConvertType.DISPLAY.equals(convertType)) {
+                String value = itemValues.stream().map(Object::toString).collect(Collectors.joining(", "));
+                row.put(fieldName, value);
+            } else {
+                row.put(fieldName, itemValues);
+            }
         }
     }
 
