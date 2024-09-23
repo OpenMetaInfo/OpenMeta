@@ -14,15 +14,17 @@ import java.util.Map;
  */
 public abstract class BaseImportHandler {
 
+    protected final MetaField metaField;
     protected final String modelName;
     protected final String fieldName;
-    protected final MetaField metaField;
+    protected final String labelName;
     protected final ImportFieldDTO importFieldDTO;
 
     public BaseImportHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
+        this.metaField = metaField;
         this.modelName = metaField.getModelName();
         this.fieldName = metaField.getFieldName();
-        this.metaField = metaField;
+        this.labelName = metaField.getLabelName();
         this.importFieldDTO = importFieldDTO;
     }
 
@@ -97,7 +99,7 @@ public abstract class BaseImportHandler {
      */
     public void checkRequired() {
         if (Boolean.TRUE.equals(importFieldDTO.getRequired())) {
-            throw new ValidationException("The field `{0}` is required", fieldName);
+            throw new ValidationException("The field `{0}` is required", labelName);
         }
     }
 

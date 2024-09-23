@@ -35,7 +35,7 @@ public class DateHandler extends BaseImportHandler {
         if (value instanceof String dateStr && StringUtils.hasText(dateStr)) {
             // Convert the date string to a standard format
             dateStr = dateStr.trim().toLowerCase();
-            return handleDateString(dateStr);
+            return this.handleDateString(dateStr);
         }
         return value;
     }
@@ -45,12 +45,12 @@ public class DateHandler extends BaseImportHandler {
      * @param dateStr The date string
      * @return The handled date string
      */
-    private static String handleDateString(String dateStr) {
+    private String handleDateString(String dateStr) {
         String standardDateStr = DateUtils.formatAndValidateDate(dateStr);
         if (standardDateStr != null) {
             return standardDateStr;
         } else {
-            throw new ValidationException("The date format is incorrect: `{0}`", dateStr);
+            throw new ValidationException("The date field `{0}` is incorrect: `{1}`", labelName, dateStr);
         }
     }
 

@@ -31,7 +31,7 @@ public class DateTimeHandler extends BaseImportHandler {
         if (value instanceof String datetimeStr && StringUtils.hasText(datetimeStr)) {
             // Convert the date string to a standard format
             datetimeStr = datetimeStr.trim().toLowerCase();
-            return handleDateTimeString(datetimeStr);
+            return this.handleDateTimeString(datetimeStr);
         }
         return value;
     }
@@ -41,24 +41,14 @@ public class DateTimeHandler extends BaseImportHandler {
      * @param datetimeStr The datetime string
      * @return The handled datetime string
      */
-    private static String handleDateTimeString(String datetimeStr) {
-        if (datetimeStr.contains(" ")) {
-            String[] datetimeArray = datetimeStr.split(" ");
-            String dateStr = DateUtils.formatAndValidateDate(datetimeArray[0]);
-            String timeStr = DateUtils.formatAndValidateTime(datetimeArray[1]);
-            if (dateStr != null && timeStr != null) {
-                return dateStr + " " + timeStr;
-            } else {
-                throw new ValidationException("The datetime format is incorrect: `{0}`", datetimeStr);
-            }
-        } else {
-            String dateStr = DateUtils.formatAndValidateDate(datetimeStr);
-            if (dateStr != null) {
-                return dateStr + " 00:00:00";
-            } else {
-                throw new ValidationException("The datetime format is incorrect: `{0}`", datetimeStr);
-            }
+    private String handleDateTimeString(String datetimeStr) {
+        String[] datetimeArray = datetimeStr.split(" ", 2);
+        String dateStr = DateUtils.formatAndValidateDate(datetimeArray[0]);
+        String timeStr = datetimeArray.length > 1 ? DateUtils.formatAndValidateTime(datetimeArray[1]) : "00:00:00";
+        if (dateStr == null || timeStr == null) {
+            throw new ValidationException("The datetime field `{0}` is incorrect: `{1}`", labelName, datetimeStr);
         }
+        return dateStr + " " + timeStr;
     }
 
 }
