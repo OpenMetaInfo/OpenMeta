@@ -18,5 +18,13 @@
   {
     "original": "The option item `{0}` does not exist",
     "translation": "不存在选项 `{0}`"
+  },
+  {
+    "original": "The date format is incorrect: `{0}`",
+    "translation": "日期格式不正确 `{0}`"
+  },
+  {
+    "original": "The datetime format is incorrect: `{0}`",
+    "translation": "日期时间格式不正确 `{0}`"
   }
 ]
