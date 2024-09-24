@@ -7,6 +7,7 @@ import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
+import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
@@ -125,6 +126,7 @@ public class ExportByTemplate extends CommonExport {
                 this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headers);
                 // Get the data to be exported
                 FlexQuery flexQuery = new FlexQuery(fieldNames, template.getFilters(), template.getOrders());
+                flexQuery.setConvertType(ConvertType.DISPLAY);
                 flexQuery.setFilters(Filters.merge(flexQuery.getFilters(), dynamicTemplateMap.get(template.getId())));
                 flexQuery.setFields(fieldNames);
                 List<Map<String, Object>> rows = this.getExportedData(template.getModelName(), flexQuery);
