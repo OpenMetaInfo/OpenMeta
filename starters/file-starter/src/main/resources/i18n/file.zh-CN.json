@@ -12,19 +12,23 @@
     "translation": "字段`{0}`是必填字段"
   },
   {
-    "original": "The Boolean item is incorrect `{0}`",
-    "translation": "布尔值`{0}`格式不正确"
+    "original": "The Boolean field `{0}` is incorrect `{1}`",
+    "translation": "布尔字段`{0}`导入值`{1}`格式不正确"
   },
   {
-    "original": "The option item `{0}` does not exist",
-    "translation": "不存在选项 `{0}`"
+    "original": "The option field `{0}` does not exist item `{1}`",
+    "translation": "选项集字段`{0}`不存在选项 `{1}`"
   },
   {
-    "original": "The date format is incorrect: `{0}`",
-    "translation": "日期格式不正确 `{0}`"
+    "original": "The multi-option field `{0}` does not exist item `{1}`",
+    "translation": "多选字段`{0}`不存在选项 `{1}`"
   },
   {
-    "original": "The datetime format is incorrect: `{0}`",
-    "translation": "日期时间格式不正确 `{0}`"
+    "original": "The date field `{0}` is incorrect: `{1}`",
+    "translation": "日期字段`{0}`格式不正确：`{1}`"
+  },
+  {
+    "original": "The datetime field `{0}` is incorrect: `{1}`",
+    "translation": "日期时间字段`{0}`格式不正确：`{1}`"
   }
 ]

@@ -32,7 +32,7 @@ public class BooleanHandler extends BaseImportHandler {
                 // Treat the boolean string as itemName
                 String optionItemCode = OptionManager.getItemCodeByName(optionSetCode, valueStr);
                 if (optionItemCode == null) {
-                    throw new ValidationException("The Boolean item is incorrect `{0}`", valueStr);
+                    throw new ValidationException("The Boolean field `{0}` is incorrect `{1}`", labelName, valueStr);
                 }
                 return Boolean.valueOf(optionItemCode);
             }

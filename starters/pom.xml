@@ -6,7 +6,7 @@
     <parent>
         <artifactId>openmeta</artifactId>
         <groupId>info.openmeta</groupId>
-        <version>0.6.16</version>
+        <version>0.6.17</version>
     </parent>
 
     <artifactId>starters</artifactId>

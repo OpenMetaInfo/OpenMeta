@@ -144,7 +144,7 @@ public class ImportServiceImpl implements ImportService {
         if (!CollectionUtils.isEmpty(importDataDTO.getFailedRows())) {
             Long failedFileId = this.generateFailedExcel(importTemplateDTO.getFileName(), importTemplateDTO, importDataDTO);
             importHistory.setFailedFileId(failedFileId);
-            ImportStatus status = importDataDTO.getFailedRows().size() == importDataDTO.getRows().size() ?
+            ImportStatus status = CollectionUtils.isEmpty(importDataDTO.getRows()) ?
                     ImportStatus.FAILURE : ImportStatus.PARTIAL_FAILURE;
             importHistory.setStatus(status);
         } else {
@@ -198,6 +198,7 @@ public class ImportServiceImpl implements ImportService {
         ImportDataDTO importDataDTO = new ImportDataDTO();
         importDataDTO.setRows(allDataList);
         importDataDTO.setEnv(importTemplateDTO.getEnv());
+        importDataDTO.setOriginalRows(ListUtils.deepCopy(allDataList));
         return importDataDTO;
     }
 

@@ -111,13 +111,19 @@ public class ImportHandlerManager {
     public void separateFailedRows(ImportDataDTO importDataDTO) {
         List<Map<String, Object>> failedRows = new ArrayList<>();
         // Use an iterator to traverse the list to avoid ConcurrentModificationException
-        Iterator<Map<String, Object>> iterator = importDataDTO.getRows().iterator();
-        while (iterator.hasNext()) {
-            Map<String, Object> row = iterator.next();
+        Iterator<Map<String, Object>> rowIterator = importDataDTO.getRows().iterator();
+        Iterator<Map<String, Object>> originalRowIterator = importDataDTO.getOriginalRows().iterator();
+        // Traverse the rows and originalRows list simultaneously
+        while (rowIterator.hasNext() && originalRowIterator.hasNext()) {
+            Map<String, Object> row = rowIterator.next();
+            Map<String, Object> originalRow = originalRowIterator.next();
             if (row.containsKey(FileConstant.FAILED_REASON)) {
+                originalRow.put(FileConstant.FAILED_REASON, row.get(FileConstant.FAILED_REASON));
                 // Remove row containing "Failed Reason" from rows and add them to failedRows
-                iterator.remove();
-                failedRows.add(row);
+                rowIterator.remove();
+                originalRowIterator.remove();
+                // Add the original row to the failed rows
+                failedRows.add(originalRow);
             }
         }
         importDataDTO.setFailedRows(failedRows);

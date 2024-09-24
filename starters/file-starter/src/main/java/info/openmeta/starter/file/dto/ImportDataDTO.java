@@ -19,4 +19,5 @@ public class ImportDataDTO {
 
     private Map<String, Object> env;
 
+    private List<Map<String, Object>> originalRows;
 }

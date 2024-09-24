@@ -31,7 +31,7 @@ public class OptionHandler extends BaseImportHandler {
             // Treat the option string as itemName
             String optionItemCode = OptionManager.getItemCodeByName(optionSetCode, optionStr);
             if (optionItemCode == null) {
-                throw new ValidationException("The option item `{0}` does not exist", optionStr);
+                throw new ValidationException("The option field `{0}` does not exist item `{1}`", labelName, optionStr);
             }
             return optionItemCode;
         } else {
