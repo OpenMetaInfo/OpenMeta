@@ -13,6 +13,7 @@ import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
+import info.openmeta.framework.orm.meta.OptionManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
@@ -26,6 +27,8 @@ import info.openmeta.starter.file.entity.ImportTemplateField;
 import info.openmeta.starter.file.enums.ImportStatus;
 import info.openmeta.starter.file.excel.CommonExport;
 import info.openmeta.starter.file.excel.ImportHandlerManager;
+import info.openmeta.starter.file.excel.handler.CustomHeadStyleHandler;
+import info.openmeta.starter.file.excel.handler.OptionHandler;
 import info.openmeta.starter.file.message.AsyncImportProducer;
 import info.openmeta.starter.file.service.*;
 import info.openmeta.starter.file.vo.ImportWizard;
@@ -91,10 +94,13 @@ public class ImportServiceImpl implements ImportService {
         ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, null);
         List<String> headers = importTemplateDTO.getImportFields().stream()
                 .map(ImportFieldDTO::getHeader).toList();
+        List<String> fieldRequiredList = importTemplateDTO.getImportFields().stream()
+                .filter(ImportFieldDTO::getRequired).map(ImportFieldDTO::getHeader).toList();
         // Generate the Excel file
         String fileName = importTemplate.getName();
         String sheetName = importTemplate.getName();
-        return commonExport.generateFileAndUpload(fileName, sheetName, headers, Collections.emptyList());
+        return commonExport.generateFileAndUpload(fileName, sheetName, headers, Collections.emptyList(),
+                new CustomHeadStyleHandler(fieldRequiredList));
     }
 
     /**
