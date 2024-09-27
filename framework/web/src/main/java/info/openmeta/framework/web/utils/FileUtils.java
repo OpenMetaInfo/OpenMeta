@@ -67,7 +67,7 @@ public class FileUtils {
             String content = FileCopyUtils.copyToString(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
             fileInfo.setContent(content);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to read the content of file: {0}", fullName);
+            throw new IllegalArgumentException("Failed to read the content of file: {0}", fullName, e);
         }
         return fileInfo;
     }
