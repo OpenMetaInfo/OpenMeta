@@ -2,6 +2,7 @@ package info.openmeta.starter.file.excel;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.handler.CellWriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.BusinessException;
@@ -12,6 +13,7 @@ import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ExportHistory;
 import info.openmeta.starter.file.enums.FileSource;
+import info.openmeta.starter.file.excel.handler.CustomHeadStyleHandler;
 import info.openmeta.starter.file.service.ExportHistoryService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,15 +73,31 @@ public class CommonExport {
      * @param rowsTable the data table of the rows
      * @return the file info object with download URL
      */
-    public FileInfo generateFileAndUpload(String fileName, String sheetName,
-                                          List<String> headers, List<List<Object>> rowsTable) {
+    public FileInfo generateFileAndUpload(String fileName, String sheetName, List<String> headers,
+                                          List<List<Object>> rowsTable) {
+        return this.generateFileAndUpload(fileName, sheetName, headers, rowsTable, null);
+    }
+
+    /**
+     * Generate the Excel file and upload it to the file storage.
+     *
+     * @param fileName the name of the file
+     * @param sheetName the name of the sheet
+     * @param headers the list of header label
+     * @param rowsTable the data table of the rows
+     * @param handler the cell handler
+     * @return the file info object with download URL
+     */
+    public FileInfo generateFileAndUpload(String fileName, String sheetName, List<String> headers,
+                                          List<List<Object>> rowsTable, CellWriteHandler handler) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
             // Write the header and data, EasyExcel requires the header to be a list of lists
             List<List<String>> headersList = headers.stream().map(Collections::singletonList).toList();
-            WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).head(headersList).build();
+            WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).head(headersList)
+                    .registerWriteHandler(handler).build();
             excelWriter.write(rowsTable, writeSheet);
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
