@@ -62,8 +62,6 @@ public class FileUtils {
             validateFileType(fullName, actualFileType, seemingFileType);
             fileInfo.setFileName(fileName);
             fileInfo.setFileType(actualFileType);
-            // reset inputStream to re-read the content
-            inputStream.reset();
             String content = FileCopyUtils.copyToString(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
             fileInfo.setContent(content);
         } catch (IOException e) {
@@ -87,8 +85,6 @@ public class FileUtils {
             validateFileType(fileName, actualFileType, seemingFileType);
             fileInfo.setFileName(fileName);
             fileInfo.setFileType(actualFileType);
-            // reset inputStream to re-read the content
-            inputStream.reset();
             String content = FileCopyUtils.copyToString(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
             fileInfo.setContent(content);
             return fileInfo;

@@ -1,8 +1,7 @@
 package info.openmeta.starter.metadata.message;
 
 import info.openmeta.framework.base.context.ContextHolder;
-import info.openmeta.framework.orm.meta.ModelManager;
-import info.openmeta.framework.orm.meta.OptionManager;
+import info.openmeta.framework.orm.meta.AppStartup;
 import info.openmeta.starter.metadata.message.dto.InnerBroadcastMessage;
 import info.openmeta.starter.metadata.message.enums.InnerBroadcastType;
 import lombok.extern.slf4j.Slf4j;
@@ -22,17 +21,13 @@ import org.springframework.stereotype.Component;
 public class InnerBroadcastConsumer implements RocketMQListener<InnerBroadcastMessage> {
 
     @Autowired
-    private ModelManager modelManager;
-
-    @Autowired
-    private OptionManager optionManager;
+    private AppStartup appStartup;
 
     @Override
     public void onMessage(InnerBroadcastMessage message) {
         ContextHolder.setContext(message.getContext());
         if (InnerBroadcastType.RELOAD_METADATA.equals(message.getBroadcastType())) {
-            modelManager.init();
-            optionManager.init();
+            appStartup.afterPropertiesSet();
         } else {
             log.warn("Unknown broadcast type: {}", message.getBroadcastType());
         }
