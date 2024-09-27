@@ -10,26 +10,23 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * 表头自定义样式
+ * Custom header style
  */
 public class CustomHeadStyleHandler implements CellWriteHandler {
 
-    // 动态必填字段的列表（传递进来）
-    private final List<String> fieldRequiredList;
+    // dynamic required headers
+    private final List<String> requiredHeaderList;
 
-    public CustomHeadStyleHandler(List<String> fieldRequiredList) {
-        this.fieldRequiredList = fieldRequiredList;
+    public CustomHeadStyleHandler(List<String> requiredHeaderList) {
+        this.requiredHeaderList = requiredHeaderList;
     }
 
-    /**
-     * 必填字段用红色字体
-     */
     @Override
     public void afterCellDispose(CellWriteHandlerContext context) {
-        if (!CollectionUtils.isEmpty(fieldRequiredList) && context.getHead()) {
-            if (fieldRequiredList.contains(context.getHeadData().getHeadNameList().getFirst())) {
+        if (!CollectionUtils.isEmpty(requiredHeaderList) && context.getHead()) {
+            if (requiredHeaderList.contains(context.getHeadData().getHeadNameList().getFirst())) {
                 WriteCellStyle writeCellStyle = context.getFirstCellData().getOrCreateStyle();
-                // 新建字体合并单元格现有的字体样式
+                // Merges existing cell styles
                 WriteFont customFont = new WriteFont();
                 WriteFont.merge(writeCellStyle.getWriteFont(), customFont);
                 customFont.setColor(IndexedColors.RED.getIndex());

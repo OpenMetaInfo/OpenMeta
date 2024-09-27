@@ -94,13 +94,13 @@ public class ImportServiceImpl implements ImportService {
         ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, null);
         List<String> headers = importTemplateDTO.getImportFields().stream()
                 .map(ImportFieldDTO::getHeader).toList();
-        List<String> fieldRequiredList = importTemplateDTO.getImportFields().stream()
+        List<String> requiredHeaderList = importTemplateDTO.getImportFields().stream()
                 .filter(ImportFieldDTO::getRequired).map(ImportFieldDTO::getHeader).toList();
         // Generate the Excel file
         String fileName = importTemplate.getName();
         String sheetName = importTemplate.getName();
         return commonExport.generateFileAndUpload(fileName, sheetName, headers, Collections.emptyList(),
-                new CustomHeadStyleHandler(fieldRequiredList));
+                new CustomHeadStyleHandler(requiredHeaderList));
     }
 
     /**
