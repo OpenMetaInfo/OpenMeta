@@ -1,6 +1,6 @@
-package info.openmeta.framework.orm.model;
+package info.openmeta.starter.metadata.entity;
 
-import info.openmeta.framework.orm.entity.BaseModel;
+import info.openmeta.framework.orm.entity.TranslationModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,16 +13,10 @@ import java.io.Serial;
 @Data
 @Schema(name = "SysFieldTrans")
 @EqualsAndHashCode(callSuper = true)
-public class SysFieldTrans extends BaseModel {
+public class SysFieldTrans extends TranslationModel {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
-    @Schema(description = "Language Code")
-    private String languageCode;
-
-    @Schema(description = "Row ID")
-    private Long rowId;
 
     @Schema(description = "Label Name")
     private String labelName;

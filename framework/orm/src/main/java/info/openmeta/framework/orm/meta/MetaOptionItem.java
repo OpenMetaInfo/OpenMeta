@@ -1,7 +1,6 @@
 package info.openmeta.framework.orm.meta;
 
 import info.openmeta.framework.base.context.ContextHolder;
-import info.openmeta.framework.orm.model.SysOptionItemTrans;
 import lombok.Data;
 import org.springframework.util.StringUtils;
 
@@ -45,7 +44,7 @@ public class MetaOptionItem implements Serializable {
      */
     public String getItemName() {
         String languageCode = ContextHolder.getContext().getLanguage().getCode();
-        SysOptionItemTrans itemTrans = MetaTranslationCache.getOptionItemTrans(languageCode, id);
+        MetaOptionItemTrans itemTrans = TranslationCache.getOptionItemTrans(languageCode, id);
         if (itemTrans == null) {
             return itemName;
         } else {

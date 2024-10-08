@@ -3,7 +3,6 @@ package info.openmeta.framework.orm.meta;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.enums.MaskingType;
-import info.openmeta.framework.orm.model.SysFieldTrans;
 import lombok.Data;
 import org.springframework.util.StringUtils;
 
@@ -100,7 +99,7 @@ public class MetaField implements Serializable {
      */
     public String getLabelName() {
         String languageCode = ContextHolder.getContext().getLanguage().getCode();
-        SysFieldTrans labelTrans = MetaTranslationCache.getFieldTrans(languageCode, id);
+        MetaFieldTrans labelTrans = TranslationCache.getFieldTrans(languageCode, id);
         if (labelTrans == null) {
             return labelName;
         } else {
