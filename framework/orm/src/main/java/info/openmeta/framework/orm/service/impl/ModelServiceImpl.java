@@ -10,7 +10,6 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.exception.SecurityException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.Cast;
-import info.openmeta.framework.orm.service.PermissionService;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
@@ -20,10 +19,10 @@ import info.openmeta.framework.orm.entity.TimelineSlice;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.jdbc.JdbcService;
-import info.openmeta.framework.orm.jdbc.pipeline.processor.IdProcessor;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
+import info.openmeta.framework.orm.service.PermissionService;
 import info.openmeta.framework.orm.service.TimelineService;
 import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.IdUtils;
@@ -115,8 +114,6 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     public List<K> createList(String modelName, List<Map<String, Object>> rows) {
         Assert.allNotNull(rows, "The creation data for model {0} must not be empty: {1}", modelName, rows);
         this.checkTenantId(modelName, rows);
-        // Fill in the id field according to the model's primary key policy
-        new IdProcessor(ModelManager.getModelPrimaryKeyField(modelName)).batchProcessInputRows(rows, AccessType.CREATE);
         // Extracts a set of assigned fields for checking field-level permissions
         Set<String> assignedFields = new HashSet<>();
         rows.forEach(row -> {

@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 
 /**
  * ID field processor
+ * Fill in the id field according to the model's primary key policy.
  */
 public class IdProcessor extends BaseProcessor {
 
