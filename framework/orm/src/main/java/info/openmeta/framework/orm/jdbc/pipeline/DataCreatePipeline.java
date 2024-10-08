@@ -43,8 +43,8 @@ public class DataCreatePipeline extends DataPipeline {
         super(modelName);
         this.fields = ModelManager.getModelUpdatableFields(modelName);
         this.addEffectedFields();
-        // If the IdStrategy is EXTERNAL_ID, add the ID field to the list of fields to be processed.
-        if (IdStrategy.EXTERNAL_ID.equals(ModelManager.getIdStrategy(modelName))) {
+        // If the IdStrategy is not DB_AUTO_ID, add the ID field to the list of fields to be processed.
+        if (!IdStrategy.DB_AUTO_ID.equals(ModelManager.getIdStrategy(modelName))) {
             this.fields.add(ModelManager.getModelPrimaryKey(modelName));
         }
         this.processorChain = buildFieldProcessorChain();
