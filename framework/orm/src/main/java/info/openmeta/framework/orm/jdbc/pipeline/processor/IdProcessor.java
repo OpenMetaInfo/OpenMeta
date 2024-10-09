@@ -1,7 +1,5 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
-import com.github.f4b6a3.tsid.TsidCreator;
-import com.github.f4b6a3.ulid.UlidCreator;
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.enums.IdStrategy;
@@ -38,13 +36,16 @@ public class IdProcessor extends BaseProcessor {
                 // Skip auto-increment ID
                 return;
             case ULID:
-                generateIds(rows, () -> UlidCreator.getMonotonicUlid().toString());
+                generateIds(rows, IdUtils::getULID);
                 break;
             case TSID_LONG:
-                generateIds(rows, () -> TsidCreator.getTsid().toLong());
+                generateIds(rows, IdUtils::getTSIDLong);
                 break;
             case TSID_STRING:
-                generateIds(rows, () -> TsidCreator.getTsid().toString());
+                generateIds(rows, IdUtils::getTSIDString);
+                break;
+            case SIMPLE_ID:
+                generateIds(rows, IdUtils::getSimpleId);
                 break;
             case UUID:
                 generateIds(rows, () -> UUID.randomUUID().toString());

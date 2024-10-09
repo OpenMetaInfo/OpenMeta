@@ -82,6 +82,12 @@ public abstract class DateUtils {
         return getZonedDateTimeNow(zoneId).getDayOfMonth();
     }
 
+    /**
+     * Get current hour with the specified zone.
+     */
+    public static long getCurrentSeconds(){
+        return Instant.now().getEpochSecond();
+    }
 
     /** Instant to LocalDate */
     public static LocalDate instantToLocalDate(Instant instant) {
