@@ -94,4 +94,13 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
      * @return the InputStream of the file
      */
     InputStream downloadStream(Long fileId);
+
+    /**
+     * Get the FileInfo object by fileId
+     *
+     * @param fileId the ID of the file
+     * @return fileInfo object with download URL
+     */
+    FileInfo getFileInfo(Long fileId);
+
 }

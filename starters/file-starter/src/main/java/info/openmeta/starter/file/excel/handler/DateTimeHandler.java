@@ -1,16 +1,16 @@
 package info.openmeta.starter.file.excel.handler;
 
+import info.openmeta.framework.base.exception.ValidationException;
+import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * DateTimeHandler
  * Compatible with the following datetime formats:
- *      YYYY-MM-DD
- *      YYYY-MM-DD HH:MM
+ *      YYYY-MM-DD , 2024-09-15, 2024-9-5
+ *      YYYY-MM-DD HH:MM, 2024-09-15 12:30, 2024-9-5 1:30
  *      YYYY-MM-DD HH:MM:SS
  *      YYYY/MM/DD HH:MM:SS
  *      YYYY_MM_DD HH:MM:SS
@@ -18,8 +18,8 @@ import java.util.regex.Pattern;
  */
 public class DateTimeHandler extends BaseImportHandler {
 
-    public DateTimeHandler(MetaField metaField) {
-        super(metaField);
+    public DateTimeHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
+        super(metaField, importFieldDTO);
     }
 
     /**
@@ -31,7 +31,7 @@ public class DateTimeHandler extends BaseImportHandler {
         if (value instanceof String datetimeStr && StringUtils.hasText(datetimeStr)) {
             // Convert the date string to a standard format
             datetimeStr = datetimeStr.trim().toLowerCase();
-            return handleDateTimeString(datetimeStr);
+            return this.handleDateTimeString(datetimeStr);
         }
         return value;
     }
@@ -41,25 +41,14 @@ public class DateTimeHandler extends BaseImportHandler {
      * @param datetimeStr The datetime string
      * @return The handled datetime string
      */
-    private static String handleDateTimeString(String datetimeStr) {
-        // replace all separators with hyphen
-        datetimeStr = datetimeStr.replaceAll("[/_.]", "-");
-        String regex = "^((1[8-9]\\d{2})|([2-9]\\d{3}))-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]) ([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$";
-        if (datetimeStr.length() == 10) {
-            // Compatible with the date format, such as 2024-09-15 to 2024-09-15 00:00:00
-            datetimeStr += " 00:00:00";
-        } else if (datetimeStr.length() == 16) {
-            // Compatible with the date and time format, such as 2024-09-15 12:30 to 2024-09-15 12:30:00
-            datetimeStr += ":00";
+    private String handleDateTimeString(String datetimeStr) {
+        String[] datetimeArray = datetimeStr.split(" ", 2);
+        String dateStr = DateUtils.formatAndValidateDate(datetimeArray[0]);
+        String timeStr = datetimeArray.length > 1 ? DateUtils.formatAndValidateTime(datetimeArray[1]) : "00:00:00";
+        if (dateStr == null || timeStr == null) {
+            throw new ValidationException("The datetime field `{0}` is incorrect: `{1}`", labelName, datetimeStr);
         }
-        // Use regex to verify the date format
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(datetimeStr);
-        if (matcher.matches()) {
-            return datetimeStr;
-        } else {
-            return null;
-        }
+        return dateStr + " " + timeStr;
     }
 
 }

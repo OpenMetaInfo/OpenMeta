@@ -1,5 +1,6 @@
 package info.openmeta.framework.web.handler;
 
+import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.web.aspect.ApiExceptionAspect;
 import info.openmeta.framework.base.context.ContextHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -7,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Optional;
 
 /**
  * Exception message handler
@@ -55,7 +58,9 @@ public class ExceptionMessageHandler {
             builder.append(" ; User: ").append(ContextHolder.getContext().getName());
             builder.append(" ; TraceID: ").append(ContextHolder.getContext().getTraceId());
         } else {
-            String traceId = request.getHeader("traceId");
+            String traceId = Optional.ofNullable(request.getHeader(BaseConstant.TRACE_ID))
+                    .orElse(Optional.ofNullable(request.getHeader(BaseConstant.X_TRACE_ID))
+                            .orElse(request.getHeader(BaseConstant.X_B3_TRACEID)));
             if (StringUtils.isNotBlank(traceId)) {
                 builder.append(" ; TraceID: ").append(traceId);
             }

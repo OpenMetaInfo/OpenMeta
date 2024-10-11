@@ -20,7 +20,7 @@ import java.util.Map;
 @Slf4j
 public class OptionProcessor extends BaseProcessor {
 
-    private final ConvertType convertType;
+    protected final ConvertType convertType;
 
     public OptionProcessor(MetaField metaField, ConvertType convertType) {
         super(metaField);

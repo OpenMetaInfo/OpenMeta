@@ -7,7 +7,9 @@ import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
+import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.enums.FileType;
+import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
@@ -54,8 +56,8 @@ public class ExportByTemplate extends CommonExport {
     public FileInfo export(FlexQuery flexQuery, ExportTemplate exportTemplate) {
         // Construct the headers order by sequence of the export fields
         List<String> fieldNames = new ArrayList<>();
-        List<List<String>> headerList = new ArrayList<>();
-        this.extractFieldsAndLabels(exportTemplate.getModelName(), exportTemplate.getId(), fieldNames, headerList);
+        List<String> headers = new ArrayList<>();
+        this.extractFieldsAndLabels(exportTemplate.getModelName(), exportTemplate.getId(), fieldNames, headers);
         // Get the data to be exported
         flexQuery.setFields(fieldNames);
         List<Map<String, Object>> rows = this.getExportedData(exportTemplate.getModelName(), flexQuery);
@@ -63,7 +65,7 @@ public class ExportByTemplate extends CommonExport {
         // Generate the Excel file
         String fileName = exportTemplate.getFileName();
         String sheetName = StringUtils.hasText(exportTemplate.getSheetName()) ? exportTemplate.getSheetName() : fileName;
-        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headerList, rowsTable);
+        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headers, rowsTable);
         // Generate an export history record
         this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
@@ -79,6 +81,39 @@ public class ExportByTemplate extends CommonExport {
      * @return fileInfo object with download URL
      */
     public FileInfo exportMultiSheet(String fileName, List<ExportTemplate> exportTemplates) {
+        return this.getFileInfo(fileName, exportTemplates, Collections.emptyMap());
+    }
+
+    public FileInfo dynamicExportMultiSheet(String fileName, List<ExportTemplate> exportTemplates, Map<Long, Filters> dynamicTemplateMap) {
+        return this.getFileInfo(fileName, exportTemplates, dynamicTemplateMap);
+    }
+
+    /**
+     * Extract the fields and labels from the export template.
+     *
+     * @param modelName the model name to be exported
+     * @param exportTemplateId the ID of the export template
+     * @param fieldNames the list of field names
+     * @param headers the list of header label
+     */
+    private void extractFieldsAndLabels(String modelName, Long exportTemplateId,
+                                        List<String> fieldNames, List<String> headers) {
+        // Construct the headers order by sequence of the export fields
+        Filters filters = Filters.eq(ExportTemplateField::getTemplateId, exportTemplateId);
+        Orders orders = Orders.ofAsc(ExportTemplateField::getSequence);
+        List<ExportTemplateField> exportFields = exportTemplateFieldService.searchList(new FlexQuery(filters, orders));
+        exportFields.forEach(exportField -> {
+            fieldNames.add(exportField.getFieldName());
+            if (StringUtils.hasText(exportField.getCustomHeader())) {
+                headers.add(exportField.getCustomHeader());
+            } else {
+                MetaField lastField = ModelManager.getLastFieldOfCascaded(modelName, exportField.getFieldName());
+                headers.add(lastField.getLabelName());
+            }
+        });
+    }
+
+    private FileInfo getFileInfo(String fileName, List<ExportTemplate> exportTemplates, Map<Long, Filters> dynamicTemplateMap) {
         FileInfo fileInfo;
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -87,15 +122,18 @@ public class ExportByTemplate extends CommonExport {
             for (int i = 0; i < exportTemplates.size(); i++) {
                 ExportTemplate template = exportTemplates.get(i);
                 List<String> fieldNames = new ArrayList<>();
-                List<List<String>> headerList = new ArrayList<>();
-                this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headerList);
+                List<String> headers = new ArrayList<>();
+                this.extractFieldsAndLabels(template.getModelName(), template.getId(), fieldNames, headers);
                 // Get the data to be exported
                 FlexQuery flexQuery = new FlexQuery(fieldNames, template.getFilters(), template.getOrders());
+                flexQuery.setConvertType(ConvertType.DISPLAY);
+                flexQuery.setFilters(Filters.merge(flexQuery.getFilters(), dynamicTemplateMap.get(template.getId())));
                 flexQuery.setFields(fieldNames);
                 List<Map<String, Object>> rows = this.getExportedData(template.getModelName(), flexQuery);
                 List<List<Object>> rowsTable = ListUtils.convertToTableData(fieldNames, rows);
                 // Write the header and data
                 String sheetName = StringUtils.hasText(template.getSheetName()) ? template.getSheetName() : template.getFileName();
+                List<List<String>> headerList = headers.stream().map(Collections::singletonList).toList();
                 WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetName).head(headerList).build();
                 excelWriter.write(rowsTable, writeSheet);
             }
@@ -111,28 +149,4 @@ public class ExportByTemplate extends CommonExport {
         return fileInfo;
     }
 
-    /**
-     * Extract the fields and labels from the export template.
-     *
-     * @param modelName the model name to be exported
-     * @param exportTemplateId the ID of the export template
-     * @param fieldNames the list of field names
-     * @param headerList the list of header labels
-     */
-    private void extractFieldsAndLabels(String modelName, Long exportTemplateId,
-                                        List<String> fieldNames, List<List<String>> headerList) {
-        // Construct the headers order by sequence of the export fields
-        Filters filters = Filters.eq(ExportTemplateField::getTemplateId, exportTemplateId);
-        Orders orders = Orders.ofAsc(ExportTemplateField::getSequence);
-        List<ExportTemplateField> exportFields = exportTemplateFieldService.searchList(new FlexQuery(filters, orders));
-        exportFields.forEach(exportField -> {
-            fieldNames.add(exportField.getFieldName());
-            if (StringUtils.hasText(exportField.getCustomHeader())) {
-                headerList.add(Collections.singletonList(exportField.getCustomHeader()));
-            } else {
-                String labelName = ModelManager.getCascadingFieldLabelName(modelName, exportField.getFieldName());
-                headerList.add(Collections.singletonList(labelName));
-            }
-        });
-    }
 }

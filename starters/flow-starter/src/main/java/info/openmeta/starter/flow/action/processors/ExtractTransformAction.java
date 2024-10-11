@@ -6,7 +6,6 @@ import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.starter.flow.action.ActionContext;
 import info.openmeta.starter.flow.action.ActionProcessor;
 import info.openmeta.starter.flow.action.params.ExtractTransformParams;
-import info.openmeta.starter.flow.utils.FlowUtils;
 import info.openmeta.starter.flow.entity.FlowAction;
 import info.openmeta.starter.flow.enums.FlowActionType;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +70,7 @@ public class ExtractTransformAction implements ActionProcessor<ExtractTransformP
      */
     @Override
     public void execute(FlowAction flowAction, ExtractTransformParams actionParams, ActionContext actionContext) {
-        Object variableValue = FlowUtils.extractVariable(actionParams.getCollectionVariable(), actionContext);
+        Object variableValue = StringTools.extractVariable(actionParams.getCollectionVariable(), actionContext.getEnv());
         if (variableValue == null || (variableValue instanceof Collection && CollectionUtils.isEmpty((Collection<?>) variableValue))) {
             actionContext.put(flowAction.getCode(), Collections.emptySet());
         } else if (variableValue instanceof Collection) {

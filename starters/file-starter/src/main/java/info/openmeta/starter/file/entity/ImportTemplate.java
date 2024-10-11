@@ -38,6 +38,12 @@ public class ImportTemplate extends BaseModel {
     @Schema(description = "Skip Abnormal Data")
     private Boolean skipException;
 
+    @Schema(description = "Custom Import Handler")
+    private String customHandler;
+
+    @Schema(description = "Synchronous Import")
+    private Boolean syncImport;
+
     @Schema(description = "Include Import Description")
     private Boolean includeDescription;
 

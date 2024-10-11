@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 public interface TimeConstant {
     String NOW = "NOW";
@@ -29,4 +30,20 @@ public interface TimeConstant {
     DateTimeFormatter SIMPLE_TIME_FORMATTER = DateTimeFormatter.ofPattern(SIMPLE_TIME_FORMAT);
 
     Set<Class<?>> DATE_TYPES = Set.of(LocalDate.class, LocalDateTime.class, Date.class);
+
+    // regex for 2024
+    Pattern PATTERN_YYYY = Pattern.compile("^((1[8-9]\\d{2})|([2-9]\\d{3}))$");
+    // regex for 2024-09, 2024-9
+    Pattern PATTERN_YYYY_MM = Pattern.compile("^((1[8-9]\\d{2})|([2-9]\\d{3}))-([1-9]|0[1-9]|1[0-2])$");
+    // regex for 20240915
+    Pattern PATTERN_SIMPLE_YYYYMMDD = Pattern.compile("^((1[8-9]\\d{2})|([2-9]\\d{3}))(0[1-9]|[12][0-9]|3[01])$");
+    // regex for 2024-09-15, 2024-9-5
+    Pattern PATTERN_YYYY_MM_DD = Pattern.compile(
+            "^((1[8-9]\\d{2})|([2-9]\\d{3}))-([1-9]|0[1-9]|1[0-2])-([1-9]|0[1-9]|[12][0-9]|3[01])$");
+
+    // regex for 2:30, 23:59
+    Pattern PATTERN_HH_MM = Pattern.compile("^([0-9]|1[0-9]|2[0-3]):[0-5][0-9]$");
+    // regex for 2:30:15, 23:59:59
+    Pattern PATTERN_HH_MM_SS = Pattern.compile("^([0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$");
+
 }

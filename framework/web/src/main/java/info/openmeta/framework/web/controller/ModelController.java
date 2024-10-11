@@ -148,7 +148,7 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<Map<String, Object>> readOne(@PathVariable String modelName,
                                                     @RequestParam K id,
-                                                    @RequestParam List<String> fields,
+                                                    @RequestParam(required = false) List<String> fields,
                                                     @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         id = IdUtils.formatId(modelName, id);
@@ -176,7 +176,7 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<List<Map<String, Object>>> readList(@PathVariable String modelName,
                                                            @RequestParam List<K> ids,
-                                                           @RequestParam List<String> fields,
+                                                           @RequestParam(required = false) List<String> fields,
                                                            @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         this.validateIds(ids);
@@ -320,7 +320,7 @@ public class ModelController<K extends Serializable> {
     @Operation(description = "Delete multiple rows by IDs.")
     @Parameter(name = "ids", description = "Data IDs to be deleted.")
     public ApiResponse<Boolean> deleteList(@PathVariable String modelName,
-                                           @RequestParam(required = false) List<K> ids) {
+                                           @RequestParam List<K> ids) {
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
         return ApiResponse.success(modelService.deleteList(modelName, ids));

@@ -21,7 +21,7 @@ public class AppStartup implements InitializingBean {
     private OptionManager optionManager;
 
     @Autowired
-    private MetaTranslationCache translationCache;
+    private TranslationCache translationCache;
 
     @Override
     public void afterPropertiesSet() {

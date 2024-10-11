@@ -16,7 +16,7 @@ import java.util.List;
 @Schema(name = "ImportWizard")
 public class ImportWizard {
 
-    @Schema(description = "Model name", hidden = true)
+    @Schema(description = "Model name")
     private String modelName;
 
     @Schema(description = "Uploaded file")
@@ -49,12 +49,18 @@ public class ImportWizard {
     @Schema(description = "Whether to continue importing next row data when encountering error.")
     private Boolean skipException;
 
+    @Schema(description = "Custom Handler")
+    private String customHandler;
+
+    @Schema(description = "Synchronous Import")
+    private Boolean syncImport;
+
     /**
      * Set the uploaded file and extract the file name.
      *
      * @param file the uploaded file
      */
-    private void setFile(MultipartFile file) {
+    public void setFile(MultipartFile file) {
         this.file = file;
         this.fileName = FileUtils.getShortFileName(file);
     }

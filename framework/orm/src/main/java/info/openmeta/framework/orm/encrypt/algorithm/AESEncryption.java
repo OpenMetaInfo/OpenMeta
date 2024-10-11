@@ -13,7 +13,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @Service
 public class AESEncryption implements Encryptor {
 
@@ -87,8 +86,8 @@ public class AESEncryption implements Encryptor {
         if (ciphertext == null || ciphertext.isEmpty()) {
             return ciphertext;
         }
-        byte[] encryptedIvTextBytes = null;
-        IvParameterSpec ivParameterSpec = null;
+        byte[] encryptedIvTextBytes;
+        IvParameterSpec ivParameterSpec;
         try {
             // Decode Base64 data
             encryptedIvTextBytes = Base64.getDecoder().decode(ciphertext);
@@ -123,7 +122,7 @@ public class AESEncryption implements Encryptor {
      * @return Index Map of the Base64-encoded decrypted data.
      */
     @Override
-    public Map<Integer, String> decrypt(Map<Integer, String> ciphertextIndexMap, String password) throws Exception {
+    public Map<Integer, String> decrypt(Map<Integer, String> ciphertextIndexMap, String password) {
         Map<Integer, String> plaintextIndexMap = new HashMap<>(ciphertextIndexMap.size());
         ciphertextIndexMap.forEach((index, ciphertext) -> {
             try {

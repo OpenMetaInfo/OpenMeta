@@ -163,7 +163,7 @@ public class FlowNodeServiceImpl extends EntityServiceImpl<FlowNode, Long> imple
      */
     private void executeLoopByDataset(FlowNode flowNode, ActionContext actionContext) {
         LoopByDatasetParams loopByDatasetParams = this.extractLoopByDatasetParams(flowNode);
-        Object dataSet = FlowUtils.extractVariable(loopByDatasetParams.getDataSetParam(), actionContext);
+        Object dataSet = StringTools.extractVariable(loopByDatasetParams.getDataSetParam(), actionContext.getEnv());
         if (dataSet instanceof Collection) {
             // Iterate over the collection object and execute the action list.
             List<Object> returnList = new ArrayList<>();

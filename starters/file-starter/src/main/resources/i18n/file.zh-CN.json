@@ -1,0 +1,34 @@
+[
+  {
+    "original": "Failed Data",
+    "translation": "失败数据"
+  },
+  {
+    "original": "Failed Reason",
+    "translation": "失败原因"
+  },
+  {
+    "original": "The field `{0}` is required",
+    "translation": "字段`{0}`是必填字段"
+  },
+  {
+    "original": "The Boolean field `{0}` is incorrect `{1}`",
+    "translation": "布尔字段`{0}`导入值`{1}`格式不正确"
+  },
+  {
+    "original": "The option field `{0}` does not exist item `{1}`",
+    "translation": "选项集字段`{0}`不存在选项 `{1}`"
+  },
+  {
+    "original": "The multi-option field `{0}` does not exist item `{1}`",
+    "translation": "多选字段`{0}`不存在选项 `{1}`"
+  },
+  {
+    "original": "The date field `{0}` is incorrect: `{1}`",
+    "translation": "日期字段`{0}`格式不正确：`{1}`"
+  },
+  {
+    "original": "The datetime field `{0}` is incorrect: `{1}`",
+    "translation": "日期时间字段`{0}`格式不正确：`{1}`"
+  }
+]

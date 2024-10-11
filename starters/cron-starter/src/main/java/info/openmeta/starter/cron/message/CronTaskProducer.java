@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CronTaskProducer {
 
-    @Value("${rocketmq.topics.cron-task}")
+    @Value("${rocketmq.topics.cron-task.topic}")
     private String cronTaskTopic;
 
     @Autowired

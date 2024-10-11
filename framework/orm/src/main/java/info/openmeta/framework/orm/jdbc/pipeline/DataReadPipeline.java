@@ -59,7 +59,7 @@ public class DataReadPipeline extends DataPipeline {
                 // Batch decryption processing before output the data
                 .addFactory(new EncryptProcessorFactory())
                 // Type conversion processing before calculation for List, MultiOption, Json, Filter fields.
-                .addFactory(new TypeCastProcessorFactory())
+                .addFactory(new TypeCastProcessorFactory(flexQuery))
                 // Calculation processing for non-storage computed fields, after the dynamic cascaded processing.
                 .addFactory(new ComputeProcessorFactory(accessType))
                 .addFactory(new ExpandProcessorFactory(flexQuery))

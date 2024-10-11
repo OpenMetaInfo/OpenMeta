@@ -1,6 +1,5 @@
-package info.openmeta.framework.orm.model;
+package info.openmeta.framework.orm.entity;
 
-import info.openmeta.framework.orm.entity.BaseModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,12 +7,11 @@ import lombok.EqualsAndHashCode;
 import java.io.Serial;
 
 /**
- * SysModelTrans Model
+ * Abstract class of translation model.
  */
 @Data
-@Schema(name = "SysModelTrans")
 @EqualsAndHashCode(callSuper = true)
-public class SysModelTrans extends BaseModel {
+public abstract class TranslationModel extends BaseModel {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -24,9 +22,4 @@ public class SysModelTrans extends BaseModel {
     @Schema(description = "Row ID")
     private Long rowId;
 
-    @Schema(description = "Label Name")
-    private String labelName;
-
-    @Schema(description = "Description")
-    private String description;
 }

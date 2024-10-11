@@ -40,7 +40,7 @@ public class DeptInfoController extends EntityController<DeptInfoService, DeptIn
     })
     @DataMask
     public ApiResponse<DeptInfo> readOne(@RequestParam Long id,
-                                         @RequestParam List<String> fields,
+                                         @RequestParam(required = false) List<String> fields,
                                          @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         return ApiResponse.success(deptInfoService.readOne(id, fields));

@@ -1,8 +1,6 @@
 package info.openmeta.framework.orm.meta;
 
 import info.openmeta.framework.orm.jdbc.JdbcService;
-import info.openmeta.framework.orm.model.SysFieldTrans;
-import info.openmeta.framework.orm.model.SysOptionItemTrans;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,11 +16,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class MetaTranslationCache {
+public class TranslationCache {
 
     /** Metadata translation cache: {languageCode: {id: TranslationObject}} */
-    private static final Map<String, Map<Long, SysFieldTrans>> FIELD_TRANS_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, Map<Long, SysOptionItemTrans>> OPTION_ITEM_TRANS_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Long, MetaFieldTrans>> FIELD_TRANS_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Long, MetaOptionItemTrans>> OPTION_ITEM_TRANS_CACHE = new ConcurrentHashMap<>();
 
     @Autowired
     private JdbcService<?> jdbcService;
@@ -33,17 +31,17 @@ public class MetaTranslationCache {
     public void init() {
         // Load field translations
         FIELD_TRANS_CACHE.clear();
-        List<SysFieldTrans> fieldTransList = jdbcService.selectMetaEntityList(SysFieldTrans.class, null);
-        Map<String, Map<Long, SysFieldTrans>> fieldTransMap = fieldTransList.stream()
-                .collect(Collectors.groupingBy(SysFieldTrans::getLanguageCode,
-                        Collectors.toMap(SysFieldTrans::getRowId, Function.identity())));
+        List<MetaFieldTrans> fieldTransList = jdbcService.selectMetaEntityList("SysFieldTrans", MetaFieldTrans.class, null);
+        Map<String, Map<Long, MetaFieldTrans>> fieldTransMap = fieldTransList.stream()
+                .collect(Collectors.groupingBy(MetaFieldTrans::getLanguageCode,
+                        Collectors.toMap(MetaFieldTrans::getRowId, Function.identity())));
         FIELD_TRANS_CACHE.putAll(fieldTransMap);
         // Load option item translations
         OPTION_ITEM_TRANS_CACHE.clear();
-        List<SysOptionItemTrans> optionTransList = jdbcService.selectMetaEntityList(SysOptionItemTrans.class, null);
-        Map<String, Map<Long, SysOptionItemTrans>> optionItemTransMap = optionTransList.stream()
-                .collect(Collectors.groupingBy(SysOptionItemTrans::getLanguageCode,
-                        Collectors.toMap(SysOptionItemTrans::getRowId, Function.identity())));
+        List<MetaOptionItemTrans> optionTransList = jdbcService.selectMetaEntityList("SysOptionItemTrans", MetaOptionItemTrans.class, null);
+        Map<String, Map<Long, MetaOptionItemTrans>> optionItemTransMap = optionTransList.stream()
+                .collect(Collectors.groupingBy(MetaOptionItemTrans::getLanguageCode,
+                        Collectors.toMap(MetaOptionItemTrans::getRowId, Function.identity())));
         OPTION_ITEM_TRANS_CACHE.putAll(optionItemTransMap);
     }
 
@@ -55,7 +53,7 @@ public class MetaTranslationCache {
      * @param id           row id
      * @return translation
      */
-    public static SysFieldTrans getFieldTrans(String languageCode, Long id) {
+    public static MetaFieldTrans getFieldTrans(String languageCode, Long id) {
         if (FIELD_TRANS_CACHE.containsKey(languageCode)) {
             return FIELD_TRANS_CACHE.get(languageCode).get(id);
         } else {
@@ -71,7 +69,7 @@ public class MetaTranslationCache {
      * @param id           row id
      * @return translation
      */
-    public static SysOptionItemTrans getOptionItemTrans(String languageCode, Long id) {
+    public static MetaOptionItemTrans getOptionItemTrans(String languageCode, Long id) {
         if (OPTION_ITEM_TRANS_CACHE.containsKey(languageCode)) {
             return OPTION_ITEM_TRANS_CACHE.get(languageCode).get(id);
         } else {

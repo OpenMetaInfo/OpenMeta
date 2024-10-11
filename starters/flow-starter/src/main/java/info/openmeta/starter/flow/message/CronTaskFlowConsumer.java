@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * Cron task consumer for Flow
  */
 @Component
-@RocketMQMessageListener(topic = "${rocketmq.topics.cron-task}", consumerGroup = "${rocketmq.topics.cron-task}" + "_flow")
+@RocketMQMessageListener(topic = "${rocketmq.topics.cron-task.topic}", consumerGroup = "${rocketmq.topics.cron-task.flow-group}")
 public class CronTaskFlowConsumer implements RocketMQListener<CronTaskMessage> {
 
     @Autowired

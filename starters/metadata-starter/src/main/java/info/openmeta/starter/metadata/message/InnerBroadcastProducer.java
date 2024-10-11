@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InnerBroadcastProducer {
 
-    @Value("${rocketmq.topics.inner-broadcast:}")
+    @Value("${rocketmq.topics.inner-broadcast.topic:}")
     private String innerBroadcastTopic;
 
     @Autowired
@@ -28,7 +28,7 @@ public class InnerBroadcastProducer {
      */
     public void sendInnerBroadcast(InnerBroadcastMessage message) {
         if (StringUtils.isBlank(innerBroadcastTopic)) {
-            log.warn("rocketmq.topics.inner-broadcast not configured!");
+            log.warn("rocketmq.topics.inner-broadcast.topic not configured!");
             return;
         }
         rocketMQTemplate.asyncSend(innerBroadcastTopic, message, new SendCallback() {

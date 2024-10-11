@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.ZoneId;
+import java.util.Optional;
 import java.util.TimeZone;
 
 /**
@@ -108,7 +109,10 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      */
     @Override
     public void setupUserContext(HttpServletRequest request, UserInfo userInfo) {
-        Context context = new Context(request.getHeader("traceId"));
+        String traceId = Optional.ofNullable(request.getHeader(BaseConstant.TRACE_ID))
+                .orElse(Optional.ofNullable(request.getHeader(BaseConstant.X_TRACE_ID))
+                        .orElse(request.getHeader(BaseConstant.X_B3_TRACEID)));
+        Context context = new Context(traceId);
         context.setUserId(userInfo.getId());
         context.setName(userInfo.getName());
         Language language = this.getCurrentLanguage(request, userInfo.getLanguage());

@@ -15,4 +15,11 @@ public class ImportFieldDTO {
 
     @Schema(description = "Required field")
     private Boolean required;
+
+    @Schema(description = "Default Value")
+    private Object defaultValue;
+
+    @Schema(hidden = true)
+    private Boolean ignoreEmpty;
+
 }

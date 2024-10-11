@@ -26,7 +26,7 @@ import java.util.List;
 @Component
 public class ChangeLogProducer {
 
-    @Value("${rocketmq.topics.change-log:}")
+    @Value("${rocketmq.topics.change-log.topic:}")
     private String changeLogTopic;
 
     /**
@@ -46,7 +46,7 @@ public class ChangeLogProducer {
         if (CollectionUtils.isEmpty(changeLogs)) {
             return;
         } else if (StringUtils.isBlank(changeLogTopic)) {
-            log.warn("rocketmq.topics.change-log not configured!");
+            log.warn("rocketmq.topics.change-log.topic not configured!");
             return;
         }
         Context clonedContext = ContextHolder.cloneContext();

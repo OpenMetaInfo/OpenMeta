@@ -7,6 +7,8 @@ import info.openmeta.framework.orm.jdbc.AutofillFields;
 import info.openmeta.framework.orm.jdbc.pipeline.chain.FieldProcessorChain;
 import info.openmeta.framework.orm.jdbc.pipeline.chain.FieldProcessorFactoryChain;
 import info.openmeta.framework.orm.jdbc.pipeline.factory.*;
+import info.openmeta.framework.orm.jdbc.pipeline.processor.IdProcessor;
+import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -43,10 +45,6 @@ public class DataCreatePipeline extends DataPipeline {
         super(modelName);
         this.fields = ModelManager.getModelUpdatableFields(modelName);
         this.addEffectedFields();
-        // If the IdStrategy is EXTERNAL_ID, add the ID field to the list of fields to be processed.
-        if (IdStrategy.EXTERNAL_ID.equals(ModelManager.getIdStrategy(modelName))) {
-            this.fields.add(ModelManager.getModelPrimaryKey(modelName));
-        }
         this.processorChain = buildFieldProcessorChain();
     }
 
@@ -89,6 +87,12 @@ public class DataCreatePipeline extends DataPipeline {
         // Extract the set of stored fields
         this.storedFields = fields.stream().filter(field -> ModelManager.isStored(modelName, field)).collect(Collectors.toSet());
         this.storedFields.addAll(ModelConstant.AUDIT_FIELDS);
+        // If the IdStrategy is not DB_AUTO_ID, add the ID field to the list of fields to be processed.
+        if (!IdStrategy.DB_AUTO_ID.equals(ModelManager.getIdStrategy(modelName))) {
+            MetaField pkField = ModelManager.getModelPrimaryKeyField(modelName);
+            new IdProcessor(pkField).batchProcessInputRows(rows, AccessType.CREATE);
+            this.storedFields.add(pkField.getFieldName());
+        }
         // Fill in the tenant field for multi-tenant models
         if (ModelManager.isMultiTenant(modelName)) {
             AutofillFields.fillTenantFieldForInsert(rows);

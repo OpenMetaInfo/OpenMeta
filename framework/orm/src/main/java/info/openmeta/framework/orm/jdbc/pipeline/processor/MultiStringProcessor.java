@@ -2,6 +2,8 @@ package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.orm.enums.ConvertType;
+import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,8 +16,11 @@ import java.util.Map;
  */
 public class MultiStringProcessor extends BaseProcessor {
 
-    public MultiStringProcessor(MetaField metaField) {
+    private final ConvertType convertType;
+
+    public MultiStringProcessor(MetaField metaField, ConvertType convertType) {
         super(metaField);
+        this.convertType = convertType;
     }
 
     /**
@@ -56,6 +61,8 @@ public class MultiStringProcessor extends BaseProcessor {
     @Override
     public void processOutputRow(Map<String, Object> row) {
         if (!row.containsKey(fieldName)) {
+            return;
+        } else if (ConvertType.DISPLAY.equals(convertType) && FieldType.MULTI_STRING.equals(metaField.getFieldType())) {
             return;
         }
         Object value = row.get(fieldName);

@@ -82,6 +82,12 @@ public abstract class DateUtils {
         return getZonedDateTimeNow(zoneId).getDayOfMonth();
     }
 
+    /**
+     * Get current hour with the specified zone.
+     */
+    public static long getCurrentSeconds(){
+        return Instant.now().getEpochSecond();
+    }
 
     /** Instant to LocalDate */
     public static LocalDate instantToLocalDate(Instant instant) {
@@ -252,5 +258,95 @@ public abstract class DateUtils {
     public static boolean between(LocalDate date,
                                   LocalDate startDate, LocalDate endDate) {
         return !startDate.isAfter(date) && !endDate.isBefore(date);
+    }
+
+    /**
+     * Pad zero for the value less than 10.
+     * @param value value
+     */
+    public static String padZero(int value) {
+        return value < 10 ? "0" + value : String.valueOf(value);
+    }
+
+    /**
+     * Complete the date string to the standard format: yyyy-MM-dd
+     * Compatible with the following date formats:
+     *    YYYY: 2024 -> 2024-01-01
+     *    YYYY-MM: 2024-09, 2024-9 -> 2024-09-01
+     *
+     * @param dateStr date string
+     * @return completed date string, null if the format is incorrect
+     */
+    public static String completeDate(String dateStr) {
+        if (TimeConstant.PATTERN_YYYY.matcher(dateStr).matches()) {
+            return dateStr + "-01-01";
+        } else if (TimeConstant.PATTERN_YYYY_MM.matcher(dateStr).matches()) {
+            String[] parts = dateStr.split("-");
+            return parts[0] + "-" + padZero(Integer.parseInt(parts[1])) + "-01";
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Format and validate the date string
+     * Compatible with the following date formats:
+     *    YYYY-MM-DD: 2024-09-15, 2024-9-5
+     *    YYYY/MM/DD
+     *    YYYY_MM_DD
+     *    YYYY.MM.DD
+     *    YYYYMMDD
+     *    YYYY: 2024 -> 2024-01-01
+     *    YYYY-MM: 2024-09, 2024-9 -> 2024-09-01
+     *
+     * @param dateStr date string
+     * @return formatted and validated date string, null if the format is incorrect
+     */
+    public static String formatAndValidateDate(String dateStr) {
+        dateStr = dateStr.replaceAll("[/_.]", "-");
+        if (dateStr.length() < 8) {
+            return completeDate(dateStr);
+        } else if (dateStr.length() == 8 && TimeConstant.PATTERN_SIMPLE_YYYYMMDD.matcher(dateStr).matches()) {
+            // Compatible with 20240915
+            return dateStr.substring(0, 4) + "-" + dateStr.substring(4, 6) + "-" + dateStr.substring(6);
+        } else if (TimeConstant.PATTERN_YYYY_MM_DD.matcher(dateStr).matches()) {
+            if (dateStr.length() == 10) {
+                return dateStr;
+            } else {
+                // Compatible with 2024-9-5
+                String[] parts = dateStr.split("-");
+                return parts[0] + "-" + padZero(Integer.parseInt(parts[1])) + "-" + padZero(Integer.parseInt(parts[2]));
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Format and validate the time string
+     * Compatible with the following time formats:
+     *    HH:MM:SS, 2:30:15, 23:59:59
+     *    HH:MM -> HH:MM:00, 2:30 -> 02:30:00
+     *
+     * @param timeStr time string
+     * @return formatted and validated time string, null if the format is incorrect
+     */
+    public static String formatAndValidateTime(String timeStr) {
+        if (TimeConstant.PATTERN_HH_MM.matcher(timeStr).matches()) {
+            if (timeStr.length() == 5) {
+                // Compatible with 12:30 -> 12:30:00
+                return timeStr + ":00";
+            } else {
+                // Compatible with 2:30 -> 02:30:00
+                return "0" + timeStr + ":00";
+            }
+        } else if (TimeConstant.PATTERN_HH_MM_SS.matcher(timeStr).matches()) {
+            if (timeStr.length() == 8) {
+                return timeStr;
+            } else {
+                // Compatible with 2:30:15 -> 02:30:15
+                return "0" + timeStr;
+            }
+        }
+        return null;
     }
 }

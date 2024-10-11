@@ -1,9 +1,10 @@
 package info.openmeta.starter.file.excel.handler;
 
 import info.openmeta.framework.base.constant.BaseConstant;
-import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.OptionManager;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
 
 /**
@@ -12,8 +13,8 @@ import org.springframework.util.StringUtils;
  */
 public class BooleanHandler extends BaseImportHandler {
 
-    public BooleanHandler(MetaField metaField) {
-        super(metaField);
+    public BooleanHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
+        super(metaField, importFieldDTO);
     }
 
     /**
@@ -31,7 +32,7 @@ public class BooleanHandler extends BaseImportHandler {
                 // Treat the boolean string as itemName
                 String optionItemCode = OptionManager.getItemCodeByName(optionSetCode, valueStr);
                 if (optionItemCode == null) {
-                    throw new IllegalArgumentException("The Boolean item is incorrect `{0}`", valueStr);
+                    throw new ValidationException("The Boolean field `{0}` is incorrect `{1}`", labelName, valueStr);
                 }
                 return Boolean.valueOf(optionItemCode);
             }

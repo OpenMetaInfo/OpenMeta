@@ -7,7 +7,6 @@ import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.service.ExportTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,9 +22,6 @@ import java.util.List;
 @RequestMapping("/ExportTemplate")
 public class ExportTemplateController extends EntityController<ExportTemplateService, ExportTemplate, Long> {
 
-    @Autowired
-    private ExportTemplateService exportTemplateService;
-
     /**
      * List all export templates of the specified model
      *
@@ -36,7 +32,7 @@ public class ExportTemplateController extends EntityController<ExportTemplateSer
     @PostMapping(value = "/listByModel")
     public ApiResponse<List<ExportTemplate>> listByModel(@RequestParam String modelName) {
         Filters filters = Filters.eq(ExportTemplate::getModelName, modelName);
-        List<ExportTemplate> templates = exportTemplateService.searchList(filters);
+        List<ExportTemplate> templates = service.searchList(filters);
         return ApiResponse.success(templates);
     }
 }

@@ -24,7 +24,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = "${rocketmq.topics.change-log}", consumerGroup = "${rocketmq.topics.change-log}" + "_persist")
+@RocketMQMessageListener(topic = "${rocketmq.topics.change-log.topic}", consumerGroup = "${rocketmq.topics.change-log.persist-group}")
 public class ChangeLogPersistConsumer implements RocketMQListener<ChangeLogMessage> {
 
     @Value("${spring.elasticsearch.index.changelog}")

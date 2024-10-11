@@ -1,6 +1,7 @@
 package info.openmeta.framework.base.utils;
 
 import info.openmeta.framework.base.constant.StringConstant;
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -224,6 +225,18 @@ public class StringTools {
     }
 
     /**
+     * Check whether the bean name is valid.
+     * Matching examples: myBean, MyBean, 123MyBean, my_bean, myBean123, my_bean_123, 123_my_bean
+     *
+     * @param name bean name
+     * @return true / false
+     */
+    public static boolean isBeanName(@NotNull String name) {
+        String pattern = "^[a-zA-Z0-9_-]+$";
+        return Pattern.matches(pattern, name);
+    }
+
+    /**
      * Check whether the field name is valid,
      * matching a string starting with a lowercase letter + at least one letter or number.
      * For example,
@@ -377,5 +390,37 @@ public class StringTools {
             parentIds.add(Long.parseLong(id));
         }
         return parentIds;
+    }
+
+
+    /**
+     * Extract the value of the variable parameter `#{}` from the input variable parameter.
+     *
+     * @param variableLabel Variable parameter label
+     * @param env the environment context
+     * @return Variable parameter value
+     */
+    public static Object extractVariable(String variableLabel, Map<String, Object> env) {
+        // Remove the string variable parameter placeholder `#{}`.
+        String variable = variableLabel.substring(2, variableLabel.length() - 1);
+        Assert.notBlank(variable, "Variable parameter {0} cannot be empty.", variable);
+        if (variable.contains(".")) {
+            // Cascade variable parameters, split into two variable parameters.
+            String[] variableNames = StringUtils.split(variable, ".", 2);
+            Assert.isTrue(env.containsKey(variableNames[0]),
+                    "Variable parameter {0} does not exist in the environment context!", variable);
+            Object value = env.get(variableNames[0]);
+            if (value instanceof Map) {
+                return ((Map<?, ?>) value).get(variableNames[1]);
+            } else {
+                throw new IllegalArgumentException(
+                        "The variable parameter {0} cannot retrieve its value from the environment context: {1}!",
+                        variable, value);
+            }
+        } else {
+            Assert.isTrue(env.containsKey(variable),
+                    "Variable parameter {0} does not exist in the environment context!", variable);
+            return env.get(variable);
+        }
     }
 }

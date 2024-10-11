@@ -1,8 +1,9 @@
 package info.openmeta.starter.file.excel.handler;
 
-import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.OptionManager;
+import info.openmeta.starter.file.dto.ImportFieldDTO;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -14,8 +15,8 @@ import java.util.List;
  */
 public class MultiOptionHandler extends BaseImportHandler {
 
-    public MultiOptionHandler(MetaField metaField) {
-        super(metaField);
+    public MultiOptionHandler(MetaField metaField, ImportFieldDTO importFieldDTO) {
+        super(metaField, importFieldDTO);
     }
 
     /**
@@ -35,7 +36,8 @@ public class MultiOptionHandler extends BaseImportHandler {
                     // Treat the option string as itemName
                     String optionItemCode = OptionManager.getItemCodeByName(optionSetCode, optionStr);
                     if (optionItemCode == null) {
-                        throw new IllegalArgumentException("The option item does not exist {0}", optionStr);
+                        throw new ValidationException("The multi-option field `{0}` does not exist item `{1}`",
+                                labelName, optionStr);
                     }
                     codeList.add(optionItemCode);
                 }

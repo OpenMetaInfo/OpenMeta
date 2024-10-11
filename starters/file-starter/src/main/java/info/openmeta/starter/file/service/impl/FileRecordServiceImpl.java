@@ -206,4 +206,17 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         return ossClientService.downloadStreamFromOSS(fileRecord.getOssKey(), fileRecord.getFileName());
     }
 
+
+    /**
+     * Get the FileInfo object by fileId
+     *
+     * @param fileId the ID of the file
+     * @return fileInfo object with download URL
+     */
+    @Override
+    public FileInfo getFileInfo(Long fileId) {
+        FileRecord fileRecord = this.readOne(fileId);
+        Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
+        return convertToFileInfo(fileRecord);
+    }
 }

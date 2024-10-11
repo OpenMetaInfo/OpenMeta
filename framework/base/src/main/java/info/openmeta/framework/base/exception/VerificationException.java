@@ -6,19 +6,19 @@ import lombok.EqualsAndHashCode;
 import org.slf4j.event.Level;
 
 /**
- * Verify exception, such as sms code, email code, etc.
+ * Verification exception, such as sms code, email code, etc.
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class VerifyException extends BaseException {
+public class VerificationException extends BaseException {
 
     private Level logLevel = Level.WARN;
-    private ResponseCode responseCode = ResponseCode.VERIFY_EXCEPTION;
+    private ResponseCode responseCode = ResponseCode.VERIFICATION_EXCEPTION;
 
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public VerifyException(String message, Object... args){
+    public VerificationException(String message, Object... args){
         super(message, args);
     }
 }
