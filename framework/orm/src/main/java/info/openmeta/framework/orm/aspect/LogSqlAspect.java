@@ -9,6 +9,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,11 +31,15 @@ public class LogSqlAspect {
             // Get method arguments
             Object[] methodArgs = joinPoint.getArgs();
             StringBuilder sb = logSql(methodArgs);
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             try {
                 Object result = joinPoint.proceed();
                 appendResult(sb, result);
                 return result;
             } finally {
+                stopWatch.stop();
+                sb.append("\nTime: ").append(stopWatch.getTotalTimeMillis()).append(" ms");
                 // Log SQL even if an exception occurs, no execution result when an exception occurs
                 log.warn(sb.toString());
             }
