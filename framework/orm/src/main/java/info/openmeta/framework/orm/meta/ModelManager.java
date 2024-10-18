@@ -472,9 +472,9 @@ public class ModelManager {
      * @param modelName model name
      * @return MetaField object collection
      */
-    public static Collection<MetaField> getModelFields(String modelName){
+    public static List<MetaField> getModelFields(String modelName){
         validateModel(modelName);
-        return MODEL_FIELDS.get(modelName).values();
+        return List.copyOf(MODEL_FIELDS.get(modelName).values());
     }
 
     /**
