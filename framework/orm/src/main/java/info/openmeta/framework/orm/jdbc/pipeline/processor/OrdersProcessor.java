@@ -13,8 +13,8 @@ import java.util.Map;
  */
 public class OrdersProcessor extends BaseProcessor {
 
-    public OrdersProcessor(MetaField metaField) {
-        super(metaField);
+    public OrdersProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
@@ -31,10 +31,9 @@ public class OrdersProcessor extends BaseProcessor {
      * Convert the Orders object to a string and store it in the database.
      *
      * @param row Single-row data to be created/updated
-     * @param accessType Access type
      */
     @Override
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         Object value = row.get(fieldName);
         if (value instanceof Orders) {

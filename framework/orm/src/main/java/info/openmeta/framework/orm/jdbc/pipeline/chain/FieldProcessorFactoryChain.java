@@ -1,6 +1,7 @@
 package info.openmeta.framework.orm.jdbc.pipeline.chain;
 
 import info.openmeta.framework.base.constant.BaseConstant;
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.jdbc.pipeline.factory.FieldProcessorFactory;
 import info.openmeta.framework.orm.jdbc.pipeline.factory.XToOneGroupProcessorFactory;
@@ -20,10 +21,12 @@ import java.util.Set;
  */
 public class FieldProcessorFactoryChain {
     private final String modelName;
+    private final AccessType accessType;
     private final List<FieldProcessorFactory> processorFactories = new ArrayList<>();
 
-    private FieldProcessorFactoryChain(String modelName) {
+    private FieldProcessorFactoryChain(String modelName, AccessType accessType) {
         this.modelName = modelName;
+        this.accessType = accessType;
     }
 
     /**
@@ -32,8 +35,8 @@ public class FieldProcessorFactoryChain {
      * @param modelName model name
      * @return factory chain
      */
-    public static FieldProcessorFactoryChain of(String modelName) {
-        return new FieldProcessorFactoryChain(modelName);
+    public static FieldProcessorFactoryChain of(String modelName, AccessType accessType) {
+        return new FieldProcessorFactoryChain(modelName, accessType);
     }
 
     public FieldProcessorFactoryChain addFactory(FieldProcessorFactory processorFactory) {
@@ -56,10 +59,10 @@ public class FieldProcessorFactoryChain {
                 // TODO: Need to use other solutions to replace this.
                 if (field.contains(".") && processorFactory instanceof XToOneGroupProcessorFactory) {
                     MetaField metaField = this.createCustomCascadedField(field);
-                    fieldProcessorChain.addProcessor(processorFactory.createProcessor(metaField));
+                    fieldProcessorChain.addProcessor(processorFactory.createProcessor(metaField, accessType));
                 } else if (!field.contains(".")){
                     MetaField metaField = ModelManager.getModelField(modelName, field);
-                    fieldProcessorChain.addProcessor(processorFactory.createProcessor(metaField));
+                    fieldProcessorChain.addProcessor(processorFactory.createProcessor(metaField, accessType));
                 }
             }
         }

@@ -2,6 +2,7 @@ package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
 import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.context.ContextHolder;
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.orm.enums.MaskingType;
 import info.openmeta.framework.orm.meta.MetaField;
 import org.apache.commons.lang3.StringUtils;
@@ -18,9 +19,10 @@ public class MaskingProcessor extends StringProcessor {
      * Field processor object constructor
      *
      * @param metaField field metadata object
+     * @param accessType access type
      */
-    public MaskingProcessor(MetaField metaField) {
-        super(metaField);
+    public MaskingProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**

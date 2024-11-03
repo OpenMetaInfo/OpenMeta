@@ -139,7 +139,7 @@ public class ChangeLogController {
     @Operation(description = """
             Return paginated data based on the specified filters, sorting conditions, page number, page size.
             If not provided, using the backend default values.""")
-    @PostMapping(value = "/searchPageOfModel")
+    @PostMapping(value = "/searchPageByModel")
     @Parameter(name = "modelName", description = "Model name")
     @RequireRole(SystemRole.SYSTEM_ROLE_ADMIN)
     public ApiResponse<Page<ChangeLog>> searchPageByModel(@RequestParam String modelName, @RequestBody QueryParams queryParams) {
@@ -157,9 +157,9 @@ public class ChangeLogController {
     @Operation(description = """
             Return paginated data based on the specified filters, sorting conditions, page number, page size.
             If not provided, using the backend default values.""")
-    @PostMapping(value = "/searchPage")
+    @PostMapping(value = "/searchChangeLogPage")
     @RequireRole(SystemRole.SYSTEM_ROLE_ADMIN)
-    public ApiResponse<Page<ChangeLog>> searchPage(@RequestBody QueryParams queryParams) {
+    public ApiResponse<Page<ChangeLog>> searchChangeLogPage(@RequestBody QueryParams queryParams) {
         Page<ChangeLog> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
         return ApiResponse.success(changeLogService.searchPage(queryParams.getFilters(), queryParams.getOrders(), page, true));
     }

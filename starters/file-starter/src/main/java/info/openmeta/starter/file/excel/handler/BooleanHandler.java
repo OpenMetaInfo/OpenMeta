@@ -25,7 +25,7 @@ public class BooleanHandler extends BaseImportHandler {
     public Object handleValue(Object value) {
         if (value instanceof String valueStr && StringUtils.hasText(valueStr)) {
             valueStr = valueStr.trim().toLowerCase();
-            String optionSetCode = BaseConstant.BOOLEAN_OPTION_CODE;
+            String optionSetCode = BaseConstant.BOOLEAN_OPTION_SET_CODE;
             if (OptionManager.existsItemCode(optionSetCode, valueStr)) {
                 return Boolean.valueOf(valueStr);
             } else {

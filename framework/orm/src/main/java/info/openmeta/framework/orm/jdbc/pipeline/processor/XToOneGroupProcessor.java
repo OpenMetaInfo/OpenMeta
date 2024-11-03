@@ -13,6 +13,7 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
+import info.openmeta.framework.orm.vo.ModelReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -43,9 +44,11 @@ public class XToOneGroupProcessor extends BaseProcessor {
      * Constructor of the ManyToOne/OneToOne group processor.
      *
      * @param metaField xToOne field metadata object
+     * @param accessType Access type
+     * @param flexQuery flexQuery object
      */
-    public XToOneGroupProcessor(MetaField metaField, FlexQuery flexQuery) {
-        super(metaField);
+    public XToOneGroupProcessor(MetaField metaField, AccessType accessType, FlexQuery flexQuery) {
+        super(metaField, accessType);
         this.flexQuery = flexQuery;
         // For ManyToOne/OneToOne fields, get the displayName of the related model.
         this.expandFields.addAll(ModelManager.getFieldDisplayName(metaField));
@@ -77,16 +80,15 @@ public class XToOneGroupProcessor extends BaseProcessor {
      * Batch process the input data of the cascaded fields and ManyToOne/OneToOne fields.
      *
      * @param rows Data collection
-     * @param accessType Access type
      */
-    public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
+    public void batchProcessInputRows(List<Map<String, Object>> rows) {
         if (!cascadedFields.isEmpty()) {
             Map<Serializable, Map<String, Object>> relatedRowMap = getRelatedModelRowMap(rows);
             // Calculate the stored cascaded field first.
             cascadedFields.forEach(field -> batchProcessOutputRowsCascaded(field, rows, relatedRowMap));
         }
-        XToOneProcessor xToOneField = new XToOneProcessor(metaField);
-        xToOneField.batchProcessInputRows(rows, accessType);
+        XToOneProcessor xToOneField = new XToOneProcessor(metaField, accessType);
+        xToOneField.batchProcessInputRows(rows);
     }
 
     /**
@@ -106,7 +108,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
             Map<Serializable, Map<String, Object>> relatedRowMap = getRelatedModelRowMap(rows);
             // Before expand the ManyToOne/OneToOne field, calculate the dynamic cascaded field first.
             cascadedFields.forEach(sf -> batchProcessOutputRowsCascaded(sf, rows, relatedRowMap));
-            XToOneProcessor xToOneField = new XToOneProcessor(metaField, flexQuery);
+            XToOneProcessor xToOneField = new XToOneProcessor(metaField, accessType, flexQuery);
             // Expand the ManyToOne/OneToOne field with displayName, or related model row according to subQuery.
             xToOneField.batchProcessOutputRows(rows, relatedRowMap);
         }
@@ -191,7 +193,8 @@ public class XToOneGroupProcessor extends BaseProcessor {
                 List<Object> displayValues = displayFields.stream().map(relatedRow::get).filter(n -> n != null && n != "").collect(Collectors.toList());
                 String displayName = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
                 Serializable relatedId = (Serializable) row.get(xToOneFieldName);
-                Object value = ConvertType.KEY_AND_DISPLAY.equals(flexQuery.getConvertType()) ? Arrays.asList(relatedId, displayName) : displayName;
+                Object value = ConvertType.REFERENCE.equals(flexQuery.getConvertType()) ?
+                        ModelReference.of(relatedId, displayName) : displayName;
                 row.put(xToOneFieldName, value);
             }
             // After expanding the ManyToOne/OneToOne field, remove the `.` separator flag field specified in the `displayName` fields

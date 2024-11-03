@@ -26,19 +26,19 @@ public class ComputedProcessor extends BaseProcessor {
      * Field processor object constructor
      *
      * @param metaField field metadata object
+     * @param accessType access type
      */
-    public ComputedProcessor(MetaField metaField) {
-        super(metaField);
+    public ComputedProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
      * Execute the calculation of the computed field for the input row.
      *
      * @param row      Single-row data to be created/updated
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
     @Override
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         executeCompute(row);
     }
 

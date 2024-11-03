@@ -29,7 +29,7 @@ public class SysViewController extends EntityController<SysViewService, SysView,
      * @param modelViewVO model name and view ID
      * @return Boolean
      */
-    @Operation(summary = "Set default view", description =
+    @Operation(summary = "setDefaultView", description =
             "Set the current user's default view based on the model name and view ID: {\"modelName\": \"Employee\", \"viewId\": 1}")
     @PostMapping(value = "/setDefaultView")
     @SkipPermissionCheck
@@ -42,7 +42,7 @@ public class SysViewController extends EntityController<SysViewService, SysView,
      * @param modelName Model name
      * @return List of views
      */
-    @Operation(summary = "Get model view list", description =
+    @Operation(summary = "getModelViews", description =
             "Get the list of views visible to the current user based on the model name. [Public views, personal views] and sorted by sequence.")
     @GetMapping(value = "/getModelViews", params = {"modelName"})
     @Parameters({

@@ -127,7 +127,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         SqlParams sqlParams = StaticSqlBuilder.getSelectSql(modelName, fields, ids);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
-        if (!ConvertType.NONE.equals(convertType)) {
+        if (!ConvertType.ORIGINAL.equals(convertType)) {
             FlexQuery flexQuery = new FlexQuery(fields);
             flexQuery.setConvertType(convertType);
             DataReadPipeline dataPipeline = new DataReadPipeline(modelName, flexQuery);
@@ -155,7 +155,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         if (CollectionUtils.isEmpty(rows)) {
             return Collections.emptyList();
         }
-        if (!ConvertType.NONE.equals(flexQuery.getConvertType())) {
+        if (!ConvertType.ORIGINAL.equals(flexQuery.getConvertType())) {
             DataReadPipeline dataPipeline = new DataReadPipeline(modelName, flexQuery);
             dataPipeline.processReadData(rows);
         }
@@ -210,7 +210,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         SqlParams sqlParams = SqlBuilderFactory.buildPageSql(modelName, flexQuery, page);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
-        if (!ConvertType.NONE.equals(flexQuery.getConvertType())) {
+        if (!ConvertType.ORIGINAL.equals(flexQuery.getConvertType())) {
             DataReadPipeline dataPipeline = new DataReadPipeline(modelName, flexQuery);
             dataPipeline.processReadData(rows);
         }
@@ -286,7 +286,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         String primaryKey = ModelManager.getModelPrimaryKey(modelName);
         List<K> pKeys = Cast.of(rows.stream().map(row -> row.get(primaryKey)).collect(Collectors.toList()));
         List<String> readFields = new ArrayList<>(differFields);
-        List<Map<String, Object>> originalRows = this.selectByIds(modelName, pKeys, readFields, ConvertType.NONE);
+        List<Map<String, Object>> originalRows = this.selectByIds(modelName, pKeys, readFields, ConvertType.ORIGINAL);
         // Get the original data map with the primary key as the key
         return originalRows.stream().collect(Collectors.toMap(map -> (Serializable) map.get(primaryKey), Function.identity()));
     }
@@ -301,7 +301,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     public boolean deleteBySliceId(String modelName, Serializable sliceId) {
         // Get the original data before deletion for collecting changeLogs
         FlexQuery flexQuery = new FlexQuery(Filters.eq(ModelConstant.SLICE_ID, sliceId)).acrossTimelineData();
-        flexQuery.setConvertType(ConvertType.NONE);
+        flexQuery.setConvertType(ConvertType.ORIGINAL);
         List<Map<String, Object>> originalRows = this.selectByFilter(modelName, flexQuery);
         // Physical deletion of timeline slice
         SqlParams sqlParams = StaticSqlBuilder.getDeleteTimelineSliceSql(modelName, sliceId);

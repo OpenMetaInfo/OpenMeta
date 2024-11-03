@@ -18,8 +18,8 @@ public class MultiStringProcessor extends BaseProcessor {
 
     private final ConvertType convertType;
 
-    public MultiStringProcessor(MetaField metaField, ConvertType convertType) {
-        super(metaField);
+    public MultiStringProcessor(MetaField metaField, AccessType accessType, ConvertType convertType) {
+        super(metaField, accessType);
         this.convertType = convertType;
     }
 
@@ -37,10 +37,9 @@ public class MultiStringProcessor extends BaseProcessor {
      * Convert the multiple value to a string for storage.
      *
      * @param row Single-row data to be updated
-     * @param accessType Access type
      */
     @Override
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         Object value = row.get(fieldName);
         if (value instanceof List) {
@@ -54,7 +53,7 @@ public class MultiStringProcessor extends BaseProcessor {
     }
 
     /**
-     * Convert the string value of MultiString or MultiOption field to a list.
+     * Convert the string value of MultiString field to a list.
      *
      * @param row Single-row output data
      */

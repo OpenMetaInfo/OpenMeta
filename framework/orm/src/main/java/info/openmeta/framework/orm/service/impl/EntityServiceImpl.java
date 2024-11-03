@@ -72,7 +72,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public T createOneAndReturn(T object) {
         Map<String, Object> rowMap = BeanTool.objectToMap(object);
-        Map<String, Object> result = modelService.createOneAndReturn(modelName, rowMap, ConvertType.DEFAULT);
+        Map<String, Object> result = modelService.createOneAndReturn(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
@@ -97,7 +97,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public List<T> createListAndReturn(List<T> objects) {
         List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects);
-        List<Map<String, Object>> results = modelService.createListAndReturn(modelName, rows, ConvertType.DEFAULT);
+        List<Map<String, Object>> results = modelService.createListAndReturn(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
@@ -190,7 +190,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public T updateOneAndReturn(T object) {
         Map<String, Object> rowMap = BeanTool.objectToMap(object, false);
-        Map<String, Object> result = modelService.updateOneAndReturn(modelName, rowMap, ConvertType.DEFAULT);
+        Map<String, Object> result = modelService.updateOneAndReturn(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
@@ -205,7 +205,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public T updateOneAndReturn(T object, boolean ignoreNull) {
         Map<String, Object> rowMap = BeanTool.objectToMap(object, ignoreNull);
-        Map<String, Object> result = modelService.updateOneAndReturn(modelName, rowMap, ConvertType.DEFAULT);
+        Map<String, Object> result = modelService.updateOneAndReturn(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
@@ -244,7 +244,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public List<T> updateListAndReturn(List<T> objects) {
         List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, false);
-        List<Map<String, Object>> results = modelService.updateListAndReturn(modelName, rows, ConvertType.DEFAULT);
+        List<Map<String, Object>> results = modelService.updateListAndReturn(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
@@ -259,7 +259,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public List<T> updateListAndReturn(List<T> objects, boolean ignoreNull) {
         List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, ignoreNull);
-        List<Map<String, Object>> results = modelService.updateListAndReturn(modelName, rows, ConvertType.DEFAULT);
+        List<Map<String, Object>> results = modelService.updateListAndReturn(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 

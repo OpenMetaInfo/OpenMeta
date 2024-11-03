@@ -1,8 +1,9 @@
 package info.openmeta.framework.orm.jdbc.pipeline.factory;
 
+import info.openmeta.framework.base.enums.AccessType;
+import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.*;
 import info.openmeta.framework.orm.meta.MetaField;
-import info.openmeta.framework.orm.enums.FieldType;
 
 /**
  * Normal field processor factory.
@@ -14,24 +15,26 @@ public class NormalProcessorFactory implements FieldProcessorFactory {
      * Create a field processor according to the field metadata.
      *
      * @param metaField field metadata object
+     * @param accessType access type
+     * @return field processor
      */
     @Override
-    public FieldProcessor createProcessor(MetaField metaField) {
+    public FieldProcessor createProcessor(MetaField metaField, AccessType accessType) {
         FieldType fieldType = metaField.getFieldType();
         if (FieldType.STRING.equals(fieldType)) {
-            return new StringProcessor(metaField);
+            return new StringProcessor(metaField, accessType);
         } else if (FieldType.BOOLEAN.equals(fieldType)) {
-            return new BooleanProcessor(metaField);
+            return new BooleanProcessor(metaField, accessType);
         } else if (FieldType.OPTION.equals(fieldType)) {
             // In normal processing, OPTION field is processed as a string with default values,
-            // and the `OptionProcessor` processor is used for expand cases.
-            return new StringProcessor(metaField);
+            // and the `OptionExpandProcessor` processor is used for expand cases.
+            return new StringProcessor(metaField, accessType);
         } else if (FieldType.NUMERIC_TYPES.contains(fieldType)) {
-            return new NumericProcessor(metaField);
+            return new NumericProcessor(metaField, accessType);
         } else if (FieldType.DATE.equals(fieldType)) {
-            return new DateProcessor(metaField);
+            return new DateProcessor(metaField, accessType);
         } else if (FieldType.DATE_TIME.equals(fieldType)) {
-            return new DateTimeProcessor(metaField);
+            return new DateTimeProcessor(metaField, accessType);
         }
         return null;
     }

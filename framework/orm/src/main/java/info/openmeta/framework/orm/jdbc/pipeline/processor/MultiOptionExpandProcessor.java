@@ -1,5 +1,6 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.base.utils.Cast;
@@ -14,16 +15,17 @@ import java.util.stream.Collectors;
  * When READ data, the String is converted to List<String> firstly, and after the computed field is executed,
  * the option list is expanded according to the config of `flexQuery.convertType`.
  */
-public class MultiOptionProcessor extends OptionProcessor {
+public class MultiOptionExpandProcessor extends OptionExpandProcessor {
 
     /**
-     * Constructor of MultiOptionProcessor, for processing output data.
+     * Constructor of MultiOptionExpandProcessor, for processing output data.
      *
      * @param metaField Field metadata object
+     * @param accessType Access type
      * @param convertType Convert type
      */
-    public MultiOptionProcessor(MetaField metaField, ConvertType convertType) {
-        super(metaField, convertType);
+    public MultiOptionExpandProcessor(MetaField metaField, AccessType accessType, ConvertType convertType) {
+        super(metaField, accessType, convertType);
     }
 
     /**

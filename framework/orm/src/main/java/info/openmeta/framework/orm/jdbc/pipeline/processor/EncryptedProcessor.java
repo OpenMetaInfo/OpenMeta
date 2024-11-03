@@ -14,27 +14,24 @@ import java.util.Map;
  */
 public class EncryptedProcessor extends StringProcessor {
 
-    public EncryptedProcessor(MetaField metaField) {
-        super(metaField);
+    public EncryptedProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
      * Batch encryption of encrypted fields for input rows.
      *
      * @param rows      List of rows to be processed
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
     @Override
-    public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
+    public void batchProcessInputRows(List<Map<String, Object>> rows) {
         // Extract the plaintext dictionary:
         // index-plaintext structure, used for batch encryption, ignoring null values and empty strings
         Map<Integer, String> plaintextMap = ListUtils.extractValueIndexMap(rows, fieldName);
         if (!CollectionUtils.isEmpty(plaintextMap)) {
             // Batch encryption and replacement of plaintext
             Map<Integer, String> ciphertextMap = EncryptUtils.encrypt(plaintextMap);
-            ciphertextMap.forEach((index, encryptedValue) -> {
-                rows.get(index).put(fieldName, encryptedValue);
-            });
+            ciphertextMap.forEach((index, encryptedValue) -> rows.get(index).put(fieldName, encryptedValue));
         }
     }
 
@@ -50,9 +47,7 @@ public class EncryptedProcessor extends StringProcessor {
         if (!CollectionUtils.isEmpty(ciphertextMap)) {
             // Batch decryption and replacement of ciphertext
             Map<Integer, String> plaintextMap = EncryptUtils.decrypt(ciphertextMap);
-            plaintextMap.forEach((index, plaintext) -> {
-                rows.get(index).put(fieldName, plaintext);
-            });
+            plaintextMap.forEach((index, plaintext) -> rows.get(index).put(fieldName, plaintext));
         }
     }
 

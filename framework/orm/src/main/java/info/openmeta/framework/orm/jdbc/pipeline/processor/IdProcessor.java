@@ -20,8 +20,8 @@ import java.util.function.Supplier;
  */
 public class IdProcessor extends BaseProcessor {
 
-    public IdProcessor(MetaField metaField) {
-        super(metaField);
+    public IdProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
@@ -82,7 +82,7 @@ public class IdProcessor extends BaseProcessor {
     }
 
     @Override
-    public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
+    public void batchProcessInputRows(List<Map<String, Object>> rows) {
         if (AccessType.CREATE.equals(accessType)) {
             this.processIdByIdStrategy(rows);
         }

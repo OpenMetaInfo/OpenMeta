@@ -34,7 +34,7 @@ public class MetadataController {
      * @param metadataPackages the metadata packages to upgrade
      * @return Success or not
      */
-    @Operation(summary = "Metadata Upgrade API")
+    @Operation(summary = "upgrade")
     @PostMapping("/upgrade")
     @SwitchUser(value = SystemUser.INTEGRATION_USER)
     public ApiResponse<Boolean> releasePackage(@RequestBody List<MetadataUpgradePackage> metadataPackages) {
@@ -48,7 +48,7 @@ public class MetadataController {
      * The current replica will be unavailable if an exception occurs during the reload,
      * and the metadata needs to be fixed and reloaded.
      */
-    @Operation(summary = "Reload metadata")
+    @Operation(summary = "reload")
     @PostMapping("/reload")
     public ApiResponse<Boolean> reloadModelManager() {
         metadataService.reloadMetadata();

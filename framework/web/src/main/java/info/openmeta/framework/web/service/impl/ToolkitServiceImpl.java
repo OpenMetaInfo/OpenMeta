@@ -102,7 +102,7 @@ public class ToolkitServiceImpl implements ToolkitService {
         readFields.add(fieldName);
         FlexQuery flexQuery = new FlexQuery(readFields).acrossTimelineData();
         // Get the original data from database without expansion or conversion.
-        flexQuery.setConvertType(ConvertType.NONE);
+        flexQuery.setConvertType(ConvertType.ORIGINAL);
         Page<Map<String, Object>> page = Page.ofCursorPage(BaseConstant.DEFAULT_BATCH_SIZE);
         // Paginate requests for data and process each page
         do {

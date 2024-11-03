@@ -17,6 +17,7 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
+import info.openmeta.framework.orm.vo.ModelReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -40,8 +41,8 @@ public class OneToManyProcessor extends BaseProcessor {
      * @param metaField Field metadata object
      * @param flexQuery flexQuery object
      */
-    public OneToManyProcessor(MetaField metaField, FlexQuery flexQuery) {
-        super(metaField);
+    public OneToManyProcessor(MetaField metaField, AccessType accessType, FlexQuery flexQuery) {
+        super(metaField, accessType);
         this.flexQuery = flexQuery;
         if (flexQuery != null) {
             this.subQuery = flexQuery.extractSubQuery(metaField.getFieldName());
@@ -52,10 +53,9 @@ public class OneToManyProcessor extends BaseProcessor {
      * Batch processing of OneToMany input data
      *
      * @param rows Data list
-     * @param accessType Access type, such as CREATE, UPDATE
      */
     @Override
-    public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
+    public void batchProcessInputRows(List<Map<String, Object>> rows) {
         if (AccessType.CREATE.equals(accessType)) {
             createWithRelatedRows(rows);
         } else if (AccessType.UPDATE.equals(accessType)) {
@@ -224,8 +224,11 @@ public class OneToManyProcessor extends BaseProcessor {
         String displayName = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
         if (ConvertType.DISPLAY.equals(flexQuery.getConvertType())) {
             subRows.forEach(r -> r.put(metaField.getRelatedField(), displayName));
-        } else if (ConvertType.KEY_AND_DISPLAY.equals(flexQuery.getConvertType())){
-            subRows.forEach(r -> r.put(metaField.getRelatedField(), Arrays.asList(r.get(metaField.getRelatedField()), displayName)));
+        } else if (ConvertType.REFERENCE.equals(flexQuery.getConvertType())){
+            subRows.forEach(r -> {
+                Serializable id = (Serializable) r.get(metaField.getRelatedField());
+                r.put(metaField.getRelatedField(), ModelReference.of(id, displayName));
+            });
         }
     }
 

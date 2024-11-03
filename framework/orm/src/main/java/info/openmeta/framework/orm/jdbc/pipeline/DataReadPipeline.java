@@ -3,6 +3,7 @@ package info.openmeta.framework.orm.jdbc.pipeline;
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.FlexQuery;
+import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.jdbc.pipeline.chain.FieldProcessorFactoryChain;
 import info.openmeta.framework.orm.jdbc.pipeline.factory.*;
 import info.openmeta.framework.orm.jdbc.pipeline.chain.FieldProcessorChain;
@@ -53,16 +54,18 @@ public class DataReadPipeline extends DataPipeline {
      */
     @Override
     public FieldProcessorChain buildFieldProcessorChain() {
-        FieldProcessorFactoryChain factoryChain = FieldProcessorFactoryChain.of(modelName)
+        ConvertType convertType = flexQuery.getConvertType();
+        FieldProcessorFactoryChain factoryChain = FieldProcessorFactoryChain.of(modelName, accessType)
                 .addFactory(new XToOneGroupProcessorFactory(flexQuery))
                 .addFactory(new NormalProcessorFactory())
                 // Batch decryption processing before output the data
                 .addFactory(new EncryptProcessorFactory())
                 // Type conversion processing before calculation for List, MultiOption, Json, Filter fields.
-                .addFactory(new TypeCastProcessorFactory(flexQuery))
+                .addFactory(new TypeCastProcessorFactory(convertType))
                 // Calculation processing for non-storage computed fields, after the dynamic cascaded processing.
-                .addFactory(new ComputeProcessorFactory(accessType))
-                .addFactory(new ExpandProcessorFactory(flexQuery))
+                .addFactory(new ComputeProcessorFactory())
+                // Expand processing for Boolean fields, after the processing of computed fields and cascaded fields.
+                .addFactory(new ExpandProcessorFactory(convertType))
                 .addFactory(new MaskingProcessorFactory())
                 .addFactory(new XToManyProcessorFactory(flexQuery));
         return factoryChain.generateProcessorChain(fields);

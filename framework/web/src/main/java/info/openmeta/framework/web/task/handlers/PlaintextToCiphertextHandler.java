@@ -84,7 +84,7 @@ public class PlaintextToCiphertextHandler implements AsyncTaskHandler<PlaintextT
         Filters filters = Filters.in(ID, taskParams.getIds());
         FlexQuery flexQuery = new FlexQuery(readFields, filters).acrossTimelineData();
         // Get the original value from the database.
-        flexQuery.setConvertType(ConvertType.NONE);
+        flexQuery.setConvertType(ConvertType.ORIGINAL);
         List<Map<String, Object>> rows = modelService.searchList(taskParams.getModel(), flexQuery);
         taskParams.getFields().forEach(field -> {
             List<Map<String, Object>> plaintextRows = this.getPlaintextRows(field, rows);

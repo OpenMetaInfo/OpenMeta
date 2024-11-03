@@ -19,18 +19,18 @@ public class DateProcessor extends BaseProcessor {
      * Field processor object constructor
      *
      * @param metaField field metadata object
+     * @param accessType access type
      */
-    public DateProcessor(MetaField metaField) {
-        super(metaField);
+    public DateProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
      * Single-row data formatting processing.
      *
      * @param row Single-row data to be created/updated
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);

@@ -73,10 +73,10 @@ public class DataUpdatePipeline extends DataPipeline {
      */
     @Override
     public FieldProcessorChain buildFieldProcessorChain() {
-        FieldProcessorFactoryChain factoryChain = FieldProcessorFactoryChain.of(modelName)
-                .addFactory(new XToOneGroupProcessorFactory(accessType))
+        FieldProcessorFactoryChain factoryChain = FieldProcessorFactoryChain.of(modelName, accessType)
+                .addFactory(new XToOneGroupProcessorFactory())
                 .addFactory(new NormalProcessorFactory())
-                .addFactory(new ComputeProcessorFactory(accessType))
+                .addFactory(new ComputeProcessorFactory())
                 .addFactory(new TypeCastProcessorFactory())
                 .addFactory(new EncryptProcessorFactory());
         return factoryChain.generateProcessorChain(fields);
@@ -94,7 +94,7 @@ public class DataUpdatePipeline extends DataPipeline {
     @Override
     public List<Map<String, Object>> processUpdateData(List<Map<String, Object>> rows, Map<Serializable, Map<String, Object>> originalRowsMap, LocalDateTime updatedTime) {
         List<Map<String, Object>> mergedRows = mergeToOriginalData(rows, originalRowsMap);
-        processorChain.processInputRows(mergedRows, accessType);
+        processorChain.processInputRows(mergedRows);
         // TODO: Compare the encrypted fields using plaintext to be compatible with different encryption algorithms,
         //  to avoid the situation where the plaintext is the same but the ciphertext is different.
         List<Map<String, Object>> differRows = differFromPrevious(modelName, primaryKey, this.differFields, mergedRows, originalRowsMap);
@@ -110,9 +110,9 @@ public class DataUpdatePipeline extends DataPipeline {
      */
     @Override
     public void processXToManyData(List<Map<String, Object>> rows) {
-        FieldProcessorFactoryChain xToManyFactoryChain = FieldProcessorFactoryChain.of(modelName)
+        FieldProcessorFactoryChain xToManyFactoryChain = FieldProcessorFactoryChain.of(modelName, accessType)
                 .addFactory(new XToManyProcessorFactory());
-        xToManyFactoryChain.generateProcessorChain(fields).processInputRows(rows, accessType);
+        xToManyFactoryChain.generateProcessorChain(fields).processInputRows(rows);
     }
 
     /**

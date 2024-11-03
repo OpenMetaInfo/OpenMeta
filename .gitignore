@@ -46,3 +46,4 @@ build/
 *.zip
 *.tar.gz
 *.rar
+*.versionBackup

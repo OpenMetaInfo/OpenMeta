@@ -1,7 +1,5 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
-import info.openmeta.framework.base.enums.AccessType;
-
 import java.util.List;
 import java.util.Map;
 
@@ -14,17 +12,15 @@ public interface FieldProcessor {
      * Process a single-row input data.
      *
      * @param row The single-row data to be updated
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
-    void processInputRow(Map<String, Object> row, AccessType accessType);
+    void processInputRow(Map<String, Object> row);
 
     /**
      * Batch process input data
      *
      * @param rows The list of data to be updated
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
-    void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType);
+    void batchProcessInputRows(List<Map<String, Object>> rows);
 
     /**
      * Format a single-row output data.

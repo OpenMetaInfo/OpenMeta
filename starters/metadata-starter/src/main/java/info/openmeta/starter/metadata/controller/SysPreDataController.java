@@ -27,7 +27,7 @@ public class SysPreDataController extends EntityController<SysPreDataService, Sy
      * Supports data files in JSON, XML, and CSV formats.
      * @return success or not
      */
-    @Operation(summary = "Load predefined data", description = """
+    @Operation(summary = "loadData", description = """
             Load the specified list of predefined data files from the root directory resources/data,
             supporting data files in JSON, XML, and CSV formats.
             """)
@@ -45,7 +45,7 @@ public class SysPreDataController extends EntityController<SysPreDataService, Sy
      * @param file the multipart file containing the predefined data to be loaded
      * @return success or not
      */
-    @Operation(summary = "Upload Predefined File")
+    @Operation(summary = "uploadFile")
     @PostMapping("/uploadFile")
     @SwitchUser(value = SystemUser.INTEGRATION_USER)
     public ApiResponse<Boolean> uploadPredefinedData(@RequestParam("file") MultipartFile file) {

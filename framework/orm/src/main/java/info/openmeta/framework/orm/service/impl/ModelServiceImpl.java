@@ -179,7 +179,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public Object readField(String modelName, K id, String field) {
-        Map<String, Object> row = this.readOne(modelName, id, Collections.singletonList(field), ConvertType.DEFAULT);
+        Map<String, Object> row = this.readOne(modelName, id, Collections.singletonList(field), ConvertType.TYPE_CAST);
         return row.get(field);
     }
 
@@ -192,7 +192,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public Map<String, Object> readOne(String modelName, K id) {
-        return this.readOne(modelName, id, Collections.emptyList(), ConvertType.DEFAULT);
+        return this.readOne(modelName, id, Collections.emptyList(), ConvertType.TYPE_CAST);
     }
 
     /**
@@ -206,7 +206,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public Map<String, Object> readOne(String modelName, K id, Collection<String> fields) {
-        return this.readOne(modelName, id, fields, ConvertType.DEFAULT);
+        return this.readOne(modelName, id, fields, ConvertType.TYPE_CAST);
     }
 
     /**
@@ -236,7 +236,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public List<Map<String, Object>> readList(String modelName, List<K> ids, Collection<String> fields) {
-        return this.readList(modelName, ids, fields, ConvertType.DEFAULT);
+        return this.readList(modelName, ids, fields, ConvertType.TYPE_CAST);
     }
 
     /**
@@ -431,7 +431,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         Assert.allNotNull(ids, "The ids to be deleted cannot be empty! {0}", ids);
         permissionService.checkIdsAccess(modelName, ids, AccessType.DELETE);
         // Get the pre-delete data, to check whether the ids data have been deleted and collect changeLogs.
-        List<Map<String, Object>> originalRows = jdbcService.selectByIds(modelName, ids, Collections.emptyList(), ConvertType.NONE);
+        List<Map<String, Object>> originalRows = jdbcService.selectByIds(modelName, ids, Collections.emptyList(), ConvertType.ORIGINAL);
         List<Map<String, Object>> deletableRows = originalRows.stream().filter(row -> {
             if (ModelManager.isSoftDeleted(modelName) && Boolean.TRUE.equals(row.get(ModelConstant.SOFT_DELETED_FIELD))) {
                 log.warn("Data with model {}, id={} has been soft deleted, do not duplicate it.", modelName, row.get(ModelConstant.ID));

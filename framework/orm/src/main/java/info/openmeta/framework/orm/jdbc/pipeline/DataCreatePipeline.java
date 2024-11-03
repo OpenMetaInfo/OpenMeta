@@ -62,10 +62,10 @@ public class DataCreatePipeline extends DataPipeline {
      */
     @Override
     public FieldProcessorChain buildFieldProcessorChain() {
-        FieldProcessorFactoryChain factoryChain = FieldProcessorFactoryChain.of(modelName)
-                .addFactory(new XToOneGroupProcessorFactory(accessType))
+        FieldProcessorFactoryChain factoryChain = FieldProcessorFactoryChain.of(modelName, accessType)
+                .addFactory(new XToOneGroupProcessorFactory())
                 .addFactory(new NormalProcessorFactory())
-                .addFactory(new ComputeProcessorFactory(accessType))
+                .addFactory(new ComputeProcessorFactory())
                 .addFactory(new TypeCastProcessorFactory())
                 // Encrypt the `encrypted` fields before storing them in the database.
                 .addFactory(new EncryptProcessorFactory());
@@ -81,7 +81,7 @@ public class DataCreatePipeline extends DataPipeline {
     @Override
     public List<Map<String, Object>> processCreateData(List<Map<String, Object>> rows, LocalDateTime createdTime) {
         // Format the field data of the current model
-        processorChain.processInputRows(rows, accessType);
+        processorChain.processInputRows(rows);
         // Fill in the audit fields
         AutofillFields.fillAuditFieldsForInsert(rows, createdTime);
         // Extract the set of stored fields
@@ -90,7 +90,7 @@ public class DataCreatePipeline extends DataPipeline {
         // If the IdStrategy is not DB_AUTO_ID, add the ID field to the list of fields to be processed.
         if (!IdStrategy.DB_AUTO_ID.equals(ModelManager.getIdStrategy(modelName))) {
             MetaField pkField = ModelManager.getModelPrimaryKeyField(modelName);
-            new IdProcessor(pkField).batchProcessInputRows(rows, AccessType.CREATE);
+            new IdProcessor(pkField, accessType).batchProcessInputRows(rows);
             this.storedFields.add(pkField.getFieldName());
         }
         // Fill in the tenant field for multi-tenant models
@@ -108,8 +108,8 @@ public class DataCreatePipeline extends DataPipeline {
      */
     @Override
     public void processXToManyData(List<Map<String, Object>> rows) {
-        FieldProcessorFactoryChain xToManyFactoryChain = FieldProcessorFactoryChain.of(modelName)
+        FieldProcessorFactoryChain xToManyFactoryChain = FieldProcessorFactoryChain.of(modelName, accessType)
                 .addFactory(new XToManyProcessorFactory());
-        xToManyFactoryChain.generateProcessorChain(fields).processInputRows(rows, accessType);
+        xToManyFactoryChain.generateProcessorChain(fields).processInputRows(rows);
     }
 }

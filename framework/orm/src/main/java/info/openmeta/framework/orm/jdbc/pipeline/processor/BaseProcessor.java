@@ -16,16 +16,18 @@ public abstract class BaseProcessor implements FieldProcessor {
     protected final String modelName;
     protected final String fieldName;
     protected final MetaField metaField;
+    protected final AccessType accessType;
 
     /**
      * Field processor object constructor
      *
      * @param metaField field metadata object
      */
-    public BaseProcessor(MetaField metaField) {
+    public BaseProcessor(MetaField metaField, AccessType accessType) {
         this.metaField = metaField;
         this.modelName = metaField.getModelName();
         this.fieldName = metaField.getFieldName();
+        this.accessType = accessType;
     }
 
     /**
@@ -64,9 +66,9 @@ public abstract class BaseProcessor implements FieldProcessor {
      * Process a single-row input data.
      *
      * @param row The single-row data to be created or updated
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    @Override
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
@@ -83,10 +85,10 @@ public abstract class BaseProcessor implements FieldProcessor {
      * Batch process input data
      *
      * @param rows The list of data to be created or updated
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
-    public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
-        rows.forEach(row -> processInputRow(row, accessType));
+    @Override
+    public void batchProcessInputRows(List<Map<String, Object>> rows) {
+        rows.forEach(this::processInputRow);
     }
 
     /**
@@ -94,6 +96,7 @@ public abstract class BaseProcessor implements FieldProcessor {
      *
      * @param row The single-row output data
      */
+    @Override
     public void processOutputRow(Map<String, Object> row) {
         if (row.containsKey(fieldName) && row.get(fieldName) == null) {
             row.put(fieldName, getFieldTypeDefaultValue());
@@ -105,6 +108,7 @@ public abstract class BaseProcessor implements FieldProcessor {
      *
      * @param rows The list of output data
      */
+    @Override
     public void batchProcessOutputRows(List<Map<String, Object>> rows) {
         rows.forEach(this::processOutputRow);
     }

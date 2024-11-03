@@ -44,18 +44,15 @@ public class OptionManager {
     }
 
     /**
-     * Get the ordered optionItems by optionSetCode
+     * Get the optionItems by optionSetCode
      *
      * @param optionSetCode option set code
-     * @return ordered optionItems {itemCode: itemName}
+     * @return unmodifiable optionItems
      */
-    public static Map<String, String> getMetaOptionItems(String optionSetCode) {
+    public static List<MetaOptionItem> getMetaOptionItems(String optionSetCode) {
         Assert.isTrue(META_OPTION_SET_MAP.containsKey(optionSetCode),
                 "optionSetCode {0} does not exist in OptionSet metadata.", optionSetCode);
-        Map<String, String> orderedOptionItems = new LinkedHashMap<>();
-        META_OPTION_SET_MAP.get(optionSetCode).values().forEach(sysOptionItem ->
-                orderedOptionItems.put(sysOptionItem.getItemCode(), sysOptionItem.getItemName()));
-        return orderedOptionItems;
+        return List.copyOf(META_OPTION_SET_MAP.get(optionSetCode).values());
     }
 
     /**
@@ -97,6 +94,16 @@ public class OptionManager {
             }
         }
         return null;
+    }
+
+    /**
+     * Check if the optionSet exists by optionSetCode.
+     *
+     * @param optionSetCode option set code
+     * @return true if exists
+     */
+    public static boolean existsOptionSetCode(String optionSetCode) {
+        return META_OPTION_SET_MAP.containsKey(optionSetCode);
     }
 
     /**

@@ -45,8 +45,8 @@ public class FlexQuery {
     // TopN query, used to get the top N data of the OneToMany field
     private Integer topN;
 
-    // Convert the return value type
-    private ConvertType convertType = ConvertType.DEFAULT;
+    // ConvertType, used to convert the field value before returning the result.
+    private ConvertType convertType = ConvertType.TYPE_CAST;
 
     // In special cases, such as requests based on OneToMany fields,
     // the ManyToOne of the associated model only needs to obtain the ID for GroupBy
