@@ -21,9 +21,10 @@ public class NumericProcessor extends BaseProcessor {
      * NumericProcessor constructor
      *
      * @param metaField field metadata object
+     * @param accessType access type
      */
-    public NumericProcessor(MetaField metaField) {
-        super(metaField);
+    public NumericProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
         this.fieldType = metaField.getFieldType();
     }
 
@@ -31,10 +32,9 @@ public class NumericProcessor extends BaseProcessor {
      * Formatting of single-row data.
      *
      * @param row Single-row data to be updated
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
     @Override
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         if (row.containsKey(fieldName) && row.get(fieldName) != null) {
             row.put(fieldName, formatInputNumeric(row.get(fieldName)));

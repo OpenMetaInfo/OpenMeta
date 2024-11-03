@@ -97,6 +97,16 @@ public class OptionManager {
     }
 
     /**
+     * Check if the optionSet exists by optionSetCode.
+     *
+     * @param optionSetCode option set code
+     * @return true if exists
+     */
+    public static boolean existsOptionSetCode(String optionSetCode) {
+        return META_OPTION_SET_MAP.containsKey(optionSetCode);
+    }
+
+    /**
      * Check if the optionItem exists by optionSetCode and optionItemCode.
      *
      * @param optionSetCode option set code

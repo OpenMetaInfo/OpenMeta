@@ -48,8 +48,8 @@ public class ManyToManyProcessor extends BaseProcessor {
     private final FlexQuery flexQuery;
     private SubQuery subQuery;
 
-    public ManyToManyProcessor(MetaField metaField, FlexQuery flexQuery) {
-        super(metaField);
+    public ManyToManyProcessor(MetaField metaField, AccessType accessType, FlexQuery flexQuery) {
+        super(metaField, accessType);
         this.flexQuery = flexQuery;
         if (flexQuery != null) {
             this.subQuery = flexQuery.extractSubQuery(metaField.getFieldName());
@@ -60,10 +60,9 @@ public class ManyToManyProcessor extends BaseProcessor {
      * Batch processing of ManyToMany input data.
      *
      * @param rows Input data list
-     * @param accessType Access type, such as READ, CREATE, UPDATE
      */
     @Override
-    public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
+    public void batchProcessInputRows(List<Map<String, Object>> rows) {
         if (AccessType.CREATE.equals(accessType)) {
             batchCreateMappingRows(rows);
         } else if (AccessType.UPDATE.equals(accessType)) {

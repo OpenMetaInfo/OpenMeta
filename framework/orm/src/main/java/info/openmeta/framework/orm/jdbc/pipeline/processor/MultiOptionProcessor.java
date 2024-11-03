@@ -1,5 +1,6 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.base.utils.Cast;
@@ -16,14 +17,21 @@ import java.util.stream.Collectors;
  */
 public class MultiOptionProcessor extends OptionProcessor {
 
+    protected MultiOptionProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
+    }
+
     /**
      * Constructor of MultiOptionProcessor, for processing output data.
      *
      * @param metaField Field metadata object
+     * @param accessType Access type
      * @param convertType Convert type
      */
-    public MultiOptionProcessor(MetaField metaField, ConvertType convertType) {
-        super(metaField, convertType);
+    public static MultiOptionProcessor ofOutput(MetaField metaField, AccessType accessType, ConvertType convertType) {
+        MultiOptionProcessor multiOptionProcessor = new MultiOptionProcessor(metaField, accessType);
+        multiOptionProcessor.convertType = convertType;
+        return multiOptionProcessor;
     }
 
     /**

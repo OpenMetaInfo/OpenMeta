@@ -1,6 +1,7 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
 import com.google.common.collect.Lists;
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
@@ -20,14 +21,19 @@ import java.util.Map;
 @Slf4j
 public class OptionProcessor extends BaseProcessor {
 
-    protected final ConvertType convertType;
+    protected ConvertType convertType;
 
-    public OptionProcessor(MetaField metaField, ConvertType convertType) {
-        super(metaField);
-        this.convertType = convertType;
+    protected OptionProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
+    }
+
+    public static OptionProcessor ofOutput(MetaField metaField, AccessType accessType, ConvertType convertType) {
         Assert.notBlank(metaField.getOptionSetCode(),
                 "Model field {0}: {1} is a `Option` field, but the `optionSetCode` is not specified!",
                 metaField.getModelName(), metaField.getFieldName());
+        OptionProcessor optionProcessor = new OptionProcessor(metaField, accessType);
+        optionProcessor.convertType = convertType;
+        return optionProcessor;
     }
 
     /**

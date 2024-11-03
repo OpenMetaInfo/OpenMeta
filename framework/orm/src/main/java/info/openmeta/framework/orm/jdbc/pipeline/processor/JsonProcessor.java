@@ -15,18 +15,17 @@ import java.util.Map;
  */
 public class JsonProcessor extends BaseProcessor {
 
-    public JsonProcessor(MetaField metaField) {
-        super(metaField);
+    public JsonProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
      * Convert the JSON object to a string and store it in the database.
      *
      * @param row Single-row data to be created/updated
-     * @param accessType Access type
      */
     @Override
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         Object value = row.get(fieldName);
         if (value != null) {

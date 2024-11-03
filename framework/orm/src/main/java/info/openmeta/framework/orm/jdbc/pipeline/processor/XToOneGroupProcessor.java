@@ -43,9 +43,11 @@ public class XToOneGroupProcessor extends BaseProcessor {
      * Constructor of the ManyToOne/OneToOne group processor.
      *
      * @param metaField xToOne field metadata object
+     * @param accessType Access type
+     * @param flexQuery flexQuery object
      */
-    public XToOneGroupProcessor(MetaField metaField, FlexQuery flexQuery) {
-        super(metaField);
+    public XToOneGroupProcessor(MetaField metaField, AccessType accessType, FlexQuery flexQuery) {
+        super(metaField, accessType);
         this.flexQuery = flexQuery;
         // For ManyToOne/OneToOne fields, get the displayName of the related model.
         this.expandFields.addAll(ModelManager.getFieldDisplayName(metaField));
@@ -77,16 +79,15 @@ public class XToOneGroupProcessor extends BaseProcessor {
      * Batch process the input data of the cascaded fields and ManyToOne/OneToOne fields.
      *
      * @param rows Data collection
-     * @param accessType Access type
      */
-    public void batchProcessInputRows(List<Map<String, Object>> rows, AccessType accessType) {
+    public void batchProcessInputRows(List<Map<String, Object>> rows) {
         if (!cascadedFields.isEmpty()) {
             Map<Serializable, Map<String, Object>> relatedRowMap = getRelatedModelRowMap(rows);
             // Calculate the stored cascaded field first.
             cascadedFields.forEach(field -> batchProcessOutputRowsCascaded(field, rows, relatedRowMap));
         }
-        XToOneProcessor xToOneField = new XToOneProcessor(metaField);
-        xToOneField.batchProcessInputRows(rows, accessType);
+        XToOneProcessor xToOneField = new XToOneProcessor(metaField, accessType);
+        xToOneField.batchProcessInputRows(rows);
     }
 
     /**
@@ -106,7 +107,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
             Map<Serializable, Map<String, Object>> relatedRowMap = getRelatedModelRowMap(rows);
             // Before expand the ManyToOne/OneToOne field, calculate the dynamic cascaded field first.
             cascadedFields.forEach(sf -> batchProcessOutputRowsCascaded(sf, rows, relatedRowMap));
-            XToOneProcessor xToOneField = new XToOneProcessor(metaField, flexQuery);
+            XToOneProcessor xToOneField = new XToOneProcessor(metaField, accessType, flexQuery);
             // Expand the ManyToOne/OneToOne field with displayName, or related model row according to subQuery.
             xToOneField.batchProcessOutputRows(rows, relatedRowMap);
         }

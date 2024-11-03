@@ -1,13 +1,13 @@
 package info.openmeta.framework.orm.jdbc.pipeline.factory;
 
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.orm.meta.MetaField;
-import info.openmeta.framework.orm.meta.ModelManager;
+import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.FieldProcessor;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.XToOneGroupProcessor;
-import info.openmeta.framework.orm.enums.FieldType;
-import info.openmeta.framework.base.enums.AccessType;
+import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.framework.orm.meta.ModelManager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -20,34 +20,30 @@ import java.util.Map;
  */
 public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
 
-    private final AccessType accessType;
-
     private FlexQuery flexQuery;
 
     // THe mapping of ManyToOne/OneToOne fieldName to XToOneGroupProcessor
     protected final Map<String, XToOneGroupProcessor> relatedFieldMap = new HashMap<>();
 
-    public XToOneGroupProcessorFactory(AccessType accessType) {
-        this.accessType = accessType;
-    }
+    public XToOneGroupProcessorFactory() {}
 
     public XToOneGroupProcessorFactory(FlexQuery flexQuery) {
         this.flexQuery = flexQuery;
-        this.accessType = AccessType.READ;
     }
 
     /**
      * Create a field processor according to the field metadata.
      *
      * @param metaField field metadata object
+     * @param accessType access type
      */
     @Override
-    public FieldProcessor createProcessor(MetaField metaField) {
+    public FieldProcessor createProcessor(MetaField metaField, AccessType accessType) {
         FieldType fieldType = metaField.getFieldType();
         if (AccessType.READ.equals(accessType)) {
             if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                 // READ scenario: calculate dynamic cascaded field
-                return this.updateRelatedFields(metaField);
+                return this.updateRelatedFields(metaField, accessType);
             } else if (FieldType.TO_ONE_TYPES.contains(fieldType) && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
                 if (metaField.getFieldName().equals(flexQuery.getKeepIdField())) {
                     // When READ OneToMany field, don't enhance the ManyToOne field of the associated model.
@@ -55,14 +51,14 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
                 }
                 // Create the XToOneGroupProcessor when the field group is not created by the cascaded field.
                 if (!this.relatedFieldMap.containsKey(metaField.getFieldName())) {
-                    XToOneGroupProcessor xToOneGroupProcessor = new XToOneGroupProcessor(metaField, flexQuery);
+                    XToOneGroupProcessor xToOneGroupProcessor = new XToOneGroupProcessor(metaField, accessType, flexQuery);
                     this.relatedFieldMap.put(metaField.getFieldName(), xToOneGroupProcessor);
                     return xToOneGroupProcessor;
                 }
             }
         } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && !metaField.isDynamic()) {
             // CREATE/UPDATE scenario: calculate stored cascaded field
-            return this.updateRelatedFields(metaField);
+            return this.updateRelatedFields(metaField, accessType);
         }
         return null;
     }
@@ -72,8 +68,10 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
      * and the expand fields of the associated model based on the ManyToOne/OneToOne field.
      *
      * @param cascadedField cascaded field metadata object
+     * @param accessType    access type
+     * @return XToOneGroupProcessor
      */
-    private XToOneGroupProcessor updateRelatedFields(MetaField cascadedField) {
+    private XToOneGroupProcessor updateRelatedFields(MetaField cascadedField, AccessType accessType) {
         String[] fieldsArray = StringUtils.split(cascadedField.getCascadedField(), ".", 2);
         String xToOneFieldName = fieldsArray[0];
         if (this.relatedFieldMap.containsKey(xToOneFieldName)) {
@@ -83,7 +81,7 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
         } else {
             // Create the XToOneGroupProcessor for the first time
             MetaField xToOneField = ModelManager.getModelField(cascadedField.getModelName(), xToOneFieldName);
-            XToOneGroupProcessor xToOneGroupProcessor = new XToOneGroupProcessor(xToOneField, flexQuery);
+            XToOneGroupProcessor xToOneGroupProcessor = new XToOneGroupProcessor(xToOneField, accessType, flexQuery);
             xToOneGroupProcessor.addCascadedField(cascadedField);
             this.relatedFieldMap.put(xToOneFieldName, xToOneGroupProcessor);
             return xToOneGroupProcessor;

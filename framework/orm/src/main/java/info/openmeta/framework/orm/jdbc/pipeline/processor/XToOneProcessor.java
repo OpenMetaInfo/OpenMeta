@@ -33,19 +33,21 @@ public class XToOneProcessor extends BaseProcessor {
      * Constructor of the input data field processor object.
      *
      * @param metaField Field metadata object
+     * @param accessType Access type
      */
-    public XToOneProcessor(MetaField metaField) {
-        super(metaField);
+    public XToOneProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
      * Constructor of the ManyToOne/OneToOne field processor object.
      *
      * @param metaField Field metadata object
+     * @param accessType Access type
      * @param flexQuery flexQuery object
      */
-    public XToOneProcessor(MetaField metaField, FlexQuery flexQuery) {
-        super(metaField);
+    public XToOneProcessor(MetaField metaField, AccessType accessType, FlexQuery flexQuery) {
+        super(metaField, accessType);
         this.convertType = flexQuery.getConvertType();
         this.subQuery = flexQuery.extractSubQuery(metaField.getFieldName());
     }
@@ -54,10 +56,9 @@ public class XToOneProcessor extends BaseProcessor {
      * Process one inputting row, convert Integer id to Long.
      *
      * @param row        data row
-     * @param accessType Access type
      */
     @Override
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         if (row.containsKey(fieldName) && row.get(fieldName) != null) {
             row.compute(fieldName, (k, id) -> IdUtils.convertIdToLong(id));

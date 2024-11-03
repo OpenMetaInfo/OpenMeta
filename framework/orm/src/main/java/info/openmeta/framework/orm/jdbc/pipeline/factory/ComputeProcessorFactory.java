@@ -12,27 +12,22 @@ import info.openmeta.framework.base.enums.AccessType;
  */
 public class ComputeProcessorFactory implements FieldProcessorFactory {
 
-    private final AccessType accessType;
-
-    public ComputeProcessorFactory(AccessType accessType) {
-        this.accessType = accessType;
-    }
-
     /**
      * Create a field processor according to the field metadata.
      * READ scenario: only dynamic computed fields are calculated.
      * CREATE or UPDATE scenario: only stored computed fields are calculated.
      *
      * @param metaField field object
+     * @param accessType access type
      * @return computed processor
      */
     @Override
-    public FieldProcessor createProcessor(MetaField metaField) {
+    public FieldProcessor createProcessor(MetaField metaField, AccessType accessType) {
         if (metaField.isComputed()) {
             if (AccessType.READ.equals(accessType) && metaField.isDynamic()) {
-                return new ComputedProcessor(metaField);
+                return new ComputedProcessor(metaField, accessType);
             } else if (!AccessType.READ.equals(accessType) && !metaField.isDynamic()) {
-                return new ComputedProcessor(metaField);
+                return new ComputedProcessor(metaField, accessType);
             }
         }
         return null;

@@ -25,7 +25,7 @@ public interface BaseConstant {
     Integer DEFAULT_SCALE = 2;
 
     /** The optionSet code of Boolean field */
-    String BOOLEAN_OPTION_CODE = "BooleanValue";
+    String BOOLEAN_OPTION_SET_CODE = "BooleanValue";
 
     /** The directory of predefined data, located in src/resources/data/ */
     String PREDEFINED_DATA_DIR = "data/";

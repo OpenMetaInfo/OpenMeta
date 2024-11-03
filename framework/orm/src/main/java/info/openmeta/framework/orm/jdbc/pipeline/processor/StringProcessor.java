@@ -14,8 +14,8 @@ import java.util.Map;
  */
 public class StringProcessor extends BaseProcessor {
 
-    public StringProcessor(MetaField metaField) {
-        super(metaField);
+    public StringProcessor(MetaField metaField, AccessType accessType) {
+        super(metaField, accessType);
     }
 
     /**
@@ -34,7 +34,7 @@ public class StringProcessor extends BaseProcessor {
      * String field length check
      */
     @Override
-    public void processInputRow(Map<String, Object> row, AccessType accessType) {
+    public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         Object obj = row.get(fieldName);
         String value = obj instanceof Enum ? StringTools.toUpperCamelCase(((Enum<?>) obj).name()) : (String) obj;

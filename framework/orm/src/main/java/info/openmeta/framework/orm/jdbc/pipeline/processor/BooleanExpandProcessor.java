@@ -1,13 +1,12 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
-import com.google.common.collect.Lists;
 import info.openmeta.framework.base.constant.BaseConstant;
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.MetaOptionItem;
 import info.openmeta.framework.orm.meta.OptionManager;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -25,14 +24,29 @@ public class BooleanExpandProcessor extends BaseProcessor {
      * Field processor object constructor
      *
      * @param metaField field metadata object
+     * @param accessType access type
      */
-    public BooleanExpandProcessor(MetaField metaField, ConvertType convertType) {
-        super(metaField);
+    public BooleanExpandProcessor(MetaField metaField, AccessType accessType, ConvertType convertType) {
+        super(metaField, accessType);
         this.convertType = convertType;
     }
 
     /**
+     * Batch processing of output rows
+     *
+     * @param rows List of rows to be processed
+     */
+    @Override
+    public void batchProcessOutputRows(List<Map<String, Object>> rows) {
+        if (ConvertType.DISPLAY.equals(convertType)
+                && OptionManager.existsOptionSetCode(BaseConstant.BOOLEAN_OPTION_SET_CODE)) {
+            rows.forEach(this::processOutputRow);
+        }
+    }
+
+    /**
      * Boolean field output expansion processing.
+     * Get the optionItem name of boolean field corresponding to the BOOLEAN_OPTION_CODE.
      *
      * @param row Single-row output data
      */
@@ -41,28 +55,8 @@ public class BooleanExpandProcessor extends BaseProcessor {
         if (row.containsKey(fieldName)) {
             boolean rawValue = Boolean.TRUE.equals(row.get(fieldName));
             String itemCode = Boolean.toString(rawValue);
-            row.put(fieldName, getOptionItemName(rawValue, itemCode));
+            MetaOptionItem metaOptionItem = OptionManager.getMetaOptionItem(BaseConstant.BOOLEAN_OPTION_SET_CODE, itemCode);
+            row.put(fieldName, metaOptionItem.getItemName());
         }
-    }
-
-    /**
-     * Get the optionItem name of boolean field corresponding to the BOOLEAN_OPTION_CODE.
-     *
-     * @param rawValue Boolean field original value
-     * @param itemCode Boolean itemCode
-     * @return According to the convertType, the result is "Yes" or the string list composed of [true, "Yes"].
-     */
-    public Object getOptionItemName(boolean rawValue, String itemCode) {
-        MetaOptionItem metaOptionItem = OptionManager.getMetaOptionItem(BaseConstant.BOOLEAN_OPTION_CODE, itemCode);
-        if (ConvertType.KEY_AND_DISPLAY.equals(convertType)) {
-            List<Object> valueList = Lists.newArrayList(rawValue, metaOptionItem.getItemName());
-            if (StringUtils.isNotBlank(metaOptionItem.getItemColor())) {
-                valueList.add(metaOptionItem.getItemColor());
-            }
-            return valueList;
-        } else if (ConvertType.DISPLAY.equals(convertType)) {
-            return metaOptionItem.getItemName();
-        }
-        return itemCode;
     }
 }
