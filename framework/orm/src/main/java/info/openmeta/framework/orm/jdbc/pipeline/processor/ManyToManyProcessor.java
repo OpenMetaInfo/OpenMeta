@@ -11,6 +11,7 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
+import info.openmeta.framework.orm.vo.ModelReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  *          when False, the client needs to specify the subQuery and the result is paged.
  *      `autoExpandMany` automatically expands the MANY end:
  *          when true, read all fields of the associated model automatically,
- *          when False, just read [id, displayName] of the associated model by default, if there is no subQuery.
+ *          when False, just get the ModelReference of associated model by default, if there is no subQuery.
  */
 @Slf4j
 public class ManyToManyProcessor extends BaseProcessor {
@@ -170,7 +171,9 @@ public class ManyToManyProcessor extends BaseProcessor {
      */
     @Override
     public void batchProcessOutputRows(List<Map<String, Object>> rows) {
-        List<Serializable> mainModelIds = rows.stream().map(row -> (Serializable) row.get(ModelConstant.ID)).collect(Collectors.toList());
+        List<Serializable> mainModelIds = rows.stream()
+                .map(row -> (Serializable) row.get(ModelConstant.ID))
+                .collect(Collectors.toList());
         List<Map<String, Object>> middleRows;
         Map<Serializable, List<Object>> groupedValues;
         if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
@@ -188,7 +191,7 @@ public class ManyToManyProcessor extends BaseProcessor {
                 rows.forEach(row -> row.put(fieldName, Collections.emptyList()));
                 return;
             }
-            // Expand the middle model rows, converted the `inverseLinkField` value to [id, displayName]
+            // Expand the middle model rows, converted the `inverseLinkField` value to ModelReference object
             // or {target row} according to the `autoExpandMany` config and `subQuery` object.
             List<Map<String, Object>> expandedMiddleRows = expandMiddleRowsWithAssociatedData(middleRows);
             // Group by `relatedField` of the middle model, which stores the main model id.
@@ -223,17 +226,20 @@ public class ManyToManyProcessor extends BaseProcessor {
 
     /**
      * Query the middle model and associated model according to the mainModelIds.
-     * By default, the `inverseLinkField` value is converted to [id, displayName].
+     * By default, the `inverseLinkField` value is converted to ModelReference object.
      * When `autoExpandMany = true` or there is a `subQuery` based on the ManyToMany field,
      * the `inverseLinkField` value is converted to {inverseLinkField: {associated row}}
      *
      * @param middleRows Middle model rows
-     * @return Middle model rows expanded with the associated model data: [{inverseLinkField: [id, displayName]}]
+     * @return Middle model rows expanded with the associated model data: [{inverseLinkField: ModelReference}]
      *      or [{inverseLinkField: {associated row}}]
      */
     private List<Map<String, Object>> expandMiddleRowsWithAssociatedData(List<Map<String, Object>> middleRows) {
         String inverseLinkField = metaField.getInverseLinkField();
-        List<Serializable> associatedIds = middleRows.stream().map(value -> (Serializable) value.get(inverseLinkField)).distinct().collect(Collectors.toList());
+        List<Serializable> associatedIds = middleRows.stream()
+                .map(value -> (Serializable) value.get(inverseLinkField))
+                .distinct()
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(associatedIds)) {
             return Collections.emptyList();
         }
@@ -241,13 +247,17 @@ public class ManyToManyProcessor extends BaseProcessor {
         if (subQuery == null && !metaField.isAutoExpandMany()) {
             // When `subQuery == null` and `autoExpandMany = false`, get the displayNames of associated model directly.
             Map<Serializable, String> displayNames = ReflectTool.getDisplayNames(associatedModel, associatedIds, metaField.getDisplayName());
-            // Update the `inverseLinkField` field of the middle model to {inverseLinkField: [id, displayName]}
-            middleRows.forEach(r -> r.put(inverseLinkField, Arrays.asList((Serializable) r.get(inverseLinkField), displayNames.get((Serializable) r.get(inverseLinkField)))));
+            // Update the `inverseLinkField` field of the middle model to {inverseLinkField: ModelReference}
+            middleRows.forEach(r -> {
+                Serializable id = (Serializable) r.get(inverseLinkField);
+                r.put(inverseLinkField, ModelReference.of(id, displayNames.get(id)));
+            });
         } else {
             // Execute subQuery on the associated model.
             List<Map<String, Object>> associatedRows = this.getAssociatedRows(associatedModel, associatedIds);
             // Group the associated model rows by id
-            Map<Serializable, Map<String, Object>> associatedRowMap = associatedRows.stream().collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.ID), row -> row));
+            Map<Serializable, Map<String, Object>> associatedRowMap = associatedRows.stream()
+                    .collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.ID), row -> row));
             // Update the `inverseLinkField` value of the middle model row, to {inverseLinkField: {associated row}}
             middleRows.forEach(r -> r.put(inverseLinkField, associatedRowMap.get((Serializable) r.get(inverseLinkField))));
         }
@@ -301,7 +311,7 @@ public class ManyToManyProcessor extends BaseProcessor {
      * which stores the main model id.
      *
      * @param expandedMiddleRows middle model rows, expanded with associated model data
-     * @return Grouped middle model data: {mainModelId: [[id, displayName], ...]}
+     * @return Grouped middle model data: {mainModelId: [ModelReference, ...]}
      *      or {mainModelId: [{associated row}, ...]
      */
     private Map<Serializable, List<Object>> groupMiddleRows(List<Map<String, Object>> expandedMiddleRows) {
