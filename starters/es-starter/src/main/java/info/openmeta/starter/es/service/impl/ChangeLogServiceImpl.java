@@ -152,7 +152,7 @@ public class ChangeLogServiceImpl extends ESServiceImpl<ChangeLog> implements Ch
         // TODO: Exclude fields that are not accessible
         fields.retainAll(ModelManager.getModelStoredFields(modelName));
         FlexQuery flexQuery = new FlexQuery(fields);
-        flexQuery.setConvertType(ConvertType.KEY_AND_DISPLAY);
+        flexQuery.setConvertType(ConvertType.REFERENCE);
         dataPipelineProxy.processReadData(modelName, flexQuery, changeLogDataList);
         return page;
     }

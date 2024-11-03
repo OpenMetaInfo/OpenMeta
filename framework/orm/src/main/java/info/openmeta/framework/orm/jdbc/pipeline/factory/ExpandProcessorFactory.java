@@ -5,8 +5,8 @@ import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.BooleanExpandProcessor;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.FieldProcessor;
-import info.openmeta.framework.orm.jdbc.pipeline.processor.MultiOptionProcessor;
-import info.openmeta.framework.orm.jdbc.pipeline.processor.OptionProcessor;
+import info.openmeta.framework.orm.jdbc.pipeline.processor.MultiOptionExpandProcessor;
+import info.openmeta.framework.orm.jdbc.pipeline.processor.OptionExpandProcessor;
 import info.openmeta.framework.orm.meta.MetaField;
 
 /**
@@ -33,10 +33,10 @@ public class ExpandProcessorFactory implements FieldProcessorFactory {
         FieldType fieldType = metaField.getFieldType();
         if (ConvertType.EXPAND_TYPES.contains(convertType)) {
             if (FieldType.OPTION.equals(fieldType)) {
-                // The `OptionProcessor` processor is used for expand cases.
-                return OptionProcessor.ofOutput(metaField, accessType, convertType);
+                // The `OptionExpandProcessor` processor is used for expand cases.
+                return new OptionExpandProcessor(metaField, accessType, convertType);
             } else if (FieldType.MULTI_OPTION.equals(fieldType)) {
-                return MultiOptionProcessor.ofOutput(metaField, accessType, convertType);
+                return new MultiOptionExpandProcessor(metaField, accessType, convertType);
             }
         }
         // Only for boolean field, the display value is expanded.

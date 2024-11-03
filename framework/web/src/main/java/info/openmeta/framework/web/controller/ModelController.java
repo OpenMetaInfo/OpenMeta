@@ -27,12 +27,10 @@ import java.util.Map;
 
 /**
  * Model Common Controller.
- * The convertType of ModelController is `KEY_AND_DISPLAY` by default, means
- * that the value of expandable fields
- * will be converted to the display value. Including ManyToOne, OneToOne,
- * Option, MultiOption fields.
- * The format of ManyToOne/OneToOne field value is `[id, displayName]`.
- * The format of Option/MultiOption field value is `[code, name]`.
+ * The convertType of ModelController is `REFERENCE` by default,
+ * means that the value of expandable fields will be converted to a reference object.
+ * The value of ManyToOne/OneToOne field is a ModelReference object.
+ * The value of Option/MultiOption field is a OptionReference object or List<OptionReference> object.
  *
  * @param <K> primary key type
  */
@@ -80,7 +78,7 @@ public class ModelController<K extends Serializable> {
 
     /**
      * Create a single row, return the row map with id and other latest field values.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param row       data row to be created
@@ -91,12 +89,12 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<Map<String, Object>> createOneAndReturn(@PathVariable String modelName,
                                                                @RequestBody Map<String, Object> row) {
-        return ApiResponse.success(modelService.createOneAndReturn(modelName, row, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.createOneAndReturn(modelName, row, ConvertType.REFERENCE));
     }
 
     /**
      * Create multiple rows and return the IDs.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param rows      data rows to be created
@@ -112,7 +110,7 @@ public class ModelController<K extends Serializable> {
 
     /**
      * Create multiple rows, return the row list with id and other latest field values.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param rows      data rows to be created
@@ -124,13 +122,13 @@ public class ModelController<K extends Serializable> {
     public ApiResponse<List<Map<String, Object>>> createListAndReturn(@PathVariable String modelName,
                                                                       @RequestBody List<Map<String, Object>> rows) {
         this.validateBatchSize(rows.size());
-        return ApiResponse.success(modelService.createListAndReturn(modelName, rows, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.createListAndReturn(modelName, rows, ConvertType.REFERENCE));
     }
 
     /**
      * Read one row by id.
      * If the fields is not specified, all accessible fields as the default.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName     model name
      * @param id            data id
@@ -152,13 +150,13 @@ public class ModelController<K extends Serializable> {
                                                     @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.readOne(modelName, id, fields, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.readOne(modelName, id, fields, ConvertType.REFERENCE));
     }
 
     /**
      * Read multiple rows by ids.
      * If the fields is not specified, all accessible fields as the default.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName     model name
      * @param ids           List of data ids
@@ -181,7 +179,7 @@ public class ModelController<K extends Serializable> {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.readList(modelName, ids, fields, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.readList(modelName, ids, fields, ConvertType.REFERENCE));
     }
 
     /**
@@ -203,7 +201,7 @@ public class ModelController<K extends Serializable> {
 
     /**
      * Update one row by id, and return the updated row fetched from the database, with the latest field values.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param row       data row to be updated
@@ -217,7 +215,7 @@ public class ModelController<K extends Serializable> {
         Assert.notEmpty(row, "The data to be updated cannot be empty!");
         Assert.notNull(row.get("id"), "`id` cannot be null or missing when updating data!");
         IdUtils.formatMapId(modelName, row);
-        return ApiResponse.success(modelService.updateOneAndReturn(modelName, row, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.updateOneAndReturn(modelName, row, ConvertType.REFERENCE));
     }
 
     /**
@@ -240,7 +238,7 @@ public class ModelController<K extends Serializable> {
     /**
      * Update multiple rows by ids.Each row in the list can have different fields.
      * And return the updated rows fetched from the database, with the latest field values.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param rows      data rows to be updated
@@ -254,7 +252,7 @@ public class ModelController<K extends Serializable> {
         Assert.notEmpty(rows, "The data to be updated cannot be empty!");
         this.validateBatchSize(rows.size());
         IdUtils.formatMapIds(modelName, rows);
-        return ApiResponse.success(modelService.updateListAndReturn(modelName, rows, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.updateListAndReturn(modelName, rows, ConvertType.REFERENCE));
     }
 
     /**
@@ -344,7 +342,7 @@ public class ModelController<K extends Serializable> {
 
     /**
      * Copy a single row based on id, and return the new row.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param id        data source id
@@ -356,7 +354,7 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<Map<String, Object>> copyOneAndReturn(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.copyOneAndReturn(modelName, id, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.copyOneAndReturn(modelName, id, ConvertType.REFERENCE));
     }
 
     /**
@@ -378,7 +376,7 @@ public class ModelController<K extends Serializable> {
 
     /**
      * Copy multiple rows based on ids, and return the new rows.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param ids       source data ids
@@ -392,7 +390,7 @@ public class ModelController<K extends Serializable> {
                                                                     @RequestParam List<K> ids) {
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.copyListAndReturn(modelName, ids, ConvertType.KEY_AND_DISPLAY));
+        return ApiResponse.success(modelService.copyListAndReturn(modelName, ids, ConvertType.REFERENCE));
     }
 
     /**
@@ -413,7 +411,7 @@ public class ModelController<K extends Serializable> {
 
     /**
      * Query data with pagination. The page size cannot exceed the MAX_BATCH_SIZE.
-     * Set `convertType = KEY_AND_DISPLAY` to get the display value of expandable fields.
+     * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      * Support SUM, AVG, MIN, MAX, COUNT aggregation queries.
      *
      * @param modelName model name
@@ -470,7 +468,7 @@ public class ModelController<K extends Serializable> {
         ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
         FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
         flexQuery.setFields(queryParams.getFields());
-        flexQuery.setConvertType(ConvertType.KEY_AND_DISPLAY);
+        flexQuery.setConvertType(ConvertType.REFERENCE);
         flexQuery.setGroupBy(queryParams.getGroupBy());
         // Set AggFunction parameters
         flexQuery.setAggFunctions(queryParams.getAggFunctions());
@@ -553,7 +551,7 @@ public class ModelController<K extends Serializable> {
             FlexQuery flexQuery = new FlexQuery(filters, orders);
             flexQuery.setFields(new HashSet<>(groupBy));
             flexQuery.setGroupBy(groupBy);
-            flexQuery.setConvertType(ConvertType.DEFAULT);
+            flexQuery.setConvertType(ConvertType.TYPE_CAST);
             return ApiResponse.success(modelService.searchList(modelName, flexQuery));
         } else {
             return ApiResponse.success(modelService.count(modelName, filters));

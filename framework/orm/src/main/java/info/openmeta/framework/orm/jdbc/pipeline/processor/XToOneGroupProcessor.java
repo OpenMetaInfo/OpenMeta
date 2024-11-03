@@ -13,6 +13,7 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
+import info.openmeta.framework.orm.vo.ModelReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -192,7 +193,8 @@ public class XToOneGroupProcessor extends BaseProcessor {
                 List<Object> displayValues = displayFields.stream().map(relatedRow::get).filter(n -> n != null && n != "").collect(Collectors.toList());
                 String displayName = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
                 Serializable relatedId = (Serializable) row.get(xToOneFieldName);
-                Object value = ConvertType.KEY_AND_DISPLAY.equals(flexQuery.getConvertType()) ? Arrays.asList(relatedId, displayName) : displayName;
+                Object value = ConvertType.REFERENCE.equals(flexQuery.getConvertType()) ?
+                        ModelReference.of(relatedId, displayName) : displayName;
                 row.put(xToOneFieldName, value);
             }
             // After expanding the ManyToOne/OneToOne field, remove the `.` separator flag field specified in the `displayName` fields

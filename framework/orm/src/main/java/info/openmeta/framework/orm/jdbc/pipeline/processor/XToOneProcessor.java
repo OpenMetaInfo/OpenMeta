@@ -9,11 +9,11 @@ import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
+import info.openmeta.framework.orm.vo.ModelReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class XToOneProcessor extends BaseProcessor {
 
-    private ConvertType convertType = ConvertType.DEFAULT;
+    private ConvertType convertType = ConvertType.TYPE_CAST;
     private SubQuery subQuery;
 
     /**
@@ -103,8 +103,8 @@ public class XToOneProcessor extends BaseProcessor {
         Object value = null;
         if (displayNameMap.containsKey(id)) {
             value = displayNameMap.get(id);
-            if (ConvertType.KEY_AND_DISPLAY.equals(convertType)) {
-                value = Arrays.asList(id, value);
+            if (ConvertType.REFERENCE.equals(convertType)) {
+                value = ModelReference.of(id, (String) value);
             }
         } else if (IdUtils.validId(id)) {
             log.warn("Model data {}(id={}) with field {}={}, the field value not exist in related model {}!",
