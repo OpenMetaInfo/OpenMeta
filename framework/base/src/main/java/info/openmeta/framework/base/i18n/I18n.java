@@ -40,7 +40,7 @@ public class I18n {
             return getByLanguage(languageCode, original, args);
         } else {
             log.warn("Language {} does not has any translation", languageCode);
-            return MessageFormat.format(original, args);
+            return args == null || args.length == 0 ? original : MessageFormat.format(original, args);
         }
     }
 
@@ -58,7 +58,7 @@ public class I18n {
             return StringUtils.EMPTY;
         }
         String translation = MESSAGE_TRANSLATIONS.get(languageCode).getOrDefault(original, original);
-        return MessageFormat.format(translation, args);
+        return args == null || args.length == 0 ? translation : MessageFormat.format(translation, args);
     }
 
     /**

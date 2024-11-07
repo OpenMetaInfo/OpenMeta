@@ -24,13 +24,22 @@ public class BaseException extends RuntimeException {
     public BaseException(String message, Object... args) {
         super(message);
         message = I18n.get(message, args);
-        if (args.length > 0) {
+        if (args == null || args.length == 0) {
+            message = I18n.get(message);
+        } else if (args[args.length - 1] instanceof Throwable) {
             // Determine whether the last parameter is a Throwable object,
-            // if so, use it as the cause and output it to the log with the current exception object
-            Object lastArg = args[args.length - 1];
-            if (lastArg instanceof Throwable) {
-                this.initCause((Throwable) lastArg);
+            // If so, use it as the cause and output it to the log with the current exception object
+            this.initCause((Throwable) args[args.length - 1]);
+            // Remove the last parameter to avoid translation errors
+            if (args.length == 1) {
+                message = I18n.get(message);
+            } else {
+                Object[] newArgs = new Object[args.length - 1];
+                System.arraycopy(args, 0, newArgs, 0, args.length - 1);
+                message = I18n.get(message, newArgs);
             }
+        } else {
+            message = I18n.get(message, args);
         }
         this.message = message;
     }
