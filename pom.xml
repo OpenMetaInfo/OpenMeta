@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.0</version>
+		<version>3.3.5</version>
 	</parent>
 
 	<name>openmeta</name>
@@ -28,7 +28,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<spring.boot.version>3.3.0</spring.boot.version>
+		<spring.boot.version>3.3.5</spring.boot.version>
 		<lombok.version>1.18.30</lombok.version>
 
 	</properties>
