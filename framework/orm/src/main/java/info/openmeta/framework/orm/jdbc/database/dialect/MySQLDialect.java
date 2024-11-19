@@ -10,6 +10,7 @@ import java.util.Map;
  * MySQL database dialect tool class.
  */
 public class MySQLDialect implements DialectInterface {
+
     private static final Map<Operator, String> OPERATOR_MAP = new EnumMap<>(Operator.class);
 
     static {
@@ -41,19 +42,20 @@ public class MySQLDialect implements DialectInterface {
      */
     public String getPredicate(Operator operator) {
         Assert.isTrue(OPERATOR_MAP.containsKey(operator), """
-                Predicate conversion for operator {0} is missing in the MySQL database dialect tool class.
-                Check whether the operator is existed in the Operator Enum class.""", operator.getName());
+                Predicate conversion for operator {0} is missing in {1}.
+                Check whether the operator is existed in the Operator Enum class.
+                """, operator.getName(), this.getClass().getSimpleName());
         return OPERATOR_MAP.get(operator);
     }
 
     /**
-     * Get the database paging clause according to the offset and limit.
+     * Get the database paging clause according to the limit and offset.
      *
-     * @param offset offset
      * @param limit limit
+     * @param offset offset
      * @return paging clause
      */
-    public StringBuilder getPageClause(int offset, int limit) {
+    public StringBuilder getPageClause(int limit, int offset) {
         return new StringBuilder(" LIMIT ").append(offset).append(",").append(limit);
     }
 }

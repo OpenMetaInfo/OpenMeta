@@ -6,10 +6,7 @@ import info.openmeta.framework.base.utils.Assert;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * PostgreSQL Dialect
- */
-public class PostgreSQLDialect implements DialectInterface {
+public class SQLServerDialect implements DialectInterface {
 
     private static final Map<Operator, String> OPERATOR_MAP = new EnumMap<>(Operator.class);
 
@@ -20,10 +17,10 @@ public class PostgreSQLDialect implements DialectInterface {
         OPERATOR_MAP.put(Operator.GREATER_THAN_OR_EQUAL, ">=");
         OPERATOR_MAP.put(Operator.LESS_THAN, "<");
         OPERATOR_MAP.put(Operator.LESS_THAN_OR_EQUAL, "<=");
-        OPERATOR_MAP.put(Operator.HAS, "ILIKE");
-        OPERATOR_MAP.put(Operator.NOT_HAS, "NOT ILIKE");
-        OPERATOR_MAP.put(Operator.START_WITH, "ILIKE");
-        OPERATOR_MAP.put(Operator.NOT_START_WITH, "NOT ILIKE");
+        OPERATOR_MAP.put(Operator.HAS, "LIKE");
+        OPERATOR_MAP.put(Operator.NOT_HAS, "NOT LIKE");
+        OPERATOR_MAP.put(Operator.START_WITH, "LIKE");
+        OPERATOR_MAP.put(Operator.NOT_START_WITH, "NOT LIKE");
         OPERATOR_MAP.put(Operator.IN, "IN");
         OPERATOR_MAP.put(Operator.NOT_IN, "NOT IN");
         OPERATOR_MAP.put(Operator.BETWEEN, "BETWEEN ? AND ?");
@@ -31,7 +28,7 @@ public class PostgreSQLDialect implements DialectInterface {
         OPERATOR_MAP.put(Operator.IS_SET, "IS NOT NULL");
         OPERATOR_MAP.put(Operator.IS_NOT_SET, "IS NULL");
         OPERATOR_MAP.put(Operator.PARENT_OF, "IN");
-        OPERATOR_MAP.put(Operator.CHILD_OF, "ILIKE");
+        OPERATOR_MAP.put(Operator.CHILD_OF, "LIKE");
     }
 
     /**
@@ -56,6 +53,7 @@ public class PostgreSQLDialect implements DialectInterface {
      * @return paging clause
      */
     public StringBuilder getPageClause(int limit, int offset) {
-        return new StringBuilder(" LIMIT ").append(limit).append(" OFFSET ").append(offset);
+        return new StringBuilder(" OFFSET ").append(offset)
+                .append(" ROWS FETCH NEXT ").append(limit).append(" ROWS ONLY");
     }
 }

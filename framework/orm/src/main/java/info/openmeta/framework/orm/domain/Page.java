@@ -20,11 +20,11 @@ import java.util.Map;
 @Getter
 public class Page<T> {
 
-    // Current page number, the first page starts counting from 1
-    private int pageNumber;
-
     // Page size, the default is 50, and the page size is between [1, MAX_BATCH_SIZE]
     private final int pageSize;
+
+    // Current page number, counting from 1
+    private int pageNumber;
 
     /**
      * Enables cursor-based pagination for improved stability and performance during data pagination.

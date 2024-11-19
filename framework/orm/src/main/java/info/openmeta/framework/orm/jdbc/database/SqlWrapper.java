@@ -230,7 +230,6 @@ public class SqlWrapper {
 
     /**
      * Build SELECT SQL:
-     *      / * SQL Hint * /
      *      SELECT mainTableFields, relatedTables FROM mainTable
      *      LEFT JOIN relatedTables... ON relations...
      *      WHERE mainTableFilters AND relatedTableFilters...
@@ -254,7 +253,7 @@ public class SqlWrapper {
         if (!limitClause.isEmpty()) {
             sql.append(limitClause);
         }
-        sqlParams.setSql(DBUtil.wrapHint(sql.toString()));
+        sqlParams.setSql(sql.toString());
     }
 
     /**
@@ -285,7 +284,7 @@ public class SqlWrapper {
         }
         String topNSql = "SELECT * FROM (" + subSql + ") subQuery WHERE topNumber <= ?";
         addArgValue(topN);
-        sqlParams.setSql(DBUtil.wrapHint(topNSql));
+        sqlParams.setSql(topNSql);
     }
 
     /**
@@ -301,7 +300,7 @@ public class SqlWrapper {
         if (!whereClause.isEmpty()) {
             sql.append(" WHERE ").append(whereClause);
         }
-        sqlParams.setSql(DBUtil.wrapHint(sql.toString()));
+        sqlParams.setSql(sql.toString());
     }
 
     /**
