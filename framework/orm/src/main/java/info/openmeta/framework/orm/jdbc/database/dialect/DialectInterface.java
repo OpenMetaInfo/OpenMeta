@@ -15,9 +15,9 @@ public interface DialectInterface {
     /**
      * Get the database paging clause.
      *
-     * @param offset offset
      * @param limit limit
+     * @param offset offset
      * @return paging clause
      */
-    StringBuilder getPageClause(int offset, int limit);
+    StringBuilder getPageClause(int limit, int offset);
 }

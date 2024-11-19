@@ -61,11 +61,6 @@ public class Context implements Serializable {
     private LocalDate effectiveDate = LocalDate.now();
 
     /**
-     * Whether to read the primary database in the read-write separation mode
-     */
-    private boolean readPrimary;
-
-    /**
      * Default constructor, use UUID to fill in when traceId is not specified,
      * used for scenarios such as cron tasks and integration
      */
@@ -110,7 +105,6 @@ public class Context implements Serializable {
         newContext.setTriggerFlow(this.triggerFlow);
         newContext.setDebug(this.debug);
         newContext.setEffectiveDate(this.effectiveDate);
-        newContext.setReadPrimary(this.readPrimary);
         return newContext;
     }
 

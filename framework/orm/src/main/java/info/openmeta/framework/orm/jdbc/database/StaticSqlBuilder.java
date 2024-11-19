@@ -80,7 +80,7 @@ public class StaticSqlBuilder {
             readSql.append(" AND tenant_id = ? ");
             sqlParams.addArgValue(ContextHolder.getContext().getTenantId());
         }
-        sqlParams.setSql(DBUtil.wrapHint(readSql.toString()));
+        sqlParams.setSql(readSql.toString());
         return sqlParams;
     }
 
@@ -97,7 +97,7 @@ public class StaticSqlBuilder {
         if (StringUtils.isNotBlank(orderBy) && StringTools.isUnderscoreCaseValid(orderBy)) {
             sql.append(" ORDER BY ").append(orderBy);
         }
-        return new SqlParams(DBUtil.wrapHint(sql.toString()));
+        return new SqlParams(sql.toString());
     }
 
     /**

@@ -29,7 +29,7 @@ public class EncryptUtils {
     private static String password;
 
     @PostConstruct
-    public synchronized void init() {
+    public void init() {
         encryptor = SpringContextUtils.getBeanByName(algorithm);
         Assert.notBlank(encryptionPassword, "Encryption password cannot be null!");
         password = encryptionPassword;
