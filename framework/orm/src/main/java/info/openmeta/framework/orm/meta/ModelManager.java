@@ -365,7 +365,7 @@ public class ModelManager {
         String model = metaField.getModelName();
         if (ModelConstant.AUDIT_FIELDS.contains(metaField.getFieldName())) {
             metaField.setReadonly(true);
-        } else if (TenantConfig.isEnableMultiTenant() && ModelConstant.TENANT_ID.equals(metaField.getFieldName())) {
+        } else if (TenantConfig.isEnableMultiTenancy() && ModelConstant.TENANT_ID.equals(metaField.getFieldName())) {
             metaField.setReadonly(true);
         } else if (MODEL_MAP.get(model).isVersionLock() && ModelConstant.VERSION.equals(metaField.getFieldName())) {
             metaField.setReadonly(true);
@@ -797,7 +797,7 @@ public class ModelManager {
      * @return true or false
      */
     public static boolean isMultiTenant(String modelName) {
-        return TenantConfig.isEnableMultiTenant() && ModelManager.getModel(modelName).isMultiTenant();
+        return TenantConfig.isEnableMultiTenancy() && ModelManager.getModel(modelName).isMultiTenant();
     }
 
     /**

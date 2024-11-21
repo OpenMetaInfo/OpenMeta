@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class DBUtil {
 
     @Value("${spring.datasource.dynamic.enable:false}")
-    private Boolean enableMultiDataSource;
+    private boolean enableMultiDataSource;
 
     @Value("${spring.datasource.url:}")
     private String singleDbUrl;
@@ -30,7 +30,7 @@ public class DBUtil {
      */
     @PostConstruct
     public void initDBType() {
-        if (!Boolean.TRUE.equals(enableMultiDataSource)) {
+        if (!enableMultiDataSource) {
             // Parse the database type from the JDBC URL, as the single datasource
             DatabaseType databaseType = parseDatabaseType(singleDbUrl);
             singleDbDialect = createDialect(databaseType);

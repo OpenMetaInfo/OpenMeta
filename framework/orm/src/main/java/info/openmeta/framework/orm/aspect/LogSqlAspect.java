@@ -28,7 +28,7 @@ public class LogSqlAspect {
     private static final int LOG_BATCH_NUMBER = 3;
 
     @Value("${spring.datasource.dynamic.enable:false}")
-    private Boolean enableMultiDataSource;
+    private boolean enableMultiDataSource;
 
     @Around("@annotation(info.openmeta.framework.orm.annotation.LogSql)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -60,7 +60,7 @@ public class LogSqlAspect {
     private StringBuilder logSql(Object[] methodArgs) {
         Assert.isTrue(methodArgs.length > 0, "Missing JDBC parameters!");
         StringBuilder sb = new StringBuilder("\n");
-        if (Boolean.TRUE.equals(enableMultiDataSource)) {
+        if (enableMultiDataSource) {
             sb.append(DataSourceConfig.getCurrentDataSourceKey()).append(" in multi-datasource. ");
         }
         if (methodArgs[0] instanceof SqlParams sqlParams) {

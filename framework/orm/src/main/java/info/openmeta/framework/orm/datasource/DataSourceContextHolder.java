@@ -8,7 +8,7 @@ public class DataSourceContextHolder {
     private static final ThreadLocal<String> contextHolder = new ThreadLocal<>();
 
     /**
-     * To set data source key.
+     * To set datasource key for current thread.
      * @param key data source key
      */
     public static void setDataSourceKey(String key) {
@@ -23,7 +23,7 @@ public class DataSourceContextHolder {
     }
 
     /**
-     * Clear all the data source.
+     * Clear the datasource key, and route to the default datasource.
      */
     public static void clearDataSourceKey() {
         contextHolder.remove();

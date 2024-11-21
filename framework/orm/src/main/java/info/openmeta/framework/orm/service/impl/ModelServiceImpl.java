@@ -65,7 +65,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
                 if (row.containsKey(ModelConstant.TENANT_ID)) {
                     Serializable tenantId = IdUtils.formatId(modelName, ModelConstant.TENANT_ID, row.get(ModelConstant.TENANT_ID));
                     if (tenantId != null && !tenantId.equals(ContextHolder.getContext().getTenantId())) {
-                        throw new SecurityException("In a multi-tenant environment, cross-tenant data access is not allowed: {0}", row);
+                        throw new SecurityException("In a multi-tenancy environment, cross-tenant data access is not allowed: {0}", row);
                     }
                     row.remove(ModelConstant.TENANT_ID);
                 }

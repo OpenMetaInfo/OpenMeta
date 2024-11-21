@@ -2,6 +2,7 @@ package info.openmeta.framework.web.interceptor;
 
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.context.UserInfo;
+import info.openmeta.framework.orm.datasource.DataSourceContextHolder;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,6 +40,7 @@ public interface ContextInterceptor extends HandlerInterceptor {
                                         @Nonnull Object handler,
                                         Exception e) {
         ContextHolder.removeContext();
+        DataSourceContextHolder.clearDataSourceKey();
     }
 
 }
