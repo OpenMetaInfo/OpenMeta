@@ -1,7 +1,8 @@
 package info.openmeta.framework.orm.jdbc;
 
 import info.openmeta.framework.base.utils.Cast;
-import info.openmeta.framework.orm.annotation.LogSql;
+import info.openmeta.framework.orm.annotation.ExecuteSql;
+import info.openmeta.framework.orm.annotation.WriteOperation;
 import info.openmeta.framework.orm.jdbc.database.SqlParams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,8 @@ public class JdbcProxy {
      *
      * @param sqlParams SQL parameters
      */
-    @LogSql
+    @WriteOperation
+    @ExecuteSql
     public Long insert(SqlParams sqlParams) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
@@ -52,7 +54,8 @@ public class JdbcProxy {
      *
      * @param sqlParams SQL parameters
      */
-    @LogSql
+    @WriteOperation
+    @ExecuteSql
     public int update(SqlParams sqlParams) {
         return jdbcTemplate.update(sqlParams.getSql(), sqlParams.getArgsArray());
     }
@@ -63,7 +66,8 @@ public class JdbcProxy {
      * @param sqlParams SQL parameters
      * @param batchArgs Batch parameters
      */
-    @LogSql
+    @WriteOperation
+    @ExecuteSql
     public int batchUpdate(SqlParams sqlParams, List<Object[]> batchArgs) {
         int[] affectedRows = jdbcTemplate.batchUpdate(sqlParams.getSql(), batchArgs);
         return Arrays.stream(affectedRows).sum();
@@ -76,7 +80,7 @@ public class JdbcProxy {
      * @param sqlParams SQL parameters
      * @return List<Map>
      */
-    @LogSql
+    @ExecuteSql
     public List<Map<String, Object>> queryForList(SqlParams sqlParams) {
         return jdbcTemplate.query(sqlParams.getSql(), new MapRowMapper(), sqlParams.getArgsArray());
     }
@@ -88,7 +92,7 @@ public class JdbcProxy {
      * @param entityClass Entity class
      * @return Single value
      */
-    @LogSql
+    @ExecuteSql
     public Object queryForObject(SqlParams sqlParams, Class<?> entityClass) {
         return jdbcTemplate.queryForObject(sqlParams.getSql(), entityClass, sqlParams.getArgsArray());
     }

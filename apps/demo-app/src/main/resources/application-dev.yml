@@ -1,8 +1,11 @@
 debug: false
 system:
   name: Demo Application
-  enable-auth: false
   default-language: en-US
+  enable-auth: false
+  multi-tenancy:
+    enable: false
+    isolated-database: false
 security:
   encryption:
     password: 12345678
@@ -20,6 +23,7 @@ spring:
   datasource:
 #    dynamic:
 #      enable: true
+#      read-write-separation: true
 #      datasource:
 #        primary:
 #          driver-class-name: com.mysql.cj.jdbc.Driver

@@ -6,7 +6,9 @@ import info.openmeta.framework.base.context.Context;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.context.UserInfo;
 import info.openmeta.framework.base.enums.Language;
+import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.JsonMapper;
+import info.openmeta.framework.orm.datasource.DataSourceContextHolder;
 import info.openmeta.framework.web.interceptor.ContextInterceptor;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.framework.web.service.CacheService;
@@ -40,8 +42,14 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      * Enable authentication
      * Only used in the demo app
      */
-    @Value("${system.enable-auth:}")
-    private Boolean enableAuth;
+    @Value("${system.enable-auth:true}")
+    private boolean enableAuth;
+
+    @Value("${system.multi-tenancy.enable:false}")
+    private boolean multiTenancy;
+
+    @Value("${system.multi-tenancy.isolated-database:false}")
+    private boolean isolatedDatabase;
 
     /**
      * Login address, default to `/login`
@@ -66,7 +74,7 @@ public class ContextInterceptorImpl implements ContextInterceptor {
                              @Nonnull HttpServletResponse response,
                              @Nonnull Object handler) {
         // Should be removed in non-demo apps
-        if (!Boolean.TRUE.equals(enableAuth)) {
+        if (!enableAuth) {
             // If authentication is disabled, set up an anonymous context
             setupAnonymousContext(request);
             return true;
@@ -118,8 +126,10 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         Language language = this.getCurrentLanguage(request, userInfo.getLanguage());
         context.setLanguage(language);
         context.setTimeZone(TimeZone.getTimeZone(ZoneId.of(userInfo.getTimezone())));
-        context.setTenantId(userInfo.getTenantId());
         context.setUserInfo(userInfo);
+        if (multiTenancy) {
+            this.setMultiTenancyEnv(context, userInfo);
+        }
         this.setDebugModeFromRequest(request, context);
         ContextHolder.setContext(context);
     }
@@ -178,6 +188,24 @@ public class ContextInterceptorImpl implements ContextInterceptor {
         String debug = request.getParameter(BaseConstant.DEBUG);
         if (Boolean.parseBoolean(debug) || "1".equals(debug)) {
             context.setDebug(true);
+        }
+    }
+
+    /**
+     * Set the datasource key for the current thread based on the user info.
+     * Used for multi-tenancy applications, the mode of shared app with separate data.
+     *
+     * @param context the current context
+     * @param userInfo the user info
+     */
+    private void setMultiTenancyEnv(Context context, UserInfo userInfo) {
+        Assert.notNull(userInfo.getTenantId(), "User tenantId cannot be null in multi-tenancy mode.");
+        context.setTenantId(userInfo.getTenantId());
+        if (isolatedDatabase) {
+            Assert.notBlank(userInfo.getDatasourceKey(),
+                    "User datasourceKey cannot be blank in isolated database multi-tenancy mode.");
+            // Set the datasource key for the current thread
+            DataSourceContextHolder.setDataSourceKey(userInfo.getDatasourceKey());
         }
     }
 

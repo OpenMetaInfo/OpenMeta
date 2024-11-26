@@ -85,7 +85,7 @@ public class StaticSqlBuilder {
     }
 
     /**
-     * SELECT all metadata, without permission and multi-tenant filters.
+     * SELECT all metadata, without permission and multi-tenancy filters.
      *      SELECT * FROM table_name WHERE id=?
      *
      * @param modelName model name

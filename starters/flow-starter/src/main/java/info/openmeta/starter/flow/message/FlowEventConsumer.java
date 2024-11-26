@@ -30,7 +30,7 @@ public class FlowEventConsumer implements RocketMQListener<FlowEventMessage> {
      */
     @Override
     public void onMessage(FlowEventMessage eventMessage) {
-        if (!Boolean.TRUE.equals(enableFlow)) {
+        if (!enableFlow) {
             return;
         }
         ContextHolder.setContext(eventMessage.getContext());

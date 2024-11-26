@@ -6,20 +6,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Multi tenant configuration
+ * Multi-tenancy configuration
  */
 @Configuration
 public class TenantConfig {
 
-    @Value("${enable.multiTenant:false}")
-    private static boolean multiTenant;
+    @Value("${system.multi-tenancy.enable:false}")
+    private boolean multiTenancy;
 
     @Getter
-    private static boolean enableMultiTenant;
+    private static boolean enableMultiTenancy;
 
     @PostConstruct
     public void init() {
-        enableMultiTenant = multiTenant;
+        enableMultiTenancy = multiTenancy;
     }
 
 }

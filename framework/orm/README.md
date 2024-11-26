@@ -16,13 +16,13 @@ Application Scenarios:
 The multi-datasource is enabled by configuring `spring.datasource.dynamic.enable = true`.
 Otherwise, using the original `spring.datasource.*` as the single datasource.
 
-The first datasource is the default datasource when not specified. 
+The first datasource is the default datasource when not specified in annotation. 
 The datasource name can be customized in the `application.yml` file.
 ```yml
 spring:
   datasource:
     dynamic:
-      enabled: true
+      enable: true
       datasource:
         primary:
           driver-class-name: com.mysql.cj.jdbc.Driver
