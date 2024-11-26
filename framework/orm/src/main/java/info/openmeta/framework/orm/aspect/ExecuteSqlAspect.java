@@ -23,19 +23,19 @@ import java.util.Map;
 @Slf4j
 @Aspect
 @Component
-public class LogSqlAspect {
+public class ExecuteSqlAspect {
 
     private static final int LOG_BATCH_NUMBER = 3;
 
     @Value("${spring.datasource.dynamic.enable:false}")
     private boolean enableMultiDataSource;
 
-    @Around("@annotation(info.openmeta.framework.orm.annotation.LogSql)")
+    @Around("@annotation(info.openmeta.framework.orm.annotation.ExecuteSql)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (ContextHolder.getContext().isDebug()) {
             // Get method arguments
             Object[] methodArgs = joinPoint.getArgs();
-            StringBuilder sb = logSql(methodArgs);
+            StringBuilder sb = this.logSql(methodArgs);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             try {

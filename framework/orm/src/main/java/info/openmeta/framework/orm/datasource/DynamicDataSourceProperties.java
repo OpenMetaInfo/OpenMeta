@@ -16,6 +16,7 @@ import java.util.Map;
 public class DynamicDataSourceProperties {
 
     private Boolean enable;
+    private Boolean readWriteSeparation;
 
     private Map<String, DataSourceProperties> datasource = new LinkedHashMap<>();
 

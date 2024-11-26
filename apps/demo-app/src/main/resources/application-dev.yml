@@ -23,6 +23,7 @@ spring:
   datasource:
 #    dynamic:
 #      enable: true
+#      read-write-separation: true
 #      datasource:
 #        primary:
 #          driver-class-name: com.mysql.cj.jdbc.Driver

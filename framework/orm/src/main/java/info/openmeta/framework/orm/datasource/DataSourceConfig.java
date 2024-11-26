@@ -7,6 +7,7 @@ import info.openmeta.framework.orm.jdbc.database.dialect.DialectInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -29,6 +30,7 @@ import java.util.Map;
  *   datasource:
  *     dynamic:
  *       enable: true
+ *       read-write-separation: false
  *       datasource:
  *         primary:
  *           driver-class-name: com.mysql.cj.jdbc.Driver
@@ -55,6 +57,9 @@ public class DataSourceConfig {
     /** Store the dialect of each data source */
     private static final Map<String, DialectInterface> dataSourceDialectMap = new HashMap<>();
 
+    @Value("${spring.datasource.dynamic.read-write-separation:false}")
+    private boolean readWriteSeparation;
+
     @Autowired
     private DynamicDataSourceProperties dynamicDataSourceProperties;
 
@@ -66,6 +71,7 @@ public class DataSourceConfig {
     public DataSource dynamicDataSource() {
         Map<Object, Object> targetDataSources = new HashMap<>();
         DataSource defaultDataSource = null;
+        // Get datasource configuration
         Map<String, DataSourceProperties> datasourceMap = dynamicDataSourceProperties.getDatasource();
         if (datasourceMap == null || datasourceMap.isEmpty()) {
             throw new RuntimeException("Multiple-datasource configuration is empty!");
@@ -92,6 +98,10 @@ public class DataSourceConfig {
             if (defaultDataSource == null) {
                 defaultDataSource = dataSource;
                 defaultDataSourceKey = dsKey;
+            } else if (readWriteSeparation) {
+                // If read-write separation is enabled, the first dataSource is the primary dataSource
+                // The other dataSource is the readonly dataSource
+                ReadonlyDataSourceHolder.addReadonlyDataSourceKey(dsKey);
             }
         }
         // Create dynamicDataSource
@@ -124,6 +134,14 @@ public class DataSourceConfig {
             currentDataSourceKey = defaultDataSourceKey;
         }
         return currentDataSourceKey;
+    }
+
+    /**
+     * Get the primary datasource key, that is the first datasource
+     * @return datasource key
+     */
+    public static String getPrimaryDataSourceKey() {
+        return defaultDataSourceKey;
     }
 
     /**

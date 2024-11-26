@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Log the SQL statement of the method, used only in the debug mode.
+ * WriteOperation annotation, identify the method that needs to write data.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface LogSql {
+public @interface WriteOperation {
 }

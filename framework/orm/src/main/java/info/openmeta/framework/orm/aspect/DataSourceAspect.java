@@ -34,12 +34,10 @@ public class DataSourceAspect {
             dataSource = joinPoint.getTarget().getClass().getAnnotation(DataSource.class);
         }
         // Check if the data source needs to be switched.
-        boolean needClear = false;
+        String previousDataSource = DataSourceContextHolder.getDataSourceKey();
         if (dataSource != null) {
             String currentDataSource = dataSource.value();
-            String previousDataSource = DataSourceContextHolder.getDataSourceKey();
             if (previousDataSource == null) {
-                needClear = true;
                 DataSourceContextHolder.setDataSourceKey(currentDataSource);
             } else if (!previousDataSource.equals(currentDataSource)) {
                throw new RuntimeException("""
@@ -54,9 +52,7 @@ public class DataSourceAspect {
         try {
             return joinPoint.proceed();
         } finally {
-            if (needClear) {
-                DataSourceContextHolder.clearDataSourceKey();
-            }
+            DataSourceContextHolder.setDataSourceKey(previousDataSource);
         }
     }
 
