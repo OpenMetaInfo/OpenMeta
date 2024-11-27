@@ -15,6 +15,7 @@
 
     <modules>
         <module>demo-app</module>
+        <module>mini-app</module>
     </modules>
 
     <properties>

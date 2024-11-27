@@ -1,0 +1,30 @@
+debug: false
+system:
+  name: Mini Application
+security:
+  encryption:
+    password: 12345678
+    algorithm: AESEncryption
+
+spring:
+  data:
+    redis:
+      root-key: mini_test
+      host: localhost
+      port: 6379
+      database: 0
+      password: admin
+      timeout: 1000
+  datasource:
+    url: jdbc:mysql://localhost:3306/mini?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: admin
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+      pool-name: HikariPool-Mini
