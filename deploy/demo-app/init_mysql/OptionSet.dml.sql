@@ -1,4 +1,4 @@
--- Option set: FieldType
+-- Option Set: FieldType
 -- Clean up historical data
 DELETE FROM sys_option_set WHERE option_set_code='FieldType';
 DELETE FROM sys_option_item WHERE option_set_code='FieldType';
@@ -13,7 +13,8 @@ INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','JSON','JSON',14,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','MultiString','MultiString',15,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','MultiOption','MultiOption',16,'','','');
-INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','Filter','Filter',17,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','Filters','Filters',17,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','Orders','Orders',18,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','Integer','Integer',2,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','Long','Long',3,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','Double','Double',4,'','','');
@@ -23,7 +24,7 @@ INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','Date','Date',8,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('FieldType','DateTime','DateTime',9,'','','');
 
--- Option set: OptionItemColor */
+-- Option Set: OptionItemColor
 -- Clean up historical data
 DELETE FROM sys_option_set WHERE option_set_code='OptionItemColor';
 DELETE FROM sys_option_item WHERE option_set_code='OptionItemColor';
@@ -43,7 +44,7 @@ INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('OptionItemColor','DarkGreen','Dark Green',8,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('OptionItemColor','DarkYellow','Dark Yellow',9,'','','');
 
--- Option set: MaskingType
+-- Option Set: MaskingType
 -- Clean up historical data
 DELETE FROM sys_option_set WHERE option_set_code='MaskingType';
 DELETE FROM sys_option_item WHERE option_set_code='MaskingType';
@@ -68,10 +69,11 @@ INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','ULID','ULID',2,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','TSIDLong','Long Time-Sorted ID',3,'','','');
 INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','TSIDString','String Time-Sorted ID',4,'','','');
-INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','UUID','UUID',5,'','','');
-INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','ExternalID','External ID',6,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','SimpleID','Simple 16-digit Long ID',5,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','UUID','UUID',6,'','','');
+INSERT INTO sys_option_item(option_set_code,item_code,item_name,sequence,parent_item_code,item_color,description) VALUES('IdStrategy','ExternalID','External ID',7,'','','');
 
--- Option set: StorageType
+-- Option Set: StorageType
 -- Clean up historical data
 DELETE FROM sys_option_set WHERE option_set_code='StorageType';
 DELETE FROM sys_option_item WHERE option_set_code='StorageType';

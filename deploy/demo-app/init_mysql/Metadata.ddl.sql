@@ -4,7 +4,7 @@ CREATE TABLE sys_model(
     label_name VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Label Name' ,
     model_name VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Model Name' ,
     soft_delete TINYINT(1)   DEFAULT 0 COMMENT 'Enable Soft Delete' ,
-    default_order VARCHAR(256)   DEFAULT '' COMMENT 'Default Order2' ,
+    default_order VARCHAR(256)   DEFAULT '' COMMENT 'Default Order' ,
     display_name VARCHAR(255)   DEFAULT '' COMMENT 'Display Name' ,
     search_name VARCHAR(255)   DEFAULT '' COMMENT 'Search Name' ,
     table_name VARCHAR(64)   DEFAULT '' COMMENT 'Table Name' ,
@@ -25,8 +25,22 @@ CREATE TABLE sys_model(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'System Model';
 
-
 ALTER TABLE sys_model ADD UNIQUE INDEX uniq_modelname (model_name);
+
+CREATE TABLE sys_model_trans(
+    id BIGINT(32) NOT NULL AUTO_INCREMENT  COMMENT 'ID' ,
+    language_code VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Language Code' ,
+    row_id BIGINT(32)    COMMENT 'Row ID' ,
+    label_name VARCHAR(64)    COMMENT 'Label Name' ,
+    description VARCHAR(256)    COMMENT 'Description' ,
+    created_time DATETIME    COMMENT 'Created Time' ,
+    created_by VARCHAR(32)    COMMENT 'Created By' ,
+    created_id BIGINT(32)    COMMENT 'Created ID' ,
+    updated_time DATETIME    COMMENT 'Updated Time' ,
+    updated_id BIGINT(32)    COMMENT 'Updated ID' ,
+    updated_by VARCHAR(32)    COMMENT 'Updated By' ,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'System Model Translation';
 
 CREATE TABLE sys_field(
     id BIGINT(32) NOT NULL AUTO_INCREMENT  COMMENT 'ID' ,
@@ -74,6 +88,21 @@ CREATE TABLE sys_field(
 
 ALTER TABLE sys_field ADD UNIQUE INDEX uniq_modelname_fieldname (model_name,field_name);
 
+CREATE TABLE sys_field_trans(
+    id BIGINT(32) NOT NULL AUTO_INCREMENT  COMMENT 'ID' ,
+    language_code VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Language Code' ,
+    row_id BIGINT(32)    COMMENT 'Row ID' ,
+    label_name VARCHAR(64)    COMMENT 'Label Name' ,
+    description VARCHAR(256)    COMMENT 'Description' ,
+    created_time DATETIME    COMMENT 'Created Time' ,
+    created_by VARCHAR(32)    COMMENT 'Created By' ,
+    created_id BIGINT(32)    COMMENT 'Created ID' ,
+    updated_time DATETIME    COMMENT 'Updated Time' ,
+    updated_id BIGINT(32)    COMMENT 'Updated ID' ,
+    updated_by VARCHAR(32)    COMMENT 'Updated By' ,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'System Field Translation';
+
 CREATE TABLE sys_option_set(
     id BIGINT(32) NOT NULL AUTO_INCREMENT  COMMENT 'ID' ,
     app_id BIGINT(32)    COMMENT 'App ID' ,
@@ -90,6 +119,20 @@ CREATE TABLE sys_option_set(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'Option Set';
 
+CREATE TABLE sys_option_set_trans(
+    id BIGINT(32) NOT NULL AUTO_INCREMENT  COMMENT 'ID' ,
+    language_code VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Language Code' ,
+    row_id BIGINT(32)    COMMENT 'Row ID' ,
+    name VARCHAR(64)    COMMENT 'Option Set Name' ,
+    description VARCHAR(256)    COMMENT 'Description' ,
+    created_time DATETIME    COMMENT 'Created Time' ,
+    created_by VARCHAR(32)    COMMENT 'Created By' ,
+    created_id BIGINT(32)    COMMENT 'Created ID' ,
+    updated_time DATETIME    COMMENT 'Updated Time' ,
+    updated_id BIGINT(32)    COMMENT 'Updated ID' ,
+    updated_by VARCHAR(32)    COMMENT 'Updated By' ,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'Option Set Translation';
 
 CREATE TABLE sys_option_item(
     id BIGINT(32) NOT NULL AUTO_INCREMENT  COMMENT 'ID' ,
@@ -111,4 +154,19 @@ CREATE TABLE sys_option_item(
     disabled TINYINT(1)   DEFAULT 0 COMMENT 'Disabled' ,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'Option Set Items';
+
+CREATE TABLE sys_option_item_trans(
+    id BIGINT(32) NOT NULL AUTO_INCREMENT  COMMENT 'ID' ,
+    language_code VARCHAR(64) NOT NULL  DEFAULT '' COMMENT 'Language Code' ,
+    row_id BIGINT(32)    COMMENT 'Row ID' ,
+    item_name VARCHAR(64)    COMMENT 'Item Name' ,
+    description VARCHAR(256)    COMMENT 'Description' ,
+    created_time DATETIME    COMMENT 'Created Time' ,
+    created_by VARCHAR(32)    COMMENT 'Created By' ,
+    created_id BIGINT(32)    COMMENT 'Created ID' ,
+    updated_time DATETIME    COMMENT 'Updated Time' ,
+    updated_id BIGINT(32)    COMMENT 'Updated ID' ,
+    updated_by VARCHAR(32)    COMMENT 'Updated By' ,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'Option Set Items Translation';
 
