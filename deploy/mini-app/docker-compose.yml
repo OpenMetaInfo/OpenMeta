@@ -28,7 +28,7 @@ services:
       - MYSQL_USER=admin
       - MYSQL_PASSWORD=admin
     volumes:
-      - ~/data/mysql_data:/var/lib/mysql
+      - ~/data/mysql/mini:/var/lib/mysql
       # Specify the directory containing the initial SQL scripts
       - ./init_mysql:/docker-entrypoint-initdb.d
 
