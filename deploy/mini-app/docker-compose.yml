@@ -32,7 +32,7 @@ services:
       # Specify the directory containing the initial SQL scripts
       - ./init_mysql:/docker-entrypoint-initdb.d
 
-  openmeta:
+  mini-app:
     image: openmeta/mini-app:0.7.3
     ports:
       - 80:80
