@@ -36,7 +36,7 @@ public class ChangeLogProducer {
     @Value("${rocketmq.changelog.delay-level:0}")
     private Integer delayLevel;
 
-    @Autowired
+    @Autowired(required = false)
     private RocketMQTemplate rocketMQTemplate;
 
     /**
@@ -47,6 +47,9 @@ public class ChangeLogProducer {
             return;
         } else if (StringUtils.isBlank(changeLogTopic)) {
             log.warn("rocketmq.topics.change-log.topic not configured!");
+            return;
+        } else if (rocketMQTemplate == null) {
+            log.warn("RocketMQ not configured!");
             return;
         }
         Context clonedContext = ContextHolder.cloneContext();
