@@ -171,6 +171,20 @@ public class FlexQuery {
     /**
      * Update the subQuery conditions based on the ManyToOne/OneToOne fields in the cascade fields,
      * that is, the fields of the associated model to be read in the cascade.
+     * Example:
+     *      1. ManyToOne/OneToOne: expandSubQuery(User::getDept)
+     *      2. OneToMany/ManyToMany: expandSubQuery(User::getRoles)
+     *
+     * @param method Field lambda method reference
+     */
+    public <T, R> void expandSubQuery(SFunction<T, R> method) {
+        String field = LambdaUtils.getAttributeName(method);
+        this.subQueries.put(field, new SubQuery());
+    }
+
+    /**
+     * Update the subQuery conditions based on the ManyToOne/OneToOne fields in the cascade fields,
+     * that is, the fields of the associated model to be read in the cascade.
      *
      * @param relationField Relation field
      * @param fields Field set of the associated model to be read in the cascade

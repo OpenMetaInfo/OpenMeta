@@ -25,6 +25,7 @@ CREATE TABLE sys_model(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'System Model';
 
+
 ALTER TABLE sys_model ADD UNIQUE INDEX uniq_modelname (model_name);
 
 CREATE TABLE sys_model_trans(

@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: mini-app
+  web:
+    resources:
+      add-mappings: false
+  cache:
+    redis:
+      # Global default expiration period for redis cache
+      time-to-live: 30d
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  jmx:
+    # Turn off JVM remote calls
+    enabled: false
+  freemarker:
+    # Turn off automatic inspection of freemarker templates
+    checkTemplateLocation: false
+
+server:
+  port: 80
+  servlet:
+    encoding:
+      # set http CharacterEncoding to UTF-8
+      force: true
+    context-path: /api/mini
+  tomcat:
+    threads:
+      max: 600
+      min-spare: 30
+    accept-count: 600
+    relaxed-query-chars: "[,]"
+    basedir: ./temp
+
+management:
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health,info
+  health:
+    elasticsearch:
+      enabled: false
+    mail:
+      enabled: false
+
+logging:
+  level:
+    root: info
+
+springdoc:
+  writer-with-order-by-keys: true
+  api-docs:
+    # Turn off in production environment
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tagsSorter: alpha
+    operations-sorter: alpha

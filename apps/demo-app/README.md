@@ -1,2 +1,2 @@
-# Demo App
-A minimal app that only depends on the web module.
+# All In One Demo App
+A demo app that includes all the modules.
