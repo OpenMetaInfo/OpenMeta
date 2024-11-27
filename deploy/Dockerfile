@@ -1,26 +1,24 @@
 # docker build -t openmeta/demo-app:0.3.2 -f ./deploy/demo-app/Dockerfile .
-# Define the app name
-ARG APP_NAME=demo-app
-ARG APP_VERSION=0.3.2
-
 # Stage 1: Build app jar
 FROM maven:3.9.8-eclipse-temurin-21-alpine AS build_stage
 
+ARG APP_DIR
 ARG APP_NAME
 COPY . /build/
 WORKDIR /build/
-RUN mvn package -pl apps/${APP_NAME} -Dmaven.test.skip=true
+RUN mvn package -pl ${APP_DIR}/${APP_NAME} -Dmaven.test.skip=true
 
 # Stage 2: Build final image with app jar
 FROM eclipse-temurin:21-jre-alpine
 
+ARG APP_DIR
 ARG APP_NAME
 ENV APP_NAME=${APP_NAME} \
     TZ=Asia/Shanghai
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY --from=build_stage /build/apps/${APP_NAME}/target/${APP_NAME}.jar /app/
+COPY --from=build_stage /build/${APP_DIR}/${APP_NAME}/target/${APP_NAME}.jar /app/
 COPY ./deploy/entrypoint.sh /app/entrypoint.sh
 
 WORKDIR /app

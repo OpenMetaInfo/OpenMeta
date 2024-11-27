@@ -1,14 +1,15 @@
 
 # 1. Build multi-platform images and push them to Docker Hub
-Specify the `APP_NAME`, `APP_VERSION` to build the image for the Java application.
+Specify the `APP_PATH`, `APP_VERSION` to build the image for the Java application.
 ```
-./deploy/build.sh <APP_NAME> <APP_VERSION>
+./deploy/build.sh <APP_PATH> <APP_VERSION>
 ```
-The app must be in the `./apps` directory, and the APP_NAME should be equal to the subdirectory name.
+The `APP_PATH` is the relative path to the application source code directory, such as `apps/demo-app`.
+And the last name in `APP_PATH` is the application name, such as `demo-app`.
 
 Example to build the demo application image:
 ```bash
-./deploy/build.sh demo-app 0.3.2
+./deploy/build.sh apps/demo-app 0.7.3
 ```
 
 # 2. Start the demo application by Docker Compose
