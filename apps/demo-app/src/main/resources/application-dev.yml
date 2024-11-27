@@ -28,20 +28,20 @@ spring:
 #        primary:
 #          driver-class-name: com.mysql.cj.jdbc.Driver
 #          url: jdbc:mysql://localhost:3306/demo
-#          username: root
+#          username: admin
 #          password: admin
 #        db1:
 #          driver-class-name: com.mysql.cj.jdbc.Driver
 #          url: jdbc:mysql://localhost:3306/db1
-#          username: root
+#          username: admin
 #          password: admin
 #        db2:
 #          driver-class-name: com.mysql.cj.jdbc.Driver
 #          url: jdbc:mysql://localhost:3306/db2
-#          username: root
+#          username: admin
 #          password: admin
     url: jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=GMT%2B8
-    username: root
+    username: admin
     password: admin
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
