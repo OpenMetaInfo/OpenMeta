@@ -38,15 +38,15 @@ services:
       - 80:80
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/demo?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=GMT%2B8
       - SPRING_DATA_REDIS_HOST=redis
-      - ROCKETMQ_NAME_SERVER=localhost:9876
-      - SPRING_ELASTICSEARCH_CLUSTER=http://localhost:9200
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/demo?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=GMT%2B8
+      - ROCKETMQ_NAME_SERVER=host.docker.internal:9876
+      - SPRING_ELASTICSEARCH_CLUSTER=http://host.docker.internal:9200
       - SPRING_ELASTICSEARCH_USERNAME=your_username
       - SPRING_ELASTICSEARCH_PASSWORD=your_password
       - SPRING_ELASTICSEARCH_INDEX_CHANGELOG=demo_dev_changelog
       - OSS_TYPE=minio
-      - OSS_ENDPOINT=http://localhost:9000
+      - OSS_ENDPOINT=http://host.docker.internal:9000
       - OSS_ACCESS_KEY=minioadmin
       - OSS_SECRET_KEY=minioadmin
       - OSS_BUCKET=demo-app

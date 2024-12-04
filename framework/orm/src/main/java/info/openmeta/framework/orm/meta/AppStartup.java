@@ -33,7 +33,7 @@ public class AppStartup implements InitializingBean {
             // 3. init meta cache
             translationCache.init();
         } catch (CannotGetJdbcConnectionException e) {
-            throw new RuntimeException("Database connection failed, please check the database configuration.");
+            throw new RuntimeException("Database connection failed, please check the database configuration.", e);
         }
     }
 }
