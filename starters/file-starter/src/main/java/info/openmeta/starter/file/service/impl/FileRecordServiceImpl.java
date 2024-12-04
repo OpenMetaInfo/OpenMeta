@@ -2,6 +2,8 @@ package info.openmeta.starter.file.service.impl;
 
 import com.github.f4b6a3.tsid.TsidCreator;
 import com.google.common.collect.Lists;
+import info.openmeta.framework.base.config.TenantConfig;
+import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
@@ -15,12 +17,12 @@ import info.openmeta.starter.file.oss.OssClientService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -31,84 +33,44 @@ import java.util.List;
 public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> implements FileRecordService {
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private OssClientService ossClientService;
 
     /**
-     * The default time-to-live (TTL) for download links in seconds.
-     * Default value is 300 seconds (5 minutes).
-     */
-    @Value("${oss.download-ttl:300}")
-    private int downloadLinkTTL;
-
-    /**
-     * Upload a file to the OSS and create a corresponding FileRecord.
+     * Generate an OSS key for the file
+     * ModelName is used as the prefix of the OSS key, to store files in different directories
+     * Set the TSID as a part of the OSS key to avoid conflicts between files with the same name
      *
-     * @param fileName the name of the file to be uploaded
-     * @param fileType the type of the file to be uploaded
-     * @param fileData the byte array of the file to be uploaded
-     * @param source the source of the file (e.g., UPLOAD, IMPORT)
-     * @return the fileRecord object
+     * @param modelName the name of the corresponding business model
+     * @param fileName the name of the file
+     * @return the generated OSS key
      */
-    private FileRecord uploadAndSaveRecord(String fileName, FileType fileType, byte[] fileData, FileSource source) {
-        String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
-        String ossKey = TsidCreator.getTsid() + "/" + fullFileName;
-        String checksum = ossClientService.uploadByteToOSS(ossKey, fileData, fileName);
-        // Create file record
-        FileRecord fileRecord = new FileRecord();
-        fileRecord.setFileName(fullFileName);
-        fileRecord.setFileType(fileType);
-        fileRecord.setOssKey(ossKey);
-        fileRecord.setFileSize(fileData.length / 1024);
-        fileRecord.setSource(source);
-        fileRecord.setChecksum(checksum);
-        Long id = this.createOne(fileRecord);
-        fileRecord.setId(id);
-        return fileRecord;
-    }
-
-    /**
-     * Upload a file to the OSS and create a corresponding FileRecord.
-     * Return the fileId, without download URL for UPLOAD case.
-     *
-     * @param fileName the name of the file to be uploaded
-     * @param fileType the type of the file to be uploaded
-     * @param fileData the byte array of the file to be uploaded
-     * @return fileId
-     */
-    @Override
-    public Long uploadFile(String fileName, FileType fileType, byte[] fileData) {
-        FileRecord fileRecord = uploadAndSaveRecord(fileName, fileType, fileData, FileSource.UPLOAD);
-        return fileRecord.getId();
+    public String generateOssKey(String modelName, String fileName) {
+        String key = modelName + "/" + TsidCreator.getTsid() + "/" + fileName;
+        if (TenantConfig.isEnableMultiTenancy()) {
+            Serializable tenantId = ContextHolder.getContext().getTenantId();
+            if (tenantId != null) {
+                key = tenantId + "/" + key;
+            }
+        }
+        return key;
     }
 
     /**
      * Upload a file to the OSS and create a corresponding FileRecord.
      *
-     * @param fileName the name of the file to be uploaded
-     * @param fileType the type of the file to be uploaded
-     * @param fileData the byte array of the file to be uploaded
-     * @param source the source of the file (e.g., UPLOAD, IMPORT)
-     * @return fileInfo object with download URL
-     */
-    @Override
-    public FileInfo uploadFile(String fileName, FileType fileType, byte[] fileData, FileSource source) {
-        FileRecord fileRecord = uploadAndSaveRecord(fileName, fileType, fileData, source);
-        return convertToFileInfo(fileRecord);
-    }
-
-    /**
-     * Upload a file to the OSS and create a corresponding FileRecord.
-     *
+     * @param modelName the name of the corresponding business model
      * @param fileName the name of the file with the file extension
      * @param fileType the type of the file to be uploaded
-     * @param inputStream the input stream of the file to be uploaded
+     * @param fileSize the size of the file in Bytes
      * @param source the source of the file (e.g., UPLOAD, IMPORT)
-     * @return fileInfo object with download URL
+     * @param inputStream the input stream of the file to be uploaded
+     * @return the fileRecord object
      */
     @Override
-    public FileInfo uploadFile(String fileName, FileType fileType, InputStream inputStream, FileSource source) {
+    public FileRecord uploadFile(String modelName, String fileName, FileType fileType, int fileSize, FileSource source, InputStream inputStream) {
         String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
-        String ossKey = TsidCreator.getTsid() + "/" + fullFileName;
+        String ossKey = this.generateOssKey(modelName, fullFileName);
         String checksum = ossClientService.uploadStreamToOSS(ossKey, inputStream, fileName);
         // Create file record
         FileRecord fileRecord = new FileRecord();
@@ -117,27 +79,38 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileRecord.setOssKey(ossKey);
         fileRecord.setSource(source);
         fileRecord.setChecksum(checksum);
+        fileRecord.setFileSize(fileSize / 1024);
         Long id = this.createOne(fileRecord);
         fileRecord.setId(id);
+        return fileRecord;
+    }
+
+    /**
+     * Upload a file to the OSS and return the fileInfo object with download URL
+     *
+     * @param modelName the name of the corresponding business model
+     * @param fileName the name of the file with the file extension
+     * @param fileType the type of the file to be uploaded
+     * @param fileSize the size of the file in Bytes
+     * @param inputStream the input stream of the file to be uploaded
+     * @return fileInfo object with download URL
+     */
+    @Override
+    public FileInfo uploadFileToDownload(String modelName, String fileName, FileType fileType, int fileSize, InputStream inputStream) {
+        FileRecord fileRecord = this.uploadFile(modelName, fileName, fileType, fileSize, FileSource.DOWNLOAD, inputStream);
         return convertToFileInfo(fileRecord);
     }
 
     /**
      * Upload a file to the OSS and create a FileRecord.
      *
-     * @param fileName the name of the file to be uploaded
+     * @param modelName the name of the corresponding business model
      * @param file the file to be uploaded
-     * @return fileId
+     * @return fileRecord object
      */
     @Override
-    public Long uploadFile(String fileName, MultipartFile file) {
-        FileType fileType = FileUtils.getActualFileType(file);
-        try {
-            FileInfo fileInfo = uploadFile(fileName, fileType, file.getInputStream(), FileSource.UPLOAD);
-            return fileInfo.getFileId();
-        } catch (IOException e) {
-            throw new SystemException("Failed to upload file {0}.", fileName + fileType.getExtension() , e);
-        }
+    public FileRecord uploadFile(String modelName, MultipartFile file) {
+        return this.uploadFile(modelName, null, file);
     }
 
     /**
@@ -146,14 +119,33 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
      * @param file the file to be uploaded
-     * @return fileId
+     * @return fileRecord object
      */
     @Override
-    public Long uploadFile(String modelName, Long rowId, MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename();
+    public FileRecord uploadFile(String modelName, Long rowId, MultipartFile file) {
+        String fileName = FileUtils.getShortFileName(file);
         FileType fileType = FileUtils.getActualFileType(file);
-        FileRecord fileRecord = uploadAndSaveRecord(fileName, fileType, file.getBytes(), FileSource.UPLOAD);
-        return fileRecord.getId();
+        String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+        String ossKey = this.generateOssKey(modelName, fullFileName);
+        String checksum;
+        try (InputStream inputStream = file.getInputStream()) {
+            checksum = ossClientService.uploadStreamToOSS(ossKey, inputStream, fileName);
+        } catch (IOException e) {
+            throw new SystemException("Failed to upload file {0}.", fileName + fileType.getExtension() , e);
+        }
+        // Create file record
+        FileRecord fileRecord = new FileRecord();
+        fileRecord.setModelName(modelName);
+        fileRecord.setRowId(rowId);
+        fileRecord.setFileName(fullFileName);
+        fileRecord.setFileType(fileType);
+        fileRecord.setOssKey(ossKey);
+        fileRecord.setSource(FileSource.UPLOAD);
+        fileRecord.setChecksum(checksum);
+        fileRecord.setFileSize((int) file.getSize() / 1024);
+        Long id = this.createOne(fileRecord);
+        fileRecord.setId(id);
+        return fileRecord;
     }
 
     /**
@@ -162,15 +154,29 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
      * @param files the files to be uploaded
-     * @return fileIds
+     * @return a list of fileRecord objects
      */
     @Override
-    public List<Long> uploadFile(String modelName, Long rowId, MultipartFile[] files) throws IOException {
-        List<Long> fileInfoList = Lists.newArrayList();
+    public List<FileRecord> uploadFiles(String modelName, Long rowId, MultipartFile[] files) {
+        List<FileRecord> fieldRecords = Lists.newArrayList();
         for(MultipartFile file : files) {
-            fileInfoList.add(this.uploadFile(modelName, rowId, file));
+            fieldRecords.add(this.uploadFile(modelName, rowId, file));
         }
-        return fileInfoList;
+        return fieldRecords;
+    }
+
+
+    /**
+     * Get the download URL by fileId
+     *
+     * @param fileId the ID of the file
+     * @return the download URL
+     */
+    @Override
+    public String getDownloadUrl(Long fileId) {
+        FileRecord fileRecord = this.readOne(fileId);
+        Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
+        return ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
     }
 
     /**
@@ -188,7 +194,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileInfo.setFileId(fileRecord.getId());
         fileInfo.setFileName(fileRecord.getFileName());
         fileInfo.setFileType(fileRecord.getFileType());
-        String ossUrl = ossClientService.getPreSignedUrl(fileRecord.getOssKey(), downloadLinkTTL, fileRecord.getFileName());
+        String ossUrl = ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
         fileInfo.setUrl(ossUrl);
         return fileInfo;
     }

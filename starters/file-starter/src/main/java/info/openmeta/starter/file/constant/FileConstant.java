@@ -9,4 +9,7 @@ public interface FileConstant {
 
     // Column name for the failed reason.
     String FAILED_REASON = "Failed Reason";
+
+    // The default value of the download URL expiration time in seconds, which is 300 seconds (5 minutes).
+    int DEFAULT_DOWNLOAD_URL_EXPIRE = 300;
 }

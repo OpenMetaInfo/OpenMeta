@@ -3,6 +3,7 @@ package info.openmeta.starter.file.excel;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
@@ -15,7 +16,6 @@ import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.entity.ExportTemplateField;
-import info.openmeta.starter.file.enums.FileSource;
 import info.openmeta.starter.file.service.ExportTemplateFieldService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +65,7 @@ public class ExportByTemplate extends CommonExport {
         // Generate the Excel file
         String fileName = exportTemplate.getFileName();
         String sheetName = StringUtils.hasText(exportTemplate.getSheetName()) ? exportTemplate.getSheetName() : fileName;
-        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headers, rowsTable);
+        FileInfo fileInfo = this.generateFileAndUpload(exportTemplate.getModelName(), fileName, sheetName, headers, rowsTable);
         // Generate an export history record
         this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
@@ -140,7 +140,7 @@ public class ExportByTemplate extends CommonExport {
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            fileInfo = fileRecordService.uploadFile(fileName, FileType.XLSX, resultStream, FileSource.DOWNLOAD);
+            fileInfo = fileRecordService.uploadFileToDownload(StringConstant.EMPTY_STRING, fileName, FileType.XLSX, outputStream.size(), resultStream);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel {0} with the provided data.", fileName, e);
         }

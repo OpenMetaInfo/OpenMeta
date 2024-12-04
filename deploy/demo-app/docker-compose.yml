@@ -45,6 +45,11 @@ services:
       - SPRING_ELASTICSEARCH_USERNAME=your_username
       - SPRING_ELASTICSEARCH_PASSWORD=your_password
       - SPRING_ELASTICSEARCH_INDEX_CHANGELOG=demo_dev_changelog
+      - OSS_TYPE=minio
+      - OSS_ENDPOINT=http://localhost:9000
+      - OSS_ACCESS_KEY=minioadmin
+      - OSS_SECRET_KEY=minioadmin
+      - OSS_BUCKET=demo-app
     depends_on:
       - redis
       - mysql
