@@ -3,6 +3,7 @@ package info.openmeta.starter.file.excel;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.FileType;
@@ -11,7 +12,6 @@ import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.dto.SheetInfo;
-import info.openmeta.starter.file.enums.FileSource;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +55,7 @@ public class ExportByDynamic extends CommonExport {
         String modelLabel = ModelManager.getModel(modelName).getLabelName();
         fileName = StringUtils.hasText(fileName) ? fileName : modelLabel;
         sheetName = StringUtils.hasText(sheetName) ? sheetName : fileName;
-        FileInfo fileInfo = this.generateFileAndUpload(fileName, sheetName, headers, rowsTable);
+        FileInfo fileInfo = this.generateFileAndUpload(modelName, fileName, sheetName, headers, rowsTable);
         // Generate an export history record
         this.generateExportHistory(null, fileInfo.getFileId());
         return fileInfo;
@@ -89,7 +89,7 @@ public class ExportByDynamic extends CommonExport {
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            fileInfo = fileRecordService.uploadFile(fileName, FileType.XLSX, resultStream, FileSource.DOWNLOAD);
+            fileInfo = fileRecordService.uploadFileToDownload(StringConstant.EMPTY_STRING, fileName, FileType.XLSX, outputStream.size(), resultStream);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel {0} with the provided data.", fileName, e);
         }

@@ -15,14 +15,13 @@ public interface OssClientService {
     String uploadStreamToOSS(String ossKey, InputStream inputStream, String fileName);
 
     /**
-     * Uploads the file bytes to the OSS bucket
+     * Generates a pre-signed URL for the file
      *
-     * @param ossKey   the key to store the file in the OSS bucket
-     * @param data     the byte array of the file
-     * @param fileName file name
-     * @return the checksum of the uploaded file
+     * @param ossKey             the key of the file stored in the OSS bucket
+     * @param fileName           file name
+     * @return the pre-signed URL
      */
-    String uploadByteToOSS(String ossKey, byte[] data, String fileName);
+    String getPreSignedUrl(String ossKey, String fileName);
 
     /**
      * Generates a pre-signed URL for the file
@@ -32,7 +31,7 @@ public interface OssClientService {
      * @param fileName           file name
      * @return the pre-signed URL
      */
-    String getPreSignedUrl(String ossKey, long expirationInSeconds, String fileName);
+    String getPreSignedUrl(String ossKey, int expirationInSeconds, String fileName);
 
     /**
      * Downloads the file from the OSS bucket and returns the InputStream

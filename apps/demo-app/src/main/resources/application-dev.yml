@@ -4,7 +4,7 @@ system:
   default-language: en-US
   enable-auth: false
   multi-tenancy:
-    enable: false
+    enable: true
     isolated-database: false
 security:
   encryption:
@@ -86,3 +86,10 @@ rocketmq:
     inner-broadcast:
       topic: dev_demo_inner_broadcast
       group: dev_demo_inner_broadcast_group
+
+oss:
+  type: minio
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: demo-app

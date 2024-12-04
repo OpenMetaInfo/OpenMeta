@@ -31,3 +31,15 @@ Access the Kibana console at http://localhost:5601
 docker-compose -f deploy/rocketmq/docker-compose.yml up -d
 ```
 Access the RocketMQ console at http://localhost:8080
+
+# 5. Start the Minio stack by Docker Compose
+```bash
+docker-compose -f deploy/minio/docker-compose.yml up -d
+```
+### Minio API Endpoints
+http://localhost:9000
+
+### Minio Web UI Dashboard
+http://localhost:9001
+Username: minioadmin
+Password: minioadmin

@@ -7,7 +7,6 @@ import info.openmeta.starter.file.entity.FileRecord;
 import info.openmeta.starter.file.enums.FileSource;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -19,45 +18,37 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
 
     /**
      * Upload a file to the OSS and create a corresponding FileRecord.
-     * Return the fileId, without download URL for UPLOAD case.
      *
+     * @param modelName the name of the corresponding business model
      * @param fileName the name of the file to be uploaded
      * @param fileType the type of the file to be uploaded
-     * @param fileData the byte array of the file to be uploaded
-     * @return fileId
-     */
-    Long uploadFile(String fileName, FileType fileType, byte[] fileData);
-
-    /**
-     * Upload a file to the OSS and create a corresponding FileRecord.
-     *
-     * @param fileName the name of the file to be uploaded
-     * @param fileType the type of the file to be uploaded
-     * @param fileData the byte array of the file to be uploaded
+     * @param fileSize the size of the file in Bytes
      * @param source the source of the file (e.g., UPLOAD, IMPORT)
-     * @return fileInfo object with download URL
-     */
-    FileInfo uploadFile(String fileName, FileType fileType, byte[] fileData, FileSource source);
-
-    /**
-     * Upload a file to the OSS and create a corresponding FileRecord.
-     *
-     * @param fileName the name of the file to be uploaded
-     * @param fileType the type of the file to be uploaded
      * @param inputStream the input stream of the file to be uploaded
-     * @param source the source of the file (e.g., UPLOAD, IMPORT)
-     * @return a FileInfo object containing the URL and metadata of the uploaded file
+     * @return the fileRecord object
      */
-    FileInfo uploadFile(String fileName, FileType fileType, InputStream inputStream, FileSource source);
+    FileRecord uploadFile(String modelName, String fileName, FileType fileType, int fileSize, FileSource source, InputStream inputStream);
+
+    /**
+     * Upload a file to the OSS and return the fileInfo object with download URL
+     *
+     * @param modelName the name of the corresponding business model
+     * @param fileName the name of the file to be uploaded
+     * @param fileType the type of the file to be uploaded
+     * @param fileSize the size of the file in Bytes
+     * @param inputStream the input stream of the file to be uploaded
+     * @return a FileInfo object containing the download URL and metadata of the uploaded file
+     */
+    FileInfo uploadFileToDownload(String modelName, String fileName, FileType fileType, int fileSize, InputStream inputStream);
 
     /**
      * Upload a file to the OSS and create a FileRecord
      *
-     * @param fileName the name of the file to be uploaded
+     * @param modelName the name of the corresponding business model
      * @param file the file to be uploaded
-     * @return fileId
+     * @return fileRecord object
      */
-    Long uploadFile(String fileName, MultipartFile file);
+    FileRecord uploadFile(String modelName, MultipartFile file);
 
     /**
      * Upload a file to the OSS and create a corresponding FileRecord to associate with a business model and rowId.
@@ -65,9 +56,9 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
      * @param file the file to be uploaded
-     * @return fileId
+     * @return fileRecord object
      */
-    Long uploadFile(String modelName, Long rowId, MultipartFile file) throws IOException;
+    FileRecord uploadFile(String modelName, Long rowId, MultipartFile file);
 
     /**
      * Upload multiple files to the OSS and create corresponding FileRecord to associate with a business model and rowId.
@@ -75,9 +66,9 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
      * @param files the files to be uploaded
-     * @return fileIds
+     * @return a list of fileRecord objects
      */
-    List<Long> uploadFile(String modelName, Long rowId, MultipartFile[] files) throws IOException;
+    List<FileRecord> uploadFiles(String modelName, Long rowId, MultipartFile[] files);
 
     /**
      * Convert FileRecord to FileInfo
@@ -103,4 +94,11 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
      */
     FileInfo getFileInfo(Long fileId);
 
+    /**
+     * Get the download URL by fileId
+     *
+     * @param fileId the ID of the file
+     * @return the download URL
+     */
+    String getDownloadUrl(Long fileId);
 }

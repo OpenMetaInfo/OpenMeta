@@ -7,29 +7,30 @@ import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.PutObjectResult;
 import info.openmeta.framework.base.exception.ExternalException;
 import info.openmeta.framework.base.exception.SystemException;
+import info.openmeta.starter.file.constant.FileConstant;
+import info.openmeta.starter.file.oss.OSSProperties;
 import info.openmeta.starter.file.oss.OssClientService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
 
 /**
- * OSS Client Service Implementation
+ * Aliyun OSS Client Service Implementation
  */
 @Slf4j
-@Service
-public class OssClientServiceImpl implements OssClientService {
+@AllArgsConstructor
+public class AliyunOSSClientService implements OssClientService {
 
-    @Autowired
     private OSS ossClient;
 
-    @Value("${aliyun.bucketName:}")
-    private String bucketName;
+    private OSSProperties ossProperties;
+
+    private String getBucketName() {
+        return ossProperties.getBucketName();
+    }
 
     /**
      * Uploads the file stream to the OSS bucket
@@ -41,8 +42,8 @@ public class OssClientServiceImpl implements OssClientService {
      */
     @Override
     public String uploadStreamToOSS(String ossKey, InputStream inputStream, String fileName) {
-        try (InputStream stream = inputStream) {
-            PutObjectResult objectResult = ossClient.putObject(bucketName, ossKey, stream);
+        try {
+            PutObjectResult objectResult = ossClient.putObject(getBucketName(), ossKey, inputStream);
             return objectResult.getETag();
         } catch (OSSException ossException) {
             throw new ExternalException("OSSException occurred while uploading the file {0}.\n{1}",
@@ -57,17 +58,17 @@ public class OssClientServiceImpl implements OssClientService {
     }
 
     /**
-     * Uploads the file bytes to the OSS bucket
+     * Generates a pre-signed URL for the file
      *
-     * @param ossKey   the key to store the file in the OSS bucket
-     * @param data     the byte array of the file
-     * @param fileName file name
-     * @return the checksum of the uploaded file
+     * @param ossKey             the key of the file stored in the OSS bucket
+     * @param fileName           file name
+     * @return the pre-signed URL
      */
     @Override
-    public String uploadByteToOSS(String ossKey, byte[] data, String fileName) {
-        InputStream inputStream = new ByteArrayInputStream(data);
-        return uploadStreamToOSS(ossKey, inputStream, fileName);
+    public String getPreSignedUrl(String ossKey, String fileName) {
+        int expirationInSeconds = ossProperties.getUrlExpireSeconds() == null ?
+                FileConstant.DEFAULT_DOWNLOAD_URL_EXPIRE : ossProperties.getUrlExpireSeconds();
+        return getPreSignedUrl(ossKey, expirationInSeconds, fileName);
     }
 
     /**
@@ -79,10 +80,10 @@ public class OssClientServiceImpl implements OssClientService {
      * @return the pre-signed URL
      */
     @Override
-    public String getPreSignedUrl(String ossKey, long expirationInSeconds, String fileName) {
+    public String getPreSignedUrl(String ossKey, int expirationInSeconds, String fileName) {
         try {
-            Date expiration = new Date(System.currentTimeMillis() + expirationInSeconds * 1000);
-            URL url = ossClient.generatePresignedUrl(bucketName, ossKey, expiration);
+            Date expiration = new Date(System.currentTimeMillis() + expirationInSeconds * 1000L);
+            URL url = ossClient.generatePresignedUrl(getBucketName(), ossKey, expiration);
             return url.toString();
         } catch (Exception e) {
             throw new ExternalException("Error while generating the file URL {0}", fileName, e);
@@ -98,7 +99,7 @@ public class OssClientServiceImpl implements OssClientService {
     @Override
     public InputStream downloadStreamFromOSS(String ossKey, String fileName) {
         try {
-            OSSObject ossObject = ossClient.getObject(bucketName, ossKey);
+            OSSObject ossObject = ossClient.getObject(getBucketName(), ossKey);
             return ossObject.getObjectContent();
         } catch (OSSException ossException) {
             throw new ExternalException("OSSException occurred while downloading the file {0}.\n{1}",

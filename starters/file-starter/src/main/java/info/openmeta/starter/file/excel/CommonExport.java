@@ -13,7 +13,6 @@ import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.entity.ExportHistory;
-import info.openmeta.starter.file.enums.FileSource;
 import info.openmeta.starter.file.service.ExportHistoryService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
@@ -67,20 +66,22 @@ public class CommonExport {
     /**
      * Generate the Excel file and upload it to the file storage.
      *
+     * @param modelName the model name
      * @param fileName the name of the file
      * @param sheetName the name of the sheet
      * @param headers the list of header label
      * @param rowsTable the data table of the rows
      * @return the file info object with download URL
      */
-    public FileInfo generateFileAndUpload(String fileName, String sheetName, List<String> headers,
-                                          List<List<Object>> rowsTable) {
-        return this.generateFileAndUpload(fileName, sheetName, headers, rowsTable, null);
+    public FileInfo generateFileAndUpload(String modelName, String fileName, String sheetName,
+                                          List<String> headers, List<List<Object>> rowsTable) {
+        return this.generateFileAndUpload(modelName, fileName, sheetName, headers, rowsTable, null);
     }
 
     /**
      * Generate the Excel file and upload it to the file storage.
      *
+     * @param modelName the model name
      * @param fileName the name of the file
      * @param sheetName the name of the sheet
      * @param headers the list of header label
@@ -88,8 +89,8 @@ public class CommonExport {
      * @param handler the cell handler
      * @return the file info object with download URL
      */
-    public FileInfo generateFileAndUpload(String fileName, String sheetName, List<String> headers,
-                                          List<List<Object>> rowsTable, CellWriteHandler handler) {
+    public FileInfo generateFileAndUpload(String modelName, String fileName, String sheetName,
+                                          List<String> headers, List<List<Object>> rowsTable, CellWriteHandler handler) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
@@ -102,7 +103,7 @@ public class CommonExport {
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            return fileRecordService.uploadFile(fileName, FileType.XLSX, resultStream, FileSource.DOWNLOAD);
+            return fileRecordService.uploadFileToDownload(modelName, fileName, FileType.XLSX, outputStream.size(), resultStream);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel from template {0} with the provided data.", fileName, e);
         }

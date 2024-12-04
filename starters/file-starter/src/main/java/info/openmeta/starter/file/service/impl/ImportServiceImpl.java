@@ -20,6 +20,7 @@ import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.ImportDataDTO;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
 import info.openmeta.starter.file.dto.ImportTemplateDTO;
+import info.openmeta.starter.file.entity.FileRecord;
 import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.entity.ImportTemplate;
 import info.openmeta.starter.file.entity.ImportTemplateField;
@@ -97,8 +98,8 @@ public class ImportServiceImpl implements ImportService {
         // Generate the Excel file
         String fileName = importTemplate.getName();
         String sheetName = importTemplate.getName();
-        return commonExport.generateFileAndUpload(fileName, sheetName, headers, Collections.emptyList(),
-                new CustomHeadStyleHandler(requiredHeaderList));
+        return commonExport.generateFileAndUpload(importTemplate.getModelName(), fileName, sheetName,
+                headers, Collections.emptyList(), new CustomHeadStyleHandler(requiredHeaderList));
     }
 
     /**
@@ -114,12 +115,12 @@ public class ImportServiceImpl implements ImportService {
         ImportTemplate importTemplate = importTemplateService.readOne(templateId);
         this.validateImportTemplate(importTemplate);
         String fileName = FileUtils.getShortFileName(file);
-        Long fileId = fileRecordService.uploadFile(fileName, file);
+        FileRecord fileRecord = fileRecordService.uploadFile(importTemplate.getModelName(), file);
         // Generate an export history record
-        ImportHistory importHistory = this.generateImportHistory(fileName, templateId, fileId);
+        ImportHistory importHistory = this.generateImportHistory(fileName, templateId, fileRecord.getId());
         // generate the ImportDataDTO object and ImportTemplateDTO object
         ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, env);
-        importTemplateDTO.setFileId(fileId);
+        importTemplateDTO.setFileId(fileRecord.getId());
         importTemplateDTO.setHistoryId(importHistory.getId());
         importTemplateDTO.setFileName(fileName);
         if (Boolean.TRUE.equals(importTemplate.getSyncImport())) {
@@ -166,12 +167,12 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public ImportHistory importByDynamic(ImportWizard importWizard) {
         String fileName = importWizard.getFileName();
-        Long fileId = fileRecordService.uploadFile(fileName, importWizard.getFile());
+        FileRecord fileRecord = fileRecordService.uploadFile(importWizard.getModelName(), importWizard.getFile());
         // Generate an export history record
-        ImportHistory importHistory = this.generateImportHistory(fileName, null, fileId);
+        ImportHistory importHistory = this.generateImportHistory(fileName, null, fileRecord.getId());
         // generate the ImportDataDTO object and ImportTemplateDTO object
         ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importWizard);
-        importTemplateDTO.setFileId(fileId);
+        importTemplateDTO.setFileId(fileRecord.getId());
         importTemplateDTO.setHistoryId(importHistory.getId());
         importTemplateDTO.setFileName(fileName);
         if (Boolean.TRUE.equals(importWizard.getSyncImport())) {
@@ -393,7 +394,7 @@ public class ImportServiceImpl implements ImportService {
         headers.add(I18n.get(FileConstant.FAILED_REASON));
         // Get the data to be exported
         List<List<Object>> rowsTable = ListUtils.convertToTableData(fields, importDataDTO.getFailedRows());
-        FileInfo fileInfo = commonExport.generateFileAndUpload(fileName, FileConstant.FAILED_DATA, headers, rowsTable);
+        FileInfo fileInfo = commonExport.generateFileAndUpload(importTemplateDTO.getModelName(), fileName, FileConstant.FAILED_DATA, headers, rowsTable);
         return fileInfo.getFileId();
     }
 
