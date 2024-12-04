@@ -33,7 +33,7 @@ services:
       - ./init_mysql:/docker-entrypoint-initdb.d
 
   mini-app:
-    image: openmeta/mini-app:0.7.3
+    image: openmeta/mini-app:0.7.5
     ports:
       - 80:80
     environment:

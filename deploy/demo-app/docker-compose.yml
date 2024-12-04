@@ -33,7 +33,7 @@ services:
       - ./init_mysql:/docker-entrypoint-initdb.d
 
   demo-app:
-    image: openmeta/demo-app:0.7.3
+    image: openmeta/demo-app:0.7.5
     ports:
       - 80:80
     environment:

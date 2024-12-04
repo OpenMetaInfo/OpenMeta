@@ -19,4 +19,4 @@ export TSIDCREATOR_NODE
 export TSIDCREATOR_NODE_COUNT=256
 
 # Now execute the main command of the container
-exec java -jar "${APP_NAME}.jar" "$@"
+exec java -Dspring.profiles.active="${SPRING_PROFILES_ACTIVE}" -jar "${APP_NAME}.jar" "$@"
