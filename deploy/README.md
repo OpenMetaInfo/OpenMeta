@@ -12,27 +12,22 @@ Your can specify the `REGISTRY_NAMESPACE` to push the image to your own docker i
 
 Example to build the demo application image:
 ```bash
-./deploy/build.sh apps/demo-app 0.7.3
+./deploy/build.sh apps/demo-app 0.7.5
 ```
 
-# 2. Start the demo application by Docker Compose
-```bash
-docker-compose -f ./deploy/demo-app/docker-compose.yml up -d
-```
-
-# 3. Start the EFK stack by Docker Compose
+# 2. Start the EFK stack by Docker Compose
 ```bash
 docker-compose -f deploy/efk/docker-compose.yml up -d
 ```
 Access the Kibana console at http://localhost:5601
 
-# 4. Start the RocketMQ stack by Docker Compose
+# 3. Start the RocketMQ stack by Docker Compose
 ```bash
 docker-compose -f deploy/rocketmq/docker-compose.yml up -d
 ```
 Access the RocketMQ console at http://localhost:8080
 
-# 5. Start the Minio stack by Docker Compose
+# 4. Start the Minio stack by Docker Compose
 ```bash
 docker-compose -f deploy/minio/docker-compose.yml up -d
 ```
@@ -43,3 +38,8 @@ http://localhost:9000
 http://localhost:9001
 Username: minioadmin
 Password: minioadmin
+
+# 5. Start the demo application by Docker Compose
+```bash
+docker-compose -f ./deploy/demo-app/docker-compose.yml up -d
+```
