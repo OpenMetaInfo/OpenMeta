@@ -52,16 +52,16 @@ public interface ModelConstant {
     /** Fields of timeline model */
     // Timeline model physical primary key field name, UPDATE timeline row basis.
     String SLICE_ID = "sliceId";
-    String EFFECTIVE_START = "effectiveStart";
-    String EFFECTIVE_END = "effectiveEnd";
+    String EFFECTIVE_START_DATE = "effectiveStartDate";
+    String EFFECTIVE_END_DATE = "effectiveEndDate";
     Set<String> PRIMARY_KEYS = Set.of(ID, SLICE_ID);
-    Set<String> TIMELINE_FIELDS = Set.of(ID, SLICE_ID, EFFECTIVE_START, EFFECTIVE_END);
+    Set<String> TIMELINE_FIELDS = Set.of(ID, SLICE_ID, EFFECTIVE_START_DATE, EFFECTIVE_END_DATE);
     // Default effective end date: 9999-12-31
-    LocalDate MAX_EFFECTIVE_END = LocalDate.of(9999, 12, 31);
+    LocalDate MAX_EFFECTIVE_END_DATE = LocalDate.of(9999, 12, 31);
     // Column names in database
     String SLICE_ID_COLUMN = "slice_id";
-    String EFFECTIVE_START_COLUMN = "effective_start";
-    String EFFECTIVE_END_COLUMN = "effective_end";
+    String EFFECTIVE_START_DATE_COLUMN = "effective_start_date";
+    String EFFECTIVE_END_DATE_COLUMN = "effective_end_date";
 
     /** Reserved field names, cannot be used as custom field names */
     Set<String> RESERVED_KEYWORD = ImmutableSet.<String>builder()

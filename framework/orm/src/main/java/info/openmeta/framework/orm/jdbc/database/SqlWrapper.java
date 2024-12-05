@@ -159,16 +159,16 @@ public class SqlWrapper {
             // masterEffectiveOption represents whether the data query of the associated model is based on
             // the start date or end date of the main model data as the effective date of the associated model.
             // Here, it is the end date EFFECTIVE_END_COLUMN of the main model data by default.
-            String masterEffectiveOption = leftAlias + "." + ModelConstant.EFFECTIVE_END_COLUMN;
-            joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_COLUMN).append(" <= ").append(masterEffectiveOption)
-                    .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_COLUMN).append(" >= ").append(masterEffectiveOption);
+            String masterEffectiveOption = leftAlias + "." + ModelConstant.EFFECTIVE_END_DATE_COLUMN;
+            joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_DATE_COLUMN).append(" <= ").append(masterEffectiveOption)
+                    .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_DATE_COLUMN).append(" >= ").append(masterEffectiveOption);
         } else {
             // When the associated model is a timeline model and specified the `effectiveDate`,
             // add an `ON` condition to the join clause:
-            //      AND tn.effectiveStart <= effectiveDate AND tn.effectiveEnd >= effectiveDate
+            //      AND tn.effectiveStartDate <= effectiveDate AND tn.effectiveEndDate >= effectiveDate
             String effectiveDate = ContextHolder.getContext().getEffectiveDate().format(TimeConstant.DATE_FORMATTER);
-            joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_COLUMN).append(" <= '").append(effectiveDate).append("' ")
-                    .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_COLUMN).append(" >= '").append(effectiveDate).append("' ");
+            joinClause.append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_START_DATE_COLUMN).append(" <= '").append(effectiveDate).append("' ")
+                    .append(" AND ").append(rightAlias).append(".").append(ModelConstant.EFFECTIVE_END_DATE_COLUMN).append(" >= '").append(effectiveDate).append("' ");
         }
     }
 

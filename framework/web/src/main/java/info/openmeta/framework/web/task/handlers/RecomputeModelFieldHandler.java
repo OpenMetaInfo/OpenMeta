@@ -87,7 +87,7 @@ public class RecomputeModelFieldHandler implements AsyncTaskHandler<RecomputeHan
         FlexQuery flexQuery = new FlexQuery(dependedFields, filters).acrossTimelineData();
         List<Map<String, Object>> rows = modelService.searchList(taskParams.getModel(), flexQuery);
         // TODO: When both the main model and the cascaded model are timeline models, the calculation of
-        //  cascaded data can only proceed after getting the `effectiveStart` from the main model data,
+        //  cascaded data can only proceed after getting the `effectiveStartDate` from the main model data,
         //  which is then used as the `effectiveDate` to fetch data from the cascaded model.
         if (!CollectionUtils.isEmpty(rows)) {
             modelService.updateList(taskParams.getModel(), rows);

@@ -121,7 +121,7 @@ public class ModelManager {
             validateModelDisplayName(metaModel);
             // Check and complete the searchName configuration
             validateSearchName(metaModel);
-            // Check if the timeline model contains the required timeline fields: sliceId, effectiveStart, effectiveEnd
+            // Check if the timeline model contains the required timeline fields: sliceId, effectiveStartDate, effectiveEndDate
             validateTimelineFields(metaModel.getModelName());
             // Check if the multi-tenant model contains the tenantId field
             validateMultiTenant(metaModel);
@@ -235,7 +235,7 @@ public class ModelManager {
 
     /**
      * Validate whether the timeline model contains the required timeline fields:
-     *      sliceId, id, effectiveStart, effectiveEnd.
+     *      sliceId, id, effectiveStartDate, effectiveEndDate.
      *
      * @param modelName model name
      */
