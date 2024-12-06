@@ -53,9 +53,6 @@ public class ImportTemplate extends BaseModel {
     @Schema(description = "Description")
     private String description;
 
-    @Schema(description = "File Record")
-    private Long fileId;
-
     @Schema(description = "Import Field List")
     private List<ImportTemplateField> importFields;
 

@@ -11,6 +11,7 @@ import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
+import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.FileRecord;
 import info.openmeta.starter.file.enums.FileSource;
 import info.openmeta.starter.file.oss.OssClientService;
@@ -58,28 +59,25 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
 
     /**
      * Upload a file to the OSS and create a corresponding FileRecord.
+     * The uploadFileDTO contains the file information and input stream.
      *
-     * @param modelName the name of the corresponding business model
-     * @param fileName the name of the file with the file extension
-     * @param fileType the type of the file to be uploaded
-     * @param fileSize the size of the file in Bytes
-     * @param source the source of the file (e.g., UPLOAD, IMPORT)
-     * @param inputStream the input stream of the file to be uploaded
+     * @param uploadFileDTO the upload file DTO
      * @return the fileRecord object
      */
     @Override
-    public FileRecord uploadFile(String modelName, String fileName, FileType fileType, int fileSize, FileSource source, InputStream inputStream) {
-        String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+    public FileRecord uploadFile(UploadFileDTO uploadFileDTO) {
+        String fullFileName = uploadFileDTO.getFileName() + "_"
+                + DateUtils.getCurrentSimpleDateString() + uploadFileDTO.getFileType().name();
         String ossKey = this.generateOssKey(modelName, fullFileName);
-        String checksum = ossClientService.uploadStreamToOSS(ossKey, inputStream, fileName);
+        String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), uploadFileDTO.getFileName());
         // Create file record
         FileRecord fileRecord = new FileRecord();
         fileRecord.setFileName(fullFileName);
-        fileRecord.setFileType(fileType);
+        fileRecord.setFileType(uploadFileDTO.getFileType());
         fileRecord.setOssKey(ossKey);
-        fileRecord.setSource(source);
+        fileRecord.setSource(uploadFileDTO.getFileSource());
         fileRecord.setChecksum(checksum);
-        fileRecord.setFileSize(fileSize / 1024);
+        fileRecord.setFileSize(uploadFileDTO.getFileSize() / 1024);
         Long id = this.createOne(fileRecord);
         fileRecord.setId(id);
         return fileRecord;
@@ -87,17 +85,15 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
 
     /**
      * Upload a file to the OSS and return the fileInfo object with download URL
+     * The uploadFileDTO contains the file information and input stream.
      *
-     * @param modelName the name of the corresponding business model
-     * @param fileName the name of the file with the file extension
-     * @param fileType the type of the file to be uploaded
-     * @param fileSize the size of the file in Bytes
-     * @param inputStream the input stream of the file to be uploaded
-     * @return fileInfo object with download URL
+     * @param uploadFileDTO the upload file DTO
+     * @return a FileInfo object containing the download URL and metadata of the uploaded file
      */
     @Override
-    public FileInfo uploadFileToDownload(String modelName, String fileName, FileType fileType, int fileSize, InputStream inputStream) {
-        FileRecord fileRecord = this.uploadFile(modelName, fileName, fileType, fileSize, FileSource.DOWNLOAD, inputStream);
+    public FileInfo uploadFileToDownload(UploadFileDTO uploadFileDTO) {
+        uploadFileDTO.setFileSource(FileSource.DOWNLOAD);
+        FileRecord fileRecord = this.uploadFile(uploadFileDTO);
         return convertToFileInfo(fileRecord);
     }
 

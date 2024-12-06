@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 
 /**
- * Collect API exception info, including the URL, the parameters, and the Request Body.
+ * Collect API info when an exception occurs, including the URL, the parameters, and the Request Body.
  * Since the HTTP request body can only be read once, to capture the request body in case of an exception,
  * the parameters are collected via an aspect at the point of exception and stored in request attributes.
  * Aspect applies to: Classes annotated with @RestController or methods annotated with @PostMapping/@GetMapping.

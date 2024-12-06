@@ -1,10 +1,9 @@
 package info.openmeta.starter.file.service;
 
-import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.EntityService;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.FileRecord;
-import info.openmeta.starter.file.enums.FileSource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -18,28 +17,21 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
 
     /**
      * Upload a file to the OSS and create a corresponding FileRecord.
+     * The uploadFileDTO contains the file information and input stream.
      *
-     * @param modelName the name of the corresponding business model
-     * @param fileName the name of the file to be uploaded
-     * @param fileType the type of the file to be uploaded
-     * @param fileSize the size of the file in Bytes
-     * @param source the source of the file (e.g., UPLOAD, IMPORT)
-     * @param inputStream the input stream of the file to be uploaded
+     * @param uploadFileDTO the upload file DTO
      * @return the fileRecord object
      */
-    FileRecord uploadFile(String modelName, String fileName, FileType fileType, int fileSize, FileSource source, InputStream inputStream);
+    FileRecord uploadFile(UploadFileDTO uploadFileDTO);
 
     /**
      * Upload a file to the OSS and return the fileInfo object with download URL
+     * The uploadFileDTO contains the file information and input stream.
      *
-     * @param modelName the name of the corresponding business model
-     * @param fileName the name of the file to be uploaded
-     * @param fileType the type of the file to be uploaded
-     * @param fileSize the size of the file in Bytes
-     * @param inputStream the input stream of the file to be uploaded
+     * @param uploadFileDTO the upload file DTO
      * @return a FileInfo object containing the download URL and metadata of the uploaded file
      */
-    FileInfo uploadFileToDownload(String modelName, String fileName, FileType fileType, int fileSize, InputStream inputStream);
+    FileInfo uploadFileToDownload(UploadFileDTO uploadFileDTO);
 
     /**
      * Upload a file to the OSS and create a FileRecord
