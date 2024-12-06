@@ -12,6 +12,7 @@ import info.openmeta.framework.orm.domain.Page;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.ExportHistory;
 import info.openmeta.starter.file.service.ExportHistoryService;
 import info.openmeta.starter.file.service.FileRecordService;
@@ -103,7 +104,14 @@ public class CommonExport {
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            return fileRecordService.uploadFileToDownload(modelName, fileName, FileType.XLSX, outputStream.size(), resultStream);
+            // Construct the uploadFileDTO
+            UploadFileDTO uploadFileDTO = new UploadFileDTO();
+            uploadFileDTO.setModelName(modelName);
+            uploadFileDTO.setFileName(fileName);
+            uploadFileDTO.setFileType(FileType.XLSX);
+            uploadFileDTO.setFileSize(outputStream.size());
+            uploadFileDTO.setInputStream(resultStream);
+            return fileRecordService.uploadFileToDownload(uploadFileDTO);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel from template {0} with the provided data.", fileName, e);
         }

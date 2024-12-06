@@ -8,7 +8,7 @@ import java.io.Serial;
 import java.time.LocalDate;
 
 /**
- * Abstract class of timeline model, with sliceId, effectiveStart and effectiveEnd fields.
+ * Abstract class of timeline model, with sliceId, effectiveStartDate and effectiveEndDate fields.
  */
 @Data
 @Schema(name = "TimelineModel")
@@ -22,8 +22,8 @@ public abstract class TimelineModel extends BaseModel {
     private Long sliceId;
 
     @Schema(description = "Effective start date")
-    private LocalDate effectiveStart;
+    private LocalDate effectiveStartDate;
 
     @Schema(description = "Effective end date")
-    private LocalDate effectiveEnd;
+    private LocalDate effectiveEndDate;
 }

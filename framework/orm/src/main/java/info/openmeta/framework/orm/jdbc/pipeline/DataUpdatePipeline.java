@@ -147,10 +147,10 @@ public class DataUpdatePipeline extends DataPipeline {
     private void updateDifferFields() {
         this.fields.stream().filter(field -> !FieldType.TO_MANY_TYPES.contains(ModelManager.getModelField(modelName, field).getFieldType())
         ).forEach(this.differFields::add);
-        if (this.differFields.contains(ModelConstant.EFFECTIVE_START) && ModelManager.isTimelineModel(modelName)) {
-            // When changing the `effectiveStart` field of the timeline model,
-            // get the original `effectiveEnd` field at the same time for time comparison.
-            this.differFields.add(ModelConstant.EFFECTIVE_END);
+        if (this.differFields.contains(ModelConstant.EFFECTIVE_START_DATE) && ModelManager.isTimelineModel(modelName)) {
+            // When changing the `effectiveStartDate` field of the timeline model,
+            // get the original `effectiveEndDate` field at the same time for time comparison.
+            this.differFields.add(ModelConstant.EFFECTIVE_END_DATE);
         }
     }
 
@@ -220,9 +220,9 @@ public class DataUpdatePipeline extends DataPipeline {
                         originalRow.put(field, originalRowsMap.get(pKey).get(field));
                     }
                 });
-                // When the effectiveStart is modified, the effectiveEnd data is retained for subsequent time conditions
-                if (differentFields.contains(ModelConstant.EFFECTIVE_START)) {
-                    originalRow.put(ModelConstant.EFFECTIVE_END, originalRowsMap.get(pKey).get(ModelConstant.EFFECTIVE_END));
+                // When the effectiveStartDate is modified, the effectiveEndDate data is retained for subsequent time conditions
+                if (differentFields.contains(ModelConstant.EFFECTIVE_START_DATE)) {
+                    originalRow.put(ModelConstant.EFFECTIVE_END_DATE, originalRowsMap.get(pKey).get(ModelConstant.EFFECTIVE_END_DATE));
                 }
                 if (!differRow.isEmpty()) {
                     // Keep the `ID` business key field for timeline model rows, to query other affected slices.

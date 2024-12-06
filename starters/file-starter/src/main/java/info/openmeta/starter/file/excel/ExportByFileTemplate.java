@@ -7,6 +7,7 @@ import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +80,14 @@ public class ExportByFileTemplate extends CommonExport {
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            return fileRecordService.uploadFileToDownload(exportTemplate.getModelName(), fileName, FileType.XLSX, outputStream.size(), resultStream);
+            // Construct the uploadFileDTO
+            UploadFileDTO uploadFileDTO = new UploadFileDTO();
+            uploadFileDTO.setModelName(exportTemplate.getModelName());
+            uploadFileDTO.setFileName(fileName);
+            uploadFileDTO.setFileType(FileType.XLSX);
+            uploadFileDTO.setFileSize(outputStream.size());
+            uploadFileDTO.setInputStream(resultStream);
+            return fileRecordService.uploadFileToDownload(uploadFileDTO);
         } catch (Exception e) {
             throw new BusinessException("Failed to fill data into the file template {}.", fileName, e);
         }

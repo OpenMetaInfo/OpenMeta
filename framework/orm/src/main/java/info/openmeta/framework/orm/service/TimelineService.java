@@ -15,8 +15,8 @@ import java.util.Map;
 public interface TimelineService {
 
     /**
-     * Append `effectiveDate` filters when query the timeline model: `effectiveStart <= effectiveDate <= effectiveEnd`.
-     * If the original filters already contain `effectiveStart` or `effectiveEnd`, the `originalFilters` will
+     * Append `effectiveDate` filters when query the timeline model: `effectiveStartDate <= effectiveDate <= effectiveEndDate`.
+     * If the original filters already contain `effectiveStartDate` or `effectiveEndDate`, the `originalFilters` will
      * be returned directly, which means the query is across time periods.
      *
      * @param modelName model name
@@ -26,7 +26,7 @@ public interface TimelineService {
     Filters appendTimelineFilters(String modelName, Filters originalFilters);
 
     /**
-     * Append `effectiveDate` filters when query the timeline model: `effectiveStart <= effectiveDate <= effectiveEnd`.
+     * Append `effectiveDate` filters when query the timeline model: `effectiveStartDate <= effectiveDate <= effectiveEndDate`.
      * If `isAcrossTimeline = true`, the `originalFilters` will be returned directly,
      * which means the query is across time periods.
      *
@@ -65,7 +65,7 @@ public interface TimelineService {
 
     /**
      * Batch update slices by `sliceId` in the list.
-     * When updating `effectiveStart`, also check and update the `effectiveEnd` of the affected slices.
+     * When updating `effectiveStartDate`, also check and update the `effectiveEndDate` of the affected slices.
      *
      * @param modelName model name
      * @param rows data list to be updated

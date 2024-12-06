@@ -18,8 +18,8 @@ import java.util.Map;
  *         "modelName": "#{modelName}",
  *         "modelId": "#{id}",
  *         "appId": "#{appId}",
- *         "fieldName": "effectiveEnd",
- *         "name": "Timeline effectiveEnd",
+ *         "fieldName": "effectiveEndDate",
+ *         "name": "Timeline effectiveEndDate",
  *         "fieldType": "DateTime"
  *     }
  * }

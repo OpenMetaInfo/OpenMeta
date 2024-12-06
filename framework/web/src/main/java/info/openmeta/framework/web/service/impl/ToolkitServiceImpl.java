@@ -76,7 +76,7 @@ public class ToolkitServiceImpl implements ToolkitService {
         do {
             page = modelService.searchPage(modelName, flexQuery, page);
             // TODO: When both the main model and the cascaded model are timeline models, the calculation of
-            //  cascaded data can only proceed after getting the `effectiveStart` from the main model data,
+            //  cascaded data can only proceed after getting the `effectiveStartDate` from the main model data,
             //  which is then used as the `effectiveDate` to fetch data from the cascaded model.
             if (!page.getRows().isEmpty()) {
                 modelService.updateList(modelName, page.getRows());

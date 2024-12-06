@@ -12,6 +12,6 @@ import java.time.LocalDate;
 public class TimelineSlice {
     private Serializable id;
     private Serializable sliceId;
-    private LocalDate effectiveStart;
-    private LocalDate effectiveEnd;
+    private LocalDate effectiveStartDate;
+    private LocalDate effectiveEndDate;
 }

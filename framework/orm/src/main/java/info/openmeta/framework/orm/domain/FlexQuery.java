@@ -155,7 +155,7 @@ public class FlexQuery {
 
     /**
      * Whether to get all timeline slice data.
-     * If the FlexQuery object contains effectiveStart or effectiveEnd,
+     * If the FlexQuery object contains effectiveStartDate or effectiveEndDate,
      * it is also means across the timeline.
      */
     public boolean isAcrossTimeline() {
@@ -163,7 +163,7 @@ public class FlexQuery {
             return true;
         } else if (!Filters.isEmpty(filters)) {
             Set<String> filterFields = filters.allFields();
-            return filterFields.contains(ModelConstant.EFFECTIVE_START) || filterFields.contains(ModelConstant.EFFECTIVE_END);
+            return filterFields.contains(ModelConstant.EFFECTIVE_START_DATE) || filterFields.contains(ModelConstant.EFFECTIVE_END_DATE);
         }
         return false;
     }

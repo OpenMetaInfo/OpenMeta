@@ -14,6 +14,7 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.entity.ExportTemplateField;
 import info.openmeta.starter.file.service.ExportTemplateFieldService;
@@ -140,7 +141,14 @@ public class ExportByTemplate extends CommonExport {
             excelWriter.finish();
             // Convert ByteArrayOutputStream to InputStream for return and upload
             InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            fileInfo = fileRecordService.uploadFileToDownload(StringConstant.EMPTY_STRING, fileName, FileType.XLSX, outputStream.size(), resultStream);
+            // Construct the uploadFileDTO
+            UploadFileDTO uploadFileDTO = new UploadFileDTO();
+            uploadFileDTO.setModelName(StringConstant.EMPTY_STRING);
+            uploadFileDTO.setFileName(fileName);
+            uploadFileDTO.setFileType(FileType.XLSX);
+            uploadFileDTO.setFileSize(outputStream.size());
+            uploadFileDTO.setInputStream(resultStream);
+            fileInfo = fileRecordService.uploadFileToDownload(uploadFileDTO);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel {0} with the provided data.", fileName, e);
         }
