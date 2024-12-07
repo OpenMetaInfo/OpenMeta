@@ -46,8 +46,8 @@ public class OrderByBuilder extends BaseBuilder implements SqlClauseBuilder {
             String defaultOrder = ModelManager.getModel(mainModelName).getDefaultOrder();
             if (StringUtils.isNotBlank(defaultOrder)) {
                 orders = Orders.of(defaultOrder);
-            } else if (page != null) {
-                // When 'defaultOrder' is not configured, using the global default order `DEFAULT_PAGED_ORDER`.
+            } else if (page != null && !flexQuery.isAggregate()) {
+                // In page query, if the order is not specified, and it is not an aggregate query, use the default order.
                 orders = Orders.of(ModelConstant.DEFAULT_PAGED_ORDER);
             }
         }
