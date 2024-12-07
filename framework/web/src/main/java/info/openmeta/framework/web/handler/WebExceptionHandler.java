@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -89,7 +90,8 @@ public class WebExceptionHandler {
      */
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ApiResponse<String>> handleException(Exception e) {
-        return handler(ResponseCode.ERROR, e);
+        String clientExceptionMessage = "Unconfirmed exception";
+        return handler(ResponseCode.ERROR, e, clientExceptionMessage);
     }
 
     /**
@@ -214,4 +216,14 @@ public class WebExceptionHandler {
         log.warn("ClientAbortException: {}", e.getMessage());
     }
 
+    /**
+     * Handle BadSqlGrammarException
+     * @param e Exception
+     * @return ResponseEntity
+     */
+    @ExceptionHandler(value = BadSqlGrammarException.class)
+    public ResponseEntity<ApiResponse<String>> handleException(BadSqlGrammarException e) {
+        String errorMessage = "SQL Syntax Error";
+        return handler(ResponseCode.ERROR, e, errorMessage);
+    }
 }
