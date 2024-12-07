@@ -31,7 +31,7 @@ public class OrdersDeserializer extends JsonDeserializer<Orders> {
             return Orders.of(jsonString);
         } else if (JsonToken.START_ARRAY.equals(currentToken)) {
             // If the current token is an array, parse the entire array into an ArrayList, then call the Orders.of() method.
-            List<List<String>> list = p.readValueAs(new TypeReference<List<List<String>>>() {});
+            List<Object> list = p.readValueAs(new TypeReference<List<Object>>() {});
             return Orders.of(list);
         } else {
             throw new IllegalArgumentException("Sorting parameters do not support deserialization into Orders objects: {0}", p.readValueAs(Object.class));

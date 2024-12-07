@@ -3,6 +3,7 @@ package info.openmeta.framework.orm.domain;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.utils.Cast;
 import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.domain.serializer.OrdersDeserializer;
 import info.openmeta.framework.orm.domain.serializer.OrdersSerializer;
@@ -155,22 +156,28 @@ public class Orders {
         }
         Orders orders = new Orders();
         for (String orderUnit : StringUtils.split(ordersString, ",")) {
-            orders.addOrderUnit(orderUnit);
+            orders.addStringOrderUnit(orderUnit);
         }
         return orders;
     }
 
     /**
-     * Orders string list parsing
-     * @param orderList Sorting string list, such as [["name", "ASC"], ["sequence", "DESC"]]
+     * Orders string list parsing.
+     * Compatible with [], ["name", "ASC"], and [["name", "ASC"], ["sequence", "DESC"]].
+     *
+     * @param orderList Sorting string list
      * @return Orders object
      */
-    public static Orders of(List<List<String>> orderList) {
+    public static Orders of(List<Object> orderList) {
         if (CollectionUtils.isEmpty(orderList)) {
             return null;
         }
         Orders orders = new Orders();
-        orderList.forEach(orders::addOrderUnit);
+        if (orderList.getFirst() instanceof String) {
+            orders.addOrderUnit(Cast.of(orderList));
+        } else {
+            orderList.forEach(unit -> orders.addOrderUnit(Cast.of(unit)));
+        }
         return orders;
     }
 
@@ -178,7 +185,7 @@ public class Orders {
      * Add a string sorting condition to the Orders object
      * @param orderUnit The smallest sorting unit, such as 'name ASC'
      */
-    private void addOrderUnit(String orderUnit) {
+    private void addStringOrderUnit(String orderUnit) {
         String[] s = StringUtils.split(orderUnit, " ");
         if (s.length == 1) {
             this.add(s[0].trim(), DEFAULT_ORDER);
