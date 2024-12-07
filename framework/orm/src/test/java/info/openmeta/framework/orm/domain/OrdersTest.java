@@ -30,4 +30,16 @@ class OrdersTest {
         Orders orders1 = Orders.of("22, job asc, id desc");
         assertEquals(orders1.toString(), orders2.toString());
     }
+
+    @Test
+    void testDeserialize() {
+        Orders orders = JsonMapper.stringToObject("[\"name\", \"ASC\"]", Orders.class);
+        assertEquals(1, orders.getOrderList().size());
+    }
+
+    @Test
+    void testDeserializeList() {
+        Orders orders = JsonMapper.stringToObject("[[\"name\", \"ASC\"], [\"code\", \"desc\"]]", Orders.class);
+        assertEquals(2, orders.getOrderList().size());
+    }
 }
