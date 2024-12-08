@@ -351,4 +351,3 @@ INSERT INTO sys_field(label_name, field_name, column_name, model_name, descripti
     VALUES('Updated ID', 'updatedId', 'updated_id', 'SysOptionItemTrans', '', 'Long', '', '', '', '', 0, 0, '', '', '', "", 32, 0, false, 0, 0, 0, 0, 0, '', 0, 0, '');
 INSERT INTO sys_field(label_name, field_name, column_name, model_name, description, field_type, option_set_code, related_model, related_field, inverse_link_field, auto_bind_many, auto_expand_many, cascaded_field, display_name, filters, default_value, length, scale, required, readonly, translatable, copyable, unsearchable, computed, expression, dynamic, encrypted, masking_type)
     VALUES('Updated By', 'updatedBy', 'updated_by', 'SysOptionItemTrans', '', 'String', '', '', '', '', 0, 0, '', '', '', "", 32, 0, false, 0, 0, 0, 0, 0, '', 0, 0, '');
-
