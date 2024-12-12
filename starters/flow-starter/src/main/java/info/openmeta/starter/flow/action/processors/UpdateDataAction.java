@@ -68,7 +68,7 @@ public class UpdateDataAction implements ActionProcessor<UpdateDataParams> {
      *     "modelName": "SysModel",
      *     "pkVariable": "#{deptId}",
      *     "filters": ["code", "=", "#{deptCode}"],
-     *     "recordTemplate":  {
+     *     "rowTemplate":  {
      *         "parentId": "#{parentId}",
      *         "name": "#{deptName}",
      *         "ownId": "#{ownId}"

@@ -77,7 +77,7 @@ public class IdProcessor extends BaseProcessor {
         rows.forEach(row -> {
             Object idValue = row.get(fieldName);
             Assert.notNull(idValue, "Model {0} external ID cannot be empty!", modelName);
-            row.put(fieldName, IdUtils.formatId(idValue, metaField.getFieldType()));
+            row.put(fieldName, IdUtils.formatId(metaField.getFieldType(), idValue));
         });
     }
 

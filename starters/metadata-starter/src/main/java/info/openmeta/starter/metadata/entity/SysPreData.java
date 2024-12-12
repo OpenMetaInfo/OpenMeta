@@ -18,6 +18,9 @@ public class SysPreData extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "Model Name")
     private String model;
 
@@ -25,7 +28,7 @@ public class SysPreData extends BaseModel {
     private String preId;
 
     @Schema(description = "Row Data ID")
-    private Long rowId;
+    private String rowId;
 
     @Schema(description = "Frozen")
     private Boolean frozen;

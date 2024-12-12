@@ -19,6 +19,9 @@ public class DeptInfo extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "Name")
     private String name;
 

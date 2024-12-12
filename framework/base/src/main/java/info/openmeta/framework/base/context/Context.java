@@ -24,7 +24,7 @@ public class Context implements Serializable {
     private Language language = BaseConstant.DEFAULT_LANGUAGE;
     private TimeZone timeZone;
 
-    private Serializable tenantId;
+    private Long tenantId;
     private String token;
     private String traceId;
 

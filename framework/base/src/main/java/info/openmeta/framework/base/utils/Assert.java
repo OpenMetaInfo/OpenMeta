@@ -8,6 +8,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Parameterized Assert, suitable for IllegalArgumentException message templates.
@@ -60,6 +61,18 @@ public abstract class Assert {
     /** Collection does not contain null or blank string. */
     public static void allNotBlank(@Nullable Collection<String> objects, String message, Object... args) {
         if (objects == null || objects.isEmpty() || objects.stream().anyMatch(StringUtils::isBlank)) {
+            throwException(message, args);
+        }
+    }
+
+    public static void isEqual(@Nullable Object object1, @Nullable Object object2, String message, Object... args) {
+        if (!Objects.equals(object1, object2)) {
+            throwException(message, args);
+        }
+    }
+
+    public static void notEqual(@Nullable Object object1, @Nullable Object object2, String message, Object... args) {
+        if (Objects.equals(object1, object2)) {
             throwException(message, args);
         }
     }

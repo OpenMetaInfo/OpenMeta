@@ -20,6 +20,9 @@ public class FileRecord extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "Tenant ID")
     private String tenantId;
 
@@ -45,7 +48,7 @@ public class FileRecord extends BaseModel {
     private String modelName;
 
     @Schema(description = "Row ID")
-    private Long rowId;
+    private String rowId;
 
     @Schema(description = "Source")
     private FileSource source;

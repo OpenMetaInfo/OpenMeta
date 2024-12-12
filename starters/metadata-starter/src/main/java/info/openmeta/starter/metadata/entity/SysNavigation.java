@@ -18,6 +18,9 @@ public class SysNavigation extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "App ID")
     private Long appId;
 
@@ -30,8 +33,8 @@ public class SysNavigation extends BaseModel {
     @Schema(description = "Code")
     private String code;
 
-    @Schema(description = "Model")
-    private String model;
+    @Schema(description = "Model Name")
+    private String modelName;
 
     @Schema(description = "Parent Navigation")
     private Long parentId;

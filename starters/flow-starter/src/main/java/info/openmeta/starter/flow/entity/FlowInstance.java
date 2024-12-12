@@ -20,11 +20,14 @@ public class FlowInstance extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "Main Model")
     private String model;
 
     @Schema(description = "Row Data ID")
-    private Long rowId;
+    private String rowId;
 
     @Schema(description = "Flow ID")
     private Long flowId;

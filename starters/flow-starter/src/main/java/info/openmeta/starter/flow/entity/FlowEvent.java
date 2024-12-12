@@ -19,6 +19,9 @@ public class FlowEvent extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "Flow ID")
     private Long flowId;
 
@@ -29,7 +32,7 @@ public class FlowEvent extends BaseModel {
     private String flowModel;
 
     @Schema(description = "Row Data ID")
-    private Long rowId;
+    private String rowId;
 
     @Schema(description = "Trigger ID")
     private Long triggerId;

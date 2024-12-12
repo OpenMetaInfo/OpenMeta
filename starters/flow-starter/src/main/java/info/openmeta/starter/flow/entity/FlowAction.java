@@ -20,6 +20,9 @@ public class FlowAction extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "Action Name")
     private String name;
 

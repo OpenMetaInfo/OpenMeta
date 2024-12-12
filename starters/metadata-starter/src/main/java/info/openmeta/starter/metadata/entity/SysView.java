@@ -20,11 +20,11 @@ public class SysView extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "App ID")
     private Long appId;
-
-    @Schema(description = "Model ID")
-    private Long modelId;
 
     @Schema(description = "Model Name")
     private String modelName;

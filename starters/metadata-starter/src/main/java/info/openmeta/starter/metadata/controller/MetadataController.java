@@ -37,9 +37,10 @@ public class MetadataController {
     @Operation(summary = "upgrade")
     @PostMapping("/upgrade")
     @SwitchUser(value = SystemUser.INTEGRATION_USER)
-    public ApiResponse<Boolean> releasePackage(@RequestBody List<MetadataUpgradePackage> metadataPackages) {
+    public ApiResponse<Boolean> upgradePackage(@RequestBody List<MetadataUpgradePackage> metadataPackages) {
         Assert.notEmpty(metadataPackages, "Metadata upgrade data must not be empty!");
         metadataService.upgradeMetadata(metadataPackages);
+        metadataService.reloadMetadata();
         return ApiResponse.success(true);
     }
 

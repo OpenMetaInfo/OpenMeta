@@ -123,8 +123,9 @@ public class ChangeLogPublisher {
         ChangeLog changeLog = new ChangeLog();
         changeLog.setTraceId(context.getTraceId());
         changeLog.setModel(model);
-        changeLog.setRowId((Long) id);
+        changeLog.setRowId(id);
         changeLog.setAccessType(accessType);
+        changeLog.setTenantId(context.getTenantId());
         // Set changeLog audit fields
         changeLog.setChangedId(context.getUserId());
         changeLog.setChangedBy(context.getName());

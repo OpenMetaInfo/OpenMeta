@@ -14,7 +14,9 @@ import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
+import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
+import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.LambdaUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
@@ -24,6 +26,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -46,6 +49,9 @@ import static info.openmeta.framework.orm.constant.ModelConstant.ID;
  */
 @Service
 public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> implements SysPreDataService {
+
+    @Autowired
+    protected ModelService<Serializable> modelService;
 
     /**
      * Load the specified list of predefined data files from the root directory: resources/data.
@@ -208,7 +214,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * @param model Model name
      * @param row Predefined data record
      */
-    private Long handlePredefinedData(String model, Map<String, Object> row) {
+    private Serializable handlePredefinedData(String model, Map<String, Object> row) {
         Map<String, Object> oneToManyMap = new LinkedHashMap<>();
         // Extract OneToMany fields contained in the predefined data and put them in the OneToManyMap,
         // and then remove them from row, used to independently handle the creation or update of associated model.
@@ -217,7 +223,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
                 .collect(Collectors.toSet());
         oneToManyFields.forEach(field -> oneToManyMap.put(field, row.remove(field)));
         // Load main model data
-        Long rowId = createOrUpdateData(model, row);
+        Serializable rowId = createOrUpdateData(model, row);
         // Load OneToMany data
         loadOneToManyRows(model, rowId, oneToManyMap);
         return rowId;
@@ -238,7 +244,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
             }
             MetaField oneToManyMetaField = ModelManager.getModelField(model, field);
             // Process each item in rows, ensuring each is a Map
-            List<Long> manyIds = ((Collection<?>) rows).stream()
+            List<Serializable> manyIds = ((Collection<?>) rows).stream()
                     .peek(item -> {
                         if (!(item instanceof Map)) {
                             throw new IllegalArgumentException(
@@ -269,11 +275,11 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * @param row Predefined data record
      * @return Record ID created or updated
      */
-    private Long createOrUpdateData(String model, Map<String, Object> row) {
+    private Serializable createOrUpdateData(String model, Map<String, Object> row) {
         SysPreData preData = getPreDataByPreId(model, row);
         if (preData != null && Boolean.TRUE.equals(preData.getFrozen())) {
             // The current data is frozen, and the data ID is returned directly
-            return preData.getRowId();
+            return IdUtils.formatId(model, preData.getRowId());
         }
         // Replace the preID of ManyToOne, OneToOne, and ManyToMany fields with the row ID
         this.replaceReferencedPreIds(model, row);
@@ -281,19 +287,20 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
             // Create the data and return the data ID
             String preId = (String) row.get(ID);
             row.remove(ID);
-            Long rowId = modelService.createOne(model, row);
+            Serializable rowId = modelService.createOne(model, row);
             generatePreData(model, preId, rowId);
             return rowId;
         } else {
             // Update the data and return the data ID
-            row.put(ID, preData.getRowId());
+            Serializable rowId = IdUtils.formatId(model, preData.getRowId());
+            row.put(ID, rowId);
             // Clear other fields that do not appear in the predefined data
             Set<String> updatableStoredFields = ModelManager.getModelUpdatableFieldsWithoutXToMany(model);
             updatableStoredFields.removeAll(row.keySet());
             updatableStoredFields.forEach(field -> row.put(field, null));
-            boolean result =  modelService.updateOne(model, row);
+            boolean result = modelService.updateOne(model, row);
             if (!Boolean.TRUE.equals(result)) {
-                boolean isExist = modelService.exist(model, preData.getRowId());
+                boolean isExist = modelService.exist(model, rowId);
                 Assert.isTrue(isExist, "Updating predefined data for model {0} ({1}) failed " +
                         "as it has already been physically deleted!", model, preData.getRowId());
             }
@@ -332,7 +339,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
                 Assert.isTrue(entry.getValue() instanceof String,
                         "Model {0} field {1}:{2} preID must be of type String: {3}",
                         model, entry.getKey(), metaField.getFieldType().getType(), entry.getValue());
-                Long rowId = this.getRowIdByPreId(metaField.getRelatedModel(), Cast.of(entry.getValue()));
+                Serializable rowId = this.getOriginalRowIdByPreId(metaField.getRelatedModel(), Cast.of(entry.getValue()));
                 entry.setValue(rowId);
             } else if (FieldType.MANY_TO_MANY.equals(metaField.getFieldType())) {
                 Assert.isTrue(entry.getValue() instanceof Collection,
@@ -340,7 +347,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
                         model, entry.getKey());
                 if (!CollectionUtils.isEmpty((Collection<?>) entry.getValue())) {
                     List<String> preIds = Cast.of(entry.getValue());
-                    List<Long> rowIds = this.getRowIdsByPreIds(metaField.getRelatedModel(), preIds);
+                    List<Serializable> rowIds = this.getOriginalRowIdsByPreIds(metaField.getRelatedModel(), preIds);
                     entry.setValue(rowIds);
                 }
             }
@@ -353,13 +360,13 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * @param preId Predefined ID
      * @return Model row ID
      */
-    private Long getRowIdByPreId(String model, String preId) {
+    private Serializable getOriginalRowIdByPreId(String model, String preId) {
         Filters filters = Filters.eq(SysPreData::getModel, model).andEq(SysPreData::getPreId, preId);
         String rowIdField = LambdaUtils.getAttributeName(SysPreData::getRowId);
-        List<Long> rowIds = this.getRelatedIds(filters, rowIdField);
+        List<Serializable> rowIds = this.getRelatedIds(filters, rowIdField);
         Assert.notEmpty(rowIds, "The preID of the predefined data for model {0}: {1} does not exist " +
                 "in the predefined data table and may not have been created yet!", model, preId);
-        return rowIds.getFirst();
+        return IdUtils.formatId(model, rowIds.getFirst());
     }
 
     /**
@@ -368,13 +375,13 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * @param preIds Predefined IDs
      * @return List of model row IDs
      */
-    private List<Long> getRowIdsByPreIds(String model, List<String> preIds) {
+    private List<Serializable> getOriginalRowIdsByPreIds(String model, List<String> preIds) {
         Filters filters = Filters.eq(SysPreData::getModel, model).andIn(SysPreData::getPreId, preIds);
         String rowIdField = LambdaUtils.getAttributeName(SysPreData::getRowId);
-        List<Long> rowIds = this.getRelatedIds(filters, rowIdField);
+        List<Serializable> rowIds = this.getRelatedIds(filters, rowIdField);
         Assert.notEmpty(rowIds, "The preIDs of the predefined data for model {0}: {1} do not exist " +
                 "in the predefined data table and may not have been created yet!", model, preIds);
-        return rowIds;
+        return IdUtils.formatIds(model, rowIds);
     }
 
     /**
@@ -384,11 +391,11 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * @param preId Predefined ID
      * @param rowId Model record ID
      */
-    private void generatePreData(String model, String preId, Long rowId) {
+    private void generatePreData(String model, String preId, Serializable rowId) {
         SysPreData preData = new SysPreData();
         preData.setModel(model);
         preData.setPreId(preId);
-        preData.setRowId(rowId);
+        preData.setRowId(rowId.toString());
         this.createOne(preData);
     }
 }

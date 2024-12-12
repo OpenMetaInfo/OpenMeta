@@ -367,6 +367,17 @@ public class Filters {
     }
 
     /**
+     * Create a leaf node with field, GREATER_THAN_OR_EQUAL operator, and value.
+     * @param method field method, Lambda expression, method reference passing parameters
+     * @param value value
+     * @return filters instance
+     */
+    public <T, R> Filters andGe(SFunction<T, R> method, Object value) {
+        String field = LambdaUtils.getAttributeName(method);
+        return this.and(field, Operator.GREATER_THAN_OR_EQUAL, value);
+    }
+
+    /**
      * Create a leaf node with field, GREATER_THAN operator, and value.
      *
      * @param field field name

@@ -18,7 +18,7 @@ import java.util.Map;
  *     "modelName": "SysModel",
  *     "pkVariable": "#{deptId}",
  *     "filters": ["code", "=", "#{deptCode}"],
- *     "recordTemplate":  {
+ *     "rowTemplate":  {
  *         "parentId": "#{parentId}",
  *         "name": "#{deptName}",
  *         "ownId": "#{ownId}"

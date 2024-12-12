@@ -26,8 +26,8 @@ class OrdersTest {
 
     @Test
     void testListDeserialize() {
-        Orders orders2 = JsonMapper.stringToObject("[[22], [\"job\", \"asc\"], [\"id\", \"desc\"]]", Orders.class);
-        Orders orders1 = Orders.of("22, job asc, id desc");
+        Orders orders2 = JsonMapper.stringToObject("[[\"job\", \"asc\"], [\"id\", \"desc\"]]", Orders.class);
+        Orders orders1 = Orders.of("job asc, id desc");
         assertEquals(orders1.toString(), orders2.toString());
     }
 

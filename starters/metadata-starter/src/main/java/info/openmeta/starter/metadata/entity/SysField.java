@@ -21,6 +21,9 @@ public class SysField extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "App ID")
     private Long appId;
 
@@ -93,8 +96,8 @@ public class SysField extends BaseModel {
     @Schema(description = "Translatable")
     private Boolean translatable;
 
-    @Schema(description = "Copyable")
-    private Boolean copyable;
+    @Schema(description = "Noncopyable")
+    private Boolean noncopyable;
 
     @Schema(description = "Unsearchable")
     private Boolean unsearchable;

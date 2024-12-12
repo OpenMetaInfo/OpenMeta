@@ -18,6 +18,9 @@ public class SysViewDefault extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    private Long id;
+
     @Schema(description = "View ID")
     private Long viewId;
 

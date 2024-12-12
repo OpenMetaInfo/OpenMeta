@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -64,7 +65,7 @@ public class FlowAutomation {
         List<FlowEventMessage> flowEventMessages = new ArrayList<>();
         for (ChangeLog changeLog : changeLogs) {
             String triggerModel = changeLog.getModel();
-            Long triggerRowId = changeLog.getRowId();
+            Serializable triggerRowId = changeLog.getRowId();
             Set<String> updateFields = AccessType.UPDATE.equals(changeLog.getAccessType()) ? changeLog.getDataAfterChange().keySet() : Collections.emptySet();
             Map<String, Object> triggerParams = AccessType.DELETE.equals(changeLog.getAccessType()) ? changeLog.getDataBeforeChange() : changeLog.getDataAfterChange();
             // Get the triggers of the current model and event
@@ -94,7 +95,7 @@ public class FlowAutomation {
      * @return The encapsulated FlowEventMessage object.
      */
     private FlowEventMessage wrapperFlowEventMessage(FlowTrigger flowTrigger, FlowConfig flowConfig,
-                                                     Long rowId, Map<String, Object> params) {
+                                                     Serializable rowId, Map<String, Object> params) {
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
         eventMessage.setFlowModel(flowConfig.getModel());

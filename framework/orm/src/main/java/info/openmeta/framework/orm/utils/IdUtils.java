@@ -2,7 +2,6 @@ package info.openmeta.framework.orm.utils;
 
 import com.github.f4b6a3.tsid.TsidCreator;
 import com.github.f4b6a3.ulid.UlidCreator;
-import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Cast;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.enums.FieldType;
@@ -41,41 +40,23 @@ public class IdUtils {
      * @param objects List<object>
      * @return List<Long>
      */
-    private static <K extends Serializable> List<Long> convertIdsToLong(List<K> objects) {
+    private static List<Long> convertIdsToLong(List<?> objects) {
         return objects.stream().map(IdUtils::convertIdToLong).collect(Collectors.toList());
     }
 
     /**
-     * Convert List<?> to List<Serializable>.
+     * Format ids, when the model primary key field type is Long, convert the id to Long type.
      *
+     * @param modelName model name
      * @param ids List<?>
      * @return List<Serializable>
      */
-    public static List<Serializable> typeCastIds(List<?> ids, String modelName, String fieldName) {
+    public static <K extends Serializable> List<K> formatIds(String modelName, String fieldName, List<?> ids) {
         FieldType idType = ModelManager.getModelField(modelName, fieldName).getFieldType();
-        List<Serializable> castedIds;
-        try {
-            castedIds = Cast.of(ids);
-            castedIds = IdUtils.formatIds(castedIds, idType);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to cast {0}:{1} value to List<Serializable>: {2}",
-                    modelName, fieldName, ids, e);
-        }
-        return castedIds;
-    }
-
-    /**
-     * Format ids, when the field type is Long, convert the id to Long type.
-     *
-     * @param ids List<Serializable>
-     * @param idType id FieldType
-     * @return List<K>
-     */
-    public static <K extends Serializable> List<K> formatIds(List<K> ids, FieldType idType) {
         if (FieldType.LONG.equals(idType)) {
             return Cast.of(convertIdsToLong(ids));
         } else {
-            return ids;
+            return Cast.of(ids);
         }
     }
 
@@ -87,31 +68,8 @@ public class IdUtils {
      * @return List<K>
      * @param <K> K
      */
-    public static <K extends Serializable> List<K> formatIds(String modelName, List<K> ids) {
-        FieldType idType = ModelManager.getModelField(modelName, ModelConstant.ID).getFieldType();
-        if (FieldType.LONG.equals(idType)) {
-            return Cast.of(convertIdsToLong(ids));
-        } else {
-            return ids;
-        }
-    }
-
-    /**
-     * Format single id, when the model primary key field type is Long, convert the id to Long type.
-     *
-     * @param modelName model name
-     * @param field field name
-     * @param id id
-     * @return K
-     */
-    public static Serializable formatId(String modelName, String field, Object id) {
-        if (id == null) {
-            return null;
-        } else if (id instanceof Serializable) {
-            return formatId(modelName, field, (Serializable) id);
-        } else {
-            throw new IllegalArgumentException("Unaccepted id type: {0} for model-field {1}:{2}", id, modelName, field);
-        }
+    public static <K extends Serializable> List<K> formatIds(String modelName, List<?> ids) {
+        return formatIds(modelName, ModelConstant.ID, ids);
     }
 
     /**
@@ -123,7 +81,7 @@ public class IdUtils {
      * @return K
      * @param <K> K
      */
-    public static <K extends Serializable> K formatId(String modelName, String field, K id) {
+    public static <K extends Serializable> K formatId(String modelName, String field, Serializable id) {
         if (id == null) {
             return null;
         }
@@ -131,7 +89,7 @@ public class IdUtils {
         if (FieldType.LONG.equals(fieldType)) {
             return Cast.of(convertIdToLong(id));
         } else {
-            return id;
+            return Cast.of(id);
         }
     }
 
@@ -143,18 +101,18 @@ public class IdUtils {
      * @return K
      * @param <K> K
      */
-    public static <K extends Serializable> K formatId(String modelName, K id) {
+    public static <K extends Serializable> K formatId(String modelName, Serializable id) {
         return formatId(modelName, ModelConstant.ID, id);
     }
 
     /**
      * Format id field, when the field type is Long, convert the id to Long type.
      *
-     * @param id id
      * @param idType id FieldType
+     * @param id id
      * @return Object
      */
-    public static Object formatId(Object id, FieldType idType) {
+    public static Object formatId(FieldType idType, Object id) {
         if (FieldType.LONG.equals(idType)) {
             return Cast.of(convertIdToLong(id));
         } else {

@@ -74,9 +74,9 @@ public class MetaField implements Serializable {
 
     private boolean translatable;
 
-    private boolean copyable;
+    private boolean noncopyable;
 
-    private boolean searchable;
+    private boolean unsearchable;
 
     private boolean computed;
 

@@ -82,7 +82,7 @@ public class ManyToManyProcessor extends BaseProcessor {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Object value = row.get(fieldName);
             if (value instanceof List<?> valueList && !valueList.isEmpty()) {
-                List<Serializable> linkIds = IdUtils.typeCastIds(valueList, metaField.getRelatedModel(), metaField.getInverseLinkField());
+                List<Serializable> linkIds = IdUtils.formatIds(metaField.getRelatedModel(), metaField.getInverseLinkField(), valueList);
                 linkIds.forEach(i -> mappingRows.add(
                         new HashMap<>(Map.of(metaField.getRelatedField(), id, metaField.getInverseLinkField(), i))
                 ));
@@ -112,7 +112,7 @@ public class ManyToManyProcessor extends BaseProcessor {
                     // When the ManyToMany field value is an empty list, it means to clear the mapping table data
                     deleteMiddleIds.addAll(mToMIdsMapping.get(id).values());
                 } else {
-                    List<Serializable> linkIds = IdUtils.typeCastIds(valueList, metaField.getRelatedModel(), metaField.getInverseLinkField());
+                    List<Serializable> linkIds = IdUtils.formatIds(metaField.getRelatedModel(), metaField.getInverseLinkField(), valueList);
                     if (mToMIdsMapping.containsKey(id)) {
                         // Remove the existing ids of the associated model to obtain the newLinkIds to be associated.
                         List<Serializable> newLinkIds = new ArrayList<>(linkIds);

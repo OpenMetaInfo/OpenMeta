@@ -202,7 +202,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param fieldName relational field name
      * @return distinct ids for relational field
      */
-    List<K> getRelatedIds(Filters filters, String fieldName);
+    <EK extends Serializable> List<EK> getRelatedIds(Filters filters, String fieldName);
 
     /**
      * Query a single object based on filters. Only for code use.
@@ -288,6 +288,6 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param filters the filters to apply when searching for objects
      * @return objects map (id -> object)
      */
-    Map<Long, T> groupById(Filters filters);
+    Map<Serializable, T> groupById(Filters filters);
 
 }

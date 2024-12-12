@@ -446,7 +446,7 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
      */
     private void correctPreviousEndDate(String modelName, Serializable id, LocalDate oldEndDate, LocalDate newEndDate) {
         Filters filters = Filters.eq(ModelConstant.ID, id).andEq(ModelConstant.EFFECTIVE_END_DATE, oldEndDate);
-        List<K> pks = jdbcService.getIds(modelName, ModelConstant.SLICE_ID, new FlexQuery(filters));
+        List<Serializable> pks = jdbcService.getIds(modelName, ModelConstant.SLICE_ID, new FlexQuery(filters));
         if (!pks.isEmpty()) {
             correctSliceEndDate(modelName, pks.getFirst(), newEndDate);
         }

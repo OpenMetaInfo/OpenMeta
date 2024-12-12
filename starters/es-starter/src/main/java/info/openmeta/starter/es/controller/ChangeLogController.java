@@ -5,9 +5,11 @@ import info.openmeta.framework.base.enums.SystemRole;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.annotation.RequireRole;
 import info.openmeta.framework.orm.changelog.message.dto.ChangeLog;
+import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.domain.Page;
 import info.openmeta.framework.orm.domain.QueryParams;
+import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaModel;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.web.response.ApiResponse;
@@ -144,8 +146,10 @@ public class ChangeLogController {
     @RequireRole(SystemRole.SYSTEM_ROLE_ADMIN)
     public ApiResponse<Page<ChangeLog>> searchPageByModel(@RequestParam String modelName, @RequestBody QueryParams queryParams) {
         ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
+        FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
+        flexQuery.setConvertType(ConvertType.REFERENCE);
         Page<ChangeLog> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
-        return ApiResponse.success(changeLogService.searchPageByModel(modelName, queryParams.getFilters(), queryParams.getOrders(), page, true));
+        return ApiResponse.success(changeLogService.searchPageByModel(modelName, flexQuery, page, true));
     }
 
     /**

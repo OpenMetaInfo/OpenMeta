@@ -4,7 +4,6 @@ import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.utils.MapUtils;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +74,7 @@ public class AutofillFields {
      * @param rows List data
      */
     public static void fillTenantFieldForInsert(List<Map<String, Object>> rows) {
-        Serializable tenantId = ContextHolder.getContext().getTenantId();
+        Long tenantId = ContextHolder.getContext().getTenantId();
         rows.forEach(row -> row.put(ModelConstant.TENANT_ID, tenantId));
     }
 

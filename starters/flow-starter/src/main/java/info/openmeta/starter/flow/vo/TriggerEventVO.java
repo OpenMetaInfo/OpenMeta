@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotEmpty;
+
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -19,7 +21,7 @@ public class TriggerEventVO {
     private String model;
 
     @Schema(description = "Row ID")
-    private Long rowId;
+    private Serializable rowId;
 
     @Schema(description = "Trigger Code")
     @NotEmpty(message = "Trigger Code is required!")

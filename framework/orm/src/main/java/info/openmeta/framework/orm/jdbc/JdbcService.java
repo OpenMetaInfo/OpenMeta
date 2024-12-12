@@ -53,7 +53,7 @@ public interface JdbcService<K extends Serializable> {
      * @param flexQuery flexQuery
      * @return List<K>
      */
-    List<K> getIds(String modelName, String fieldName, FlexQuery flexQuery);
+    <EK extends Serializable> List<EK> getIds(String modelName, String fieldName, FlexQuery flexQuery);
 
     /**
      * Determine if the id physically exists, without permission check.

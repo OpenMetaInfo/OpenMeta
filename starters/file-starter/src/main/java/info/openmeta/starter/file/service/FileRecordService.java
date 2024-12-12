@@ -7,6 +7,7 @@ import info.openmeta.starter.file.entity.FileRecord;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 
 
@@ -50,7 +51,7 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
      * @param file the file to be uploaded
      * @return fileRecord object
      */
-    FileRecord uploadFile(String modelName, Long rowId, MultipartFile file);
+    FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file);
 
     /**
      * Upload multiple files to the OSS and create corresponding FileRecord to associate with a business model and rowId.
@@ -60,7 +61,7 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
      * @param files the files to be uploaded
      * @return a list of fileRecord objects
      */
-    List<FileRecord> uploadFiles(String modelName, Long rowId, MultipartFile[] files);
+    List<FileRecord> uploadFiles(String modelName, Serializable rowId, MultipartFile[] files);
 
     /**
      * Convert FileRecord to FileInfo
@@ -85,6 +86,15 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
      * @return fileInfo object with download URL
      */
     FileInfo getFileInfo(Long fileId);
+
+    /**
+     * Get the FileInfo object by modelName and rowId
+     *
+     * @param modelName the name of the corresponding business model
+     * @param rowId the ID of the corresponding business row data
+     * @return fileInfo object with download URL
+     */
+    List<FileInfo> getFileInfo(String modelName, Serializable rowId);
 
     /**
      * Get the download URL by fileId

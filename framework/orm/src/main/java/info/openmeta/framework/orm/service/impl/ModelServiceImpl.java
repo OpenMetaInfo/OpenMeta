@@ -63,7 +63,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (ModelManager.isMultiTenant(modelName)) {
             rows.forEach(row -> {
                 if (row.containsKey(ModelConstant.TENANT_ID)) {
-                    Serializable tenantId = IdUtils.formatId(modelName, ModelConstant.TENANT_ID, row.get(ModelConstant.TENANT_ID));
+                    Long tenantId = (Long) row.get(ModelConstant.TENANT_ID);
                     if (tenantId != null && !tenantId.equals(ContextHolder.getContext().getTenantId())) {
                         throw new SecurityException("In a multi-tenancy environment, cross-tenant data access is not allowed: {0}", row);
                     }
@@ -365,6 +365,29 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Update multiple rows by externalId. Each row in the list can have different fields.
+     *
+     * @param rows data rows to be updated
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateByExternalIds(String modelName, List<Map<String, Object>> rows) {
+        List<Serializable> externalIds = rows.stream()
+                .map(row -> {
+                    Serializable externalId = (Serializable) row.get(ModelConstant.EXTERNAL_ID);
+                    Assert.notNull(externalId, "The externalId field must be included in the update data! {0}", row);
+                    return externalId;
+                }).toList();
+        Map<Serializable, K> idMap = this.getIdsByExternalId(modelName, externalIds);
+        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !idMap.containsKey(externalId)).toList();
+        Assert.isEmpty(differenceIds, "The externalId {0} does not exist in model {1}!", differenceIds, modelName);
+        // Fill the id field with the value obtained by externalId
+        rows.forEach(row -> row.put(ModelConstant.ID, idMap.get((Serializable) row.get(ModelConstant.EXTERNAL_ID))));
+        return this.updateList(modelName, rows);
+    }
+
+    /**
      * Batch edit data based on the filters, according to the specified field values map.
      *
      * @param filters filters, if not specified, all visible data of the current user will be updated.
@@ -411,7 +434,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteSlice(String modelName, K sliceId) {
+    public boolean deleteSlice(String modelName, Long sliceId) {
         Assert.isTrue(ModelManager.isTimelineModel(modelName),
                 "Model {0} is not a timeline model, and cannot delete slice.", modelName);
         TimelineSlice timelineSlice = timelineService.getTimelineSlice(modelName, sliceId);
@@ -444,6 +467,22 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             return false;
         }
         return jdbcService.deleteByIds(modelName, Cast.of(deletableIds), deletableRows);
+    }
+
+    /**
+     * Delete multiple rows by externalIds.
+     *
+     * @param externalIds externalId List
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByExternalIds(String modelName, List<Serializable> externalIds) {
+        Assert.allNotNull(externalIds, "The externalIds to be deleted cannot be empty! {0}", externalIds);
+        Map<Serializable, K> idMap = this.getIdsByExternalId(modelName, externalIds);
+        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !idMap.containsKey(externalId)).toList();
+        Assert.isEmpty(differenceIds, "The externalId {0} does not exist in model {1}!", differenceIds, modelName);
+        return this.deleteList(modelName, new ArrayList<>(idMap.values()));
     }
 
     /**
@@ -504,6 +543,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Transactional(rollbackFor = Exception.class)
     public List<K> copyList(String modelName, List<K> ids) {
         List<Map<String, Object>> rows = this.readList(modelName, ids, null);
+        List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
+        rows.forEach(row -> copyableFields.forEach(row::remove));
         this.createList(modelName, rows);
         return Cast.of(rows.stream().map(row -> row.get(ModelConstant.ID)).collect(Collectors.toList()));
     }
@@ -534,9 +575,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Override
     public Map<String, Object> copyWithoutCreate(String modelName, K id) {
         Map<String, Object> value = this.readOne(modelName, id, null);
-        Set<String> ignoreFields = new HashSet<>(ModelConstant.AUDIT_FIELDS);
-        ignoreFields.add(ModelConstant.ID);
-        ignoreFields.forEach(value::remove);
+        List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
+        copyableFields.forEach(value::remove);
         return value;
     }
 
@@ -724,6 +764,23 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Get the externalId-id mapping based on the externalIds.
+     *
+     * @param modelName model name
+     * @param externalIds externalId list
+     * @return externalId-id mapping
+     */
+    private Map<Serializable, K> getIdsByExternalId(String modelName, List<Serializable> externalIds) {
+        List<String> fields = Arrays.asList(ModelConstant.ID, ModelConstant.EXTERNAL_ID);
+        Filters filters = Filters.in(ModelConstant.EXTERNAL_ID, externalIds);
+        FlexQuery flexQuery = new FlexQuery(fields, filters);
+        List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
+        return rows.stream().collect(Collectors.toMap(
+                row -> (Serializable) row.get(ModelConstant.EXTERNAL_ID),
+                row -> Cast.of(row.get(ModelConstant.ID))));
+    }
+
+    /**
      * Get the ids for ManyToOne/OneToOne relational field.
      *
      * @param modelName model name
@@ -732,7 +789,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * @return distinct ids for relational field
      */
     @Override
-    public List<K> getRelatedIds(String modelName, Filters filters, String fieldName) {
+    public <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName) {
         // Append timeline filtersAppend timeline filters
         filters = timelineService.appendTimelineFilters(modelName, filters);
         // Append permission data range filters
@@ -740,7 +797,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         FlexQuery flexQuery = new FlexQuery(filters);
         // Automatic distinct when querying relational field ids
         flexQuery.setDistinct(true);
-        List<K> relatedIds = jdbcService.getIds(modelName, fieldName, flexQuery);
+        List<EK> relatedIds = jdbcService.getIds(modelName, fieldName, flexQuery);
         // Filter out null value
         return relatedIds.stream().filter(IdUtils::validId).collect(Collectors.toList());
     }
@@ -753,9 +810,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * @return ids that exist in the database
      */
     @Override
-    public Set<K> filterExistIds(String modelName, Collection<K> ids) {
+    public List<K> filterExistIds(String modelName, Collection<K> ids) {
         FlexQuery flexQuery = new FlexQuery(Filters.in(ModelConstant.ID, ids));
-        return new HashSet<>(jdbcService.getIds(modelName, ModelConstant.ID, flexQuery));
+        return jdbcService.getIds(modelName, ModelConstant.ID, flexQuery);
     }
 
     /**

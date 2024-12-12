@@ -3,6 +3,7 @@ package info.openmeta.starter.flow.message.dto;
 import info.openmeta.framework.base.context.Context;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class FlowEventMessage {
     private Boolean rollbackOnFail;
     private Long triggerId;
     private String triggeredModel;
-    private Long triggerRowId;
+    private Serializable triggerRowId;
     private Map<String, Object> triggerParams;
 
     private LocalDateTime eventTime;

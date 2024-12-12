@@ -7,6 +7,7 @@ import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
+import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.framework.web.dto.FileInfo;
@@ -49,7 +50,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     public String generateOssKey(String modelName, String fileName) {
         String key = modelName + "/" + TsidCreator.getTsid() + "/" + fileName;
         if (TenantConfig.isEnableMultiTenancy()) {
-            Serializable tenantId = ContextHolder.getContext().getTenantId();
+            Long tenantId = ContextHolder.getContext().getTenantId();
             if (tenantId != null) {
                 key = tenantId + "/" + key;
             }
@@ -118,7 +119,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      * @return fileRecord object
      */
     @Override
-    public FileRecord uploadFile(String modelName, Long rowId, MultipartFile file) {
+    public FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file) {
         String fileName = FileUtils.getShortFileName(file);
         FileType fileType = FileUtils.getActualFileType(file);
         String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
@@ -132,7 +133,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         // Create file record
         FileRecord fileRecord = new FileRecord();
         fileRecord.setModelName(modelName);
-        fileRecord.setRowId(rowId);
+        fileRecord.setRowId(rowId == null ? null : rowId.toString());
         fileRecord.setFileName(fullFileName);
         fileRecord.setFileType(fileType);
         fileRecord.setOssKey(ossKey);
@@ -153,26 +154,12 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      * @return a list of fileRecord objects
      */
     @Override
-    public List<FileRecord> uploadFiles(String modelName, Long rowId, MultipartFile[] files) {
+    public List<FileRecord> uploadFiles(String modelName, Serializable rowId, MultipartFile[] files) {
         List<FileRecord> fieldRecords = Lists.newArrayList();
         for(MultipartFile file : files) {
             fieldRecords.add(this.uploadFile(modelName, rowId, file));
         }
         return fieldRecords;
-    }
-
-
-    /**
-     * Get the download URL by fileId
-     *
-     * @param fileId the ID of the file
-     * @return the download URL
-     */
-    @Override
-    public String getDownloadUrl(Long fileId) {
-        FileRecord fileRecord = this.readOne(fileId);
-        Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
-        return ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
     }
 
     /**
@@ -221,4 +208,33 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
         return convertToFileInfo(fileRecord);
     }
+
+    /**
+     * Get the FileInfo object by modelName and rowId
+     *
+     * @param modelName the name of the corresponding business model
+     * @param rowId the ID of the corresponding business row data
+     * @return fileInfo object with download URL
+     */
+    @Override
+    public List<FileInfo> getFileInfo(String modelName, Serializable rowId) {
+        Assert.notNull(rowId, "RowId cannot be null.");
+        Filters filters = Filters.eq("modelName", modelName).andEq("rowId", rowId.toString());
+        List<FileRecord> fileRecords = this.searchList(filters);
+        return fileRecords.stream().map(this::convertToFileInfo).toList();
+    }
+
+    /**
+     * Get the download URL by fileId
+     *
+     * @param fileId the ID of the file
+     * @return the download URL
+     */
+    @Override
+    public String getDownloadUrl(Long fileId) {
+        FileRecord fileRecord = this.readOne(fileId);
+        Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
+        return ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
+    }
+
 }
