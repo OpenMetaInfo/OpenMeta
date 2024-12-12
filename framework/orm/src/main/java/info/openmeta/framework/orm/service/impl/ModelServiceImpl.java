@@ -365,6 +365,29 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Update multiple rows by externalId. Each row in the list can have different fields.
+     *
+     * @param rows data rows to be updated
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateByExternalIds(String modelName, List<Map<String, Object>> rows) {
+        List<Serializable> externalIds = rows.stream()
+                .map(row -> {
+                    Serializable externalId = (Serializable) row.get(ModelConstant.EXTERNAL_ID);
+                    Assert.notNull(externalId, "The externalId field must be included in the update data! {0}", row);
+                    return externalId;
+                }).toList();
+        Map<Serializable, K> idMap = this.getIdsByExternalId(modelName, externalIds);
+        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !idMap.containsKey(externalId)).toList();
+        Assert.isEmpty(differenceIds, "The externalId {0} does not exist in model {1}!", differenceIds, modelName);
+        // Fill the id field with the value obtained by externalId
+        rows.forEach(row -> row.put(ModelConstant.ID, idMap.get((Serializable) row.get(ModelConstant.EXTERNAL_ID))));
+        return this.updateList(modelName, rows);
+    }
+
+    /**
      * Batch edit data based on the filters, according to the specified field values map.
      *
      * @param filters filters, if not specified, all visible data of the current user will be updated.
@@ -444,6 +467,22 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             return false;
         }
         return jdbcService.deleteByIds(modelName, Cast.of(deletableIds), deletableRows);
+    }
+
+    /**
+     * Delete multiple rows by externalIds.
+     *
+     * @param externalIds externalId List
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByExternalIds(String modelName, List<Serializable> externalIds) {
+        Assert.allNotNull(externalIds, "The externalIds to be deleted cannot be empty! {0}", externalIds);
+        Map<Serializable, K> idMap = this.getIdsByExternalId(modelName, externalIds);
+        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !idMap.containsKey(externalId)).toList();
+        Assert.isEmpty(differenceIds, "The externalId {0} does not exist in model {1}!", differenceIds, modelName);
+        return this.deleteList(modelName, new ArrayList<>(idMap.values()));
     }
 
     /**
@@ -721,6 +760,23 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         filters = permissionService.appendScopeAccessFilters(modelName, filters);
         FlexQuery flexQuery = new FlexQuery(filters);
         return jdbcService.getIds(modelName, ModelConstant.ID, flexQuery);
+    }
+
+    /**
+     * Get the externalId-id mapping based on the externalIds.
+     *
+     * @param modelName model name
+     * @param externalIds externalId list
+     * @return externalId-id mapping
+     */
+    private Map<Serializable, K> getIdsByExternalId(String modelName, List<Serializable> externalIds) {
+        List<String> fields = Arrays.asList(ModelConstant.ID, ModelConstant.EXTERNAL_ID);
+        Filters filters = Filters.in(ModelConstant.EXTERNAL_ID, externalIds);
+        FlexQuery flexQuery = new FlexQuery(fields, filters);
+        List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
+        return rows.stream().collect(Collectors.toMap(
+                row -> (Serializable) row.get(ModelConstant.EXTERNAL_ID),
+                row -> Cast.of(row.get(ModelConstant.ID))));
     }
 
     /**

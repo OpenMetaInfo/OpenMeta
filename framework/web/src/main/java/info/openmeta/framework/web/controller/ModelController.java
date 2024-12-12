@@ -4,7 +4,6 @@ import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.annotation.DataMask;
-import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.service.ModelService;

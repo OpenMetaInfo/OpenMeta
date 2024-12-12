@@ -12,6 +12,8 @@ public interface ModelConstant {
 
     /** Model attribute constants */
     String ID = "id";
+    // External ID, used for external system data synchronization, noncopyable
+    String EXTERNAL_ID = "externalId";
     String UUID = "uuid";
     String CODE = "code";
     // Reversed field: When performing a soft deletion, the field being operated on is set to disabled=true.

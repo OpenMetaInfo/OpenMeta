@@ -159,6 +159,14 @@ public interface ModelService<K extends Serializable> {
     List<Map<String, Object>> updateListAndReturn(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
 
     /**
+     * Update multiple rows by externalIds. Each row in the list can have different fields.
+     *
+     * @param rows data rows to be updated
+     * @return true / Exception
+     */
+    boolean updateByExternalIds(String modelName, List<Map<String, Object>> rows);
+
+    /**
      * Batch edit data based on the filters, according to the specified field values map.
      *
      * @param filters filters, if not specified, all visible data of the current user will be updated.
@@ -192,6 +200,14 @@ public interface ModelService<K extends Serializable> {
      * @return true / Exception
      */
     boolean deleteList(String modelName, List<K> ids);
+
+    /**
+     * Delete multiple rows by externalIds.
+     *
+     * @param externalIds externalId List
+     * @return true / Exception
+     */
+    boolean deleteByExternalIds(String modelName, List<Serializable> externalIds);
 
     /**
      * Delete rows by specified filters.
