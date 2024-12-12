@@ -19,7 +19,7 @@ public class ExportTemplateField extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    protected Long id;
+    private Long id;
 
     @Schema(description = "Export Template ID")
     private Long templateId;

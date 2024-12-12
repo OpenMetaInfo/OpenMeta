@@ -22,7 +22,7 @@ public class FlowNode extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    protected Long id;
+    private Long id;
 
     @Schema(description = "Node Name")
     private String name;

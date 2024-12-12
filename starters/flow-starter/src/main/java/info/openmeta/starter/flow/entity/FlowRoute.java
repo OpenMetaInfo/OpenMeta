@@ -19,7 +19,7 @@ public class FlowRoute extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    protected Long id;
+    private Long id;
 
     @Schema(description = "Model Name")
     private String model;
