@@ -1,8 +1,7 @@
 package info.openmeta.starter.es.service;
 
 import info.openmeta.framework.orm.changelog.message.dto.ChangeLog;
-import info.openmeta.framework.orm.domain.Filters;
-import info.openmeta.framework.orm.domain.Orders;
+import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
 
 import java.io.Serializable;
@@ -39,12 +38,11 @@ public interface ChangeLogService extends ESService<ChangeLog> {
      * Get the ChangeLog page with the specified query conditions
      *
      * @param model     model name
-     * @param filters   filter conditions
-     * @param orders    sort conditions
+     * @param flexQuery query conditions
      * @param page      page object
      * @param trackTotal whether to count the total when the total number is greater than 10000
      * @return a page of list
      */
-    Page<ChangeLog> searchPageByModel(String model, Filters filters, Orders orders, Page<ChangeLog> page, boolean trackTotal);
+    Page<ChangeLog> searchPageByModel(String model, FlexQuery flexQuery, Page<ChangeLog> page, boolean trackTotal);
 
 }

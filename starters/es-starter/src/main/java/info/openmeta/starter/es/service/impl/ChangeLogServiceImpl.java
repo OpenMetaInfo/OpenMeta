@@ -62,7 +62,7 @@ public class ChangeLogServiceImpl extends ESServiceImpl<ChangeLog> implements Ch
         // Check if current user has access to the model and id
         permissionService.checkIdsFieldsAccess(modelName, Collections.singletonList(id), null, READ);
         page = this.getRowChangeLog(modelName, id, page, order, includeCreation);
-        return this.processChangeLogData(modelName, page);
+        return this.processChangeLogData(modelName, page, ConvertType.REFERENCE);
     }
 
     /**
@@ -83,23 +83,28 @@ public class ChangeLogServiceImpl extends ESServiceImpl<ChangeLog> implements Ch
         // Check if current user has access to the timeline model and business id
         permissionService.checkIdsFieldsAccess(modelName, ids, null, READ);
         this.getRowChangeLog(modelName, sliceId, page, order, includeCreation);
-        return this.processChangeLogData(modelName, page);
+        return this.processChangeLogData(modelName, page, ConvertType.REFERENCE);
     }
 
     /**
      * Get the ChangeLog page with the specified query conditions
      *
      * @param model     model name
-     * @param filters   filter conditions
-     * @param orders    sort conditions
+     * @param flexQuery query conditions
      * @param page      page object
      * @param trackTotal whether to count the total when the total number is greater than 10000
      * @return a page of list
      */
-    public Page<ChangeLog> searchPageByModel(String model, Filters filters, Orders orders, Page<ChangeLog> page, boolean trackTotal) {
+    public Page<ChangeLog> searchPageByModel(String model, FlexQuery flexQuery, Page<ChangeLog> page, boolean trackTotal) {
         // TODO: Check if current user has access to the model, and append filters of the permission conditions
+        Filters filters = Filters.merge(flexQuery.getFilters(), Filters.eq(ChangeLog::getModel, model));
+        Orders orders = flexQuery.getOrders();
         this.searchPage(filters, orders, page, trackTotal);
-        this.processChangeLogData(model, page);
+        ConvertType convertType = flexQuery.getConvertType();
+        if (ConvertType.REFERENCE.equals(convertType) || ConvertType.DISPLAY.equals(convertType)) {
+            // Enhance the field values in before and after data
+            this.processChangeLogData(model, page, convertType);
+        }
         return page;
     }
 
@@ -130,9 +135,10 @@ public class ChangeLogServiceImpl extends ESServiceImpl<ChangeLog> implements Ch
      *
      * @param modelName model name
      * @param page page object
+     * @param convertType convert type
      * @return a page of change log list
      */
-    private Page<ChangeLog> processChangeLogData(String modelName, Page<ChangeLog> page) {
+    private Page<ChangeLog> processChangeLogData(String modelName, Page<ChangeLog> page, ConvertType convertType) {
         List<Map<String, Object>> changeLogDataList = new ArrayList<>();
         Set<String> fields = new HashSet<>();
         page.getRows().forEach(changeLog -> {
@@ -152,7 +158,7 @@ public class ChangeLogServiceImpl extends ESServiceImpl<ChangeLog> implements Ch
         // TODO: Exclude fields that are not accessible
         fields.retainAll(ModelManager.getModelStoredFields(modelName));
         FlexQuery flexQuery = new FlexQuery(fields);
-        flexQuery.setConvertType(ConvertType.REFERENCE);
+        flexQuery.setConvertType(convertType);
         dataPipelineProxy.processReadData(modelName, flexQuery, changeLogDataList);
         return page;
     }
