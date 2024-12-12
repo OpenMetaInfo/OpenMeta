@@ -18,6 +18,9 @@ public class ExportHistory extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    protected Long id;
+
     @Schema(description = "Tenant ID")
     private String tenantId;
 

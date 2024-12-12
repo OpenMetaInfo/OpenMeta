@@ -17,9 +17,6 @@ public abstract class BaseModel implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "ID")
-    private Long id;
-
     @Schema(description = "Creation time")
     protected LocalDateTime createdTime;
 
@@ -37,4 +34,9 @@ public abstract class BaseModel implements Serializable {
 
     @Schema(description = "Updated By")
     protected String updatedBy;
+
+    /**
+     * Abstract method to get the ID of the model.
+     */
+    public abstract Serializable getId();
 }

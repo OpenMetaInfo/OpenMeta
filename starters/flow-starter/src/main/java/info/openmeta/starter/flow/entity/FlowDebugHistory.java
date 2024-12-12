@@ -22,6 +22,9 @@ public class FlowDebugHistory extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    protected Long id;
+
     @Schema(description = "Model Name")
     private String model;
 

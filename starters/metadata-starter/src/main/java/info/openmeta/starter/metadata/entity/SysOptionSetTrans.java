@@ -18,6 +18,15 @@ public class SysOptionSetTrans extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    protected Long id;
+
+    @Schema(description = "Language Code")
+    private String languageCode;
+
+    @Schema(description = "Row ID")
+    private Long rowId;
+
     @Schema(description = "Option Set Name")
     private String name;
 

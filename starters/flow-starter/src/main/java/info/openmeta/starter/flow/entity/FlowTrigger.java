@@ -20,6 +20,9 @@ public class FlowTrigger extends BaseModel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID")
+    protected Long id;
+
     @Schema(description = "Trigger Name")
     private String name;
 
