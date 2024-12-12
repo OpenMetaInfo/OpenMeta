@@ -478,6 +478,26 @@ public class ModelManager {
     }
 
     /**
+     * Get the copyable fields of the specified model.
+     *
+     * @param modelName model name
+     * @return copyable fields
+     */
+    public static List<String> getModelCopyableFields(String modelName) {
+        return MODEL_FIELDS.get(modelName).keySet().stream()
+                .filter(fieldName -> {
+                    if (ModelConstant.AUDIT_FIELDS.contains(fieldName)) {
+                        return false;
+                    } else if (isTimelineModel(modelName)) {
+                        if (ModelConstant.ID.equals(fieldName)) {
+                            return true;
+                        } else return !ModelConstant.SLICE_ID.equals(fieldName);
+                    } else return !ModelConstant.ID.equals(fieldName) && !ModelConstant.EXTERNAL_ID.equals(fieldName);
+                })
+                .toList();
+    }
+
+    /**
      * Get the MetaField object by model name and field name.
      *
      * @param modelName model name

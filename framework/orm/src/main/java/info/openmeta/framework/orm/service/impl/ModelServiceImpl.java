@@ -543,6 +543,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Transactional(rollbackFor = Exception.class)
     public List<K> copyList(String modelName, List<K> ids) {
         List<Map<String, Object>> rows = this.readList(modelName, ids, null);
+        List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
+        rows.forEach(row -> copyableFields.forEach(row::remove));
         this.createList(modelName, rows);
         return Cast.of(rows.stream().map(row -> row.get(ModelConstant.ID)).collect(Collectors.toList()));
     }
@@ -573,9 +575,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Override
     public Map<String, Object> copyWithoutCreate(String modelName, K id) {
         Map<String, Object> value = this.readOne(modelName, id, null);
-        Set<String> ignoreFields = new HashSet<>(ModelConstant.AUDIT_FIELDS);
-        ignoreFields.add(ModelConstant.ID);
-        ignoreFields.forEach(value::remove);
+        List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
+        copyableFields.forEach(value::remove);
         return value;
     }
 
