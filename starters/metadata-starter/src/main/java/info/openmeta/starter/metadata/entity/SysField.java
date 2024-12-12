@@ -93,8 +93,8 @@ public class SysField extends BaseModel {
     @Schema(description = "Translatable")
     private Boolean translatable;
 
-    @Schema(description = "Copyable")
-    private Boolean copyable;
+    @Schema(description = "Noncopyable")
+    private Boolean noncopyable;
 
     @Schema(description = "Unsearchable")
     private Boolean unsearchable;

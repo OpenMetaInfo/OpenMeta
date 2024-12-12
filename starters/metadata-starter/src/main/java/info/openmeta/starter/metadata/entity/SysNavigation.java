@@ -30,8 +30,8 @@ public class SysNavigation extends BaseModel {
     @Schema(description = "Code")
     private String code;
 
-    @Schema(description = "Model")
-    private String model;
+    @Schema(description = "Model Name")
+    private String modelName;
 
     @Schema(description = "Parent Navigation")
     private Long parentId;

@@ -124,7 +124,8 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
         flowEvent.setFlowId(eventMessage.getFlowId());
         flowEvent.setFlowNodeId(eventMessage.getFlowNodeId());
         flowEvent.setFlowModel(eventMessage.getFlowModel());
-        flowEvent.setRowId(eventMessage.getTriggerRowId());
+        String rowId = eventMessage.getTriggerRowId() == null ? null : eventMessage.getTriggerRowId().toString();
+        flowEvent.setRowId(rowId);
         flowEvent.setTriggerId(eventMessage.getTriggerId());
         flowEvent.setTriggeredModel(eventMessage.getTriggeredModel());
         return flowEventService.createOneAndReturn(flowEvent);

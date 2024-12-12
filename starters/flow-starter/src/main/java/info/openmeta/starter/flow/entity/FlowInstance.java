@@ -24,7 +24,7 @@ public class FlowInstance extends BaseModel {
     private String model;
 
     @Schema(description = "Row Data ID")
-    private Long rowId;
+    private String rowId;
 
     @Schema(description = "Flow ID")
     private Long flowId;

@@ -25,7 +25,7 @@ public class SysPreData extends BaseModel {
     private String preId;
 
     @Schema(description = "Row Data ID")
-    private Long rowId;
+    private String rowId;
 
     @Schema(description = "Frozen")
     private Boolean frozen;

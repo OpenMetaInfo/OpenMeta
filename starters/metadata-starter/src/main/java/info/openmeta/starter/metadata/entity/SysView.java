@@ -23,9 +23,6 @@ public class SysView extends BaseModel {
     @Schema(description = "App ID")
     private Long appId;
 
-    @Schema(description = "Model ID")
-    private Long modelId;
-
     @Schema(description = "Model Name")
     private String modelName;
 

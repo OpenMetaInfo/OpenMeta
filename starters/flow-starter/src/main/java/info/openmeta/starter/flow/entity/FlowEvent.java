@@ -29,7 +29,7 @@ public class FlowEvent extends BaseModel {
     private String flowModel;
 
     @Schema(description = "Row Data ID")
-    private Long rowId;
+    private String rowId;
 
     @Schema(description = "Trigger ID")
     private Long triggerId;

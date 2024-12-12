@@ -3,8 +3,6 @@ package info.openmeta.starter.metadata.service.impl;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.utils.Assert;
-import info.openmeta.framework.orm.constant.ModelConstant;
-import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.dto.MetadataUpgradePackage;
 import info.openmeta.starter.metadata.message.InnerBroadcastProducer;
@@ -28,7 +26,7 @@ import java.util.Map;
 public class MetadataServiceImpl implements MetadataService {
 
     @Autowired
-    private ModelService<Long> modelService;
+    private ModelService<Serializable> modelService;
 
     @Autowired
     private InnerBroadcastProducer innerBroadcastProducer;
@@ -66,33 +64,28 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     /**
-     * Update metadata.
+     * Update metadata by unique id
      *
      * @param modelName The name of the model
      * @param updateRows The list of data to be updated
      */
-    private void updateByCode(String modelName, List<Map<String, Object>> updateRows) {
+    private void updateById(String modelName, List<Map<String, Object>> updateRows) {
         if (!CollectionUtils.isEmpty(updateRows)) {
             this.validateBatchSize(updateRows.size());
-            updateRows.forEach(row -> {
-                // Update by code
-                String code = (String) row.get(ModelConstant.CODE);
-                row.remove(ModelConstant.CODE);
-                modelService.updateByFilter(modelName, Filters.eq(ModelConstant.CODE, code), row);
-            });
+            modelService.updateList(modelName, updateRows);
         }
     }
 
     /**
-     * Delete metadata by code.
+     * Delete metadata by unique id
      *
      * @param modelName The name of the model
-     * @param deleteCodes The list of codes for the data to be deleted
+     * @param ids The list of codes for the data to be deleted
      */
-    private void deleteByCode(String modelName, List<Serializable> deleteCodes) {
-        if (!CollectionUtils.isEmpty(deleteCodes)) {
-            this.validateBatchSize(deleteCodes.size());
-            modelService.deleteByFilters(modelName, Filters.in(ModelConstant.CODE, deleteCodes));
+    private void deleteById(String modelName, List<Serializable> ids) {
+        if (!CollectionUtils.isEmpty(ids)) {
+            this.validateBatchSize(ids.size());
+            modelService.deleteList(modelName, ids);
         }
     }
 
@@ -111,9 +104,9 @@ public class MetadataServiceImpl implements MetadataService {
             // create
             this.createMetadata(modelName, modelPackage.getCreateRows());
             // update
-            this.updateByCode(modelName, modelPackage.getUpdateRows());
+            this.updateById(modelName, modelPackage.getUpdateRows());
             // delete
-            this.deleteByCode(modelName, modelPackage.getDeleteCodes());
+            this.deleteById(modelName, modelPackage.getDeleteIds());
         });
     }
 
