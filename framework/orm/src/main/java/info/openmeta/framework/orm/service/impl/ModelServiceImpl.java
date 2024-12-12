@@ -63,7 +63,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (ModelManager.isMultiTenant(modelName)) {
             rows.forEach(row -> {
                 if (row.containsKey(ModelConstant.TENANT_ID)) {
-                    Serializable tenantId = IdUtils.formatId(modelName, ModelConstant.TENANT_ID, row.get(ModelConstant.TENANT_ID));
+                    Long tenantId = (Long) row.get(ModelConstant.TENANT_ID);
                     if (tenantId != null && !tenantId.equals(ContextHolder.getContext().getTenantId())) {
                         throw new SecurityException("In a multi-tenancy environment, cross-tenant data access is not allowed: {0}", row);
                     }
@@ -411,7 +411,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteSlice(String modelName, K sliceId) {
+    public boolean deleteSlice(String modelName, Long sliceId) {
         Assert.isTrue(ModelManager.isTimelineModel(modelName),
                 "Model {0} is not a timeline model, and cannot delete slice.", modelName);
         TimelineSlice timelineSlice = timelineService.getTimelineSlice(modelName, sliceId);
@@ -732,7 +732,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * @return distinct ids for relational field
      */
     @Override
-    public List<K> getRelatedIds(String modelName, Filters filters, String fieldName) {
+    public <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName) {
         // Append timeline filtersAppend timeline filters
         filters = timelineService.appendTimelineFilters(modelName, filters);
         // Append permission data range filters
@@ -740,7 +740,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         FlexQuery flexQuery = new FlexQuery(filters);
         // Automatic distinct when querying relational field ids
         flexQuery.setDistinct(true);
-        List<K> relatedIds = jdbcService.getIds(modelName, fieldName, flexQuery);
+        List<EK> relatedIds = jdbcService.getIds(modelName, fieldName, flexQuery);
         // Filter out null value
         return relatedIds.stream().filter(IdUtils::validId).collect(Collectors.toList());
     }
@@ -753,9 +753,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * @return ids that exist in the database
      */
     @Override
-    public Set<K> filterExistIds(String modelName, Collection<K> ids) {
+    public List<K> filterExistIds(String modelName, Collection<K> ids) {
         FlexQuery flexQuery = new FlexQuery(Filters.in(ModelConstant.ID, ids));
-        return new HashSet<>(jdbcService.getIds(modelName, ModelConstant.ID, flexQuery));
+        return jdbcService.getIds(modelName, ModelConstant.ID, flexQuery);
     }
 
     /**

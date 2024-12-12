@@ -89,7 +89,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
             rows.forEach(row -> {
                 List<Object> valueList = fields.stream().map(row::get).collect(Collectors.toList());
                 sqlParams.setArgs(valueList);
-                Long id = jdbcProxy.insert(sqlParams);
+                Serializable id = jdbcProxy.insert(sqlParams);
                 row.put(ModelConstant.ID, id);
             });
         } else {
@@ -172,11 +172,13 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
      * @return List<K>
      */
     @SkipPermissionCheck
-    public List<K> getIds(String modelName, String fieldName, FlexQuery flexQuery) {
+    public <EK extends Serializable> List<EK> getIds(String modelName, String fieldName, FlexQuery flexQuery) {
         flexQuery.setFields(Sets.newHashSet(fieldName));
         SqlParams sqlParams = SqlBuilderFactory.buildSelectSql(modelName, flexQuery);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
-        return Cast.of(rows.stream().map(row -> row.get(fieldName)).collect(Collectors.toList()));
+        return Cast.of(rows.stream()
+                .map(row -> row.get(fieldName))
+                .toList());
     }
 
     /**

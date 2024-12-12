@@ -25,5 +25,5 @@ public class MetadataUpgradePackage implements Serializable {
 
     private List<Map<String, Object>> updateRows = new ArrayList<>();
 
-    private List<Serializable> deleteCodes = new ArrayList<>();
+    private List<Serializable> deleteIds = new ArrayList<>();
 }

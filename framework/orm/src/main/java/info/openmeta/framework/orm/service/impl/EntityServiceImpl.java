@@ -315,7 +315,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return distinct ids for relational field
      */
     @Override
-    public List<K> getRelatedIds(Filters filters, String fieldName) {
+    public <EK extends Serializable> List<EK> getRelatedIds(Filters filters, String fieldName) {
         return modelService.getRelatedIds(modelName, filters, fieldName);
     }
 
@@ -429,7 +429,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return objects map (id -> object)
      */
     @Override
-    public Map<Long, T> groupById(Filters filters) {
+    public Map<Serializable, T> groupById(Filters filters) {
         List<T> objects = this.searchList(filters);
         if (!CollectionUtils.isEmpty(objects)) {
             return objects.stream().collect(Collectors.toMap(BaseModel::getId, Function.identity()));

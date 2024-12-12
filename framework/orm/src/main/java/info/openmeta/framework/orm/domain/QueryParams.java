@@ -1,5 +1,7 @@
 package info.openmeta.framework.orm.domain;
 
+import info.openmeta.framework.base.context.ContextHolder;
+import info.openmeta.framework.orm.enums.ConvertType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -52,4 +54,26 @@ public class QueryParams {
     @Schema(description = "Sub queries for relational fields: {fieldName: SubQuery}", example = "{}")
     private Map<String, SubQuery> subQueries;
 
+
+    /**
+     * Convert QueryParams to FlexQuery.
+     *
+     * @param queryParams QueryParams
+     * @return FlexQuery
+     */
+    static public FlexQuery convertParamsToFlexQuery(QueryParams queryParams) {
+        if (queryParams == null) {
+            queryParams = new QueryParams();
+        }
+        ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
+        FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
+        flexQuery.setFields(queryParams.getFields());
+        flexQuery.setConvertType(ConvertType.REFERENCE);
+        flexQuery.setGroupBy(queryParams.getGroupBy());
+        // Set AggFunction parameters
+        flexQuery.setAggFunctions(queryParams.getAggFunctions());
+        // Set SubQuery parameters
+        flexQuery.expandSubQueries(queryParams.getSubQueries());
+        return flexQuery;
+    }
 }

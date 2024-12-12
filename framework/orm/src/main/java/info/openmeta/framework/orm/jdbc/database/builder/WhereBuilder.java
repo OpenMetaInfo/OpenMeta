@@ -19,7 +19,6 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -74,7 +73,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
             return filters;
         }
         // Add tenant filtering conditions
-        Serializable tenantId = ContextHolder.getContext().getTenantId();
+        Long tenantId = ContextHolder.getContext().getTenantId();
         Filters tenantFilter = Filters.eq(ModelConstant.TENANT_ID, tenantId);
         return Filters.merge(filters, tenantFilter);
     }

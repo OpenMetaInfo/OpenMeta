@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Common Model Service Interface.
@@ -184,7 +183,7 @@ public interface ModelService<K extends Serializable> {
      * @param sliceId data id
      * @return true / Exception
      */
-    boolean deleteSlice(String modelName, K sliceId);
+    boolean deleteSlice(String modelName, Long sliceId);
 
     /**
      * Delete multiple rows by ids.
@@ -360,7 +359,7 @@ public interface ModelService<K extends Serializable> {
      * @param fieldName relational field name
      * @return distinct ids for relational field
      */
-    List<K> getRelatedIds(String modelName, Filters filters, String fieldName);
+    <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName);
 
     /**
      * Filter the set that exist in the database from ids, without permission check.
@@ -369,7 +368,7 @@ public interface ModelService<K extends Serializable> {
      * @param ids Data ids
      * @return ids that exist in the database
      */
-    Set<K> filterExistIds(String modelName, Collection<K> ids);
+    List<K> filterExistIds(String modelName, Collection<K> ids);
 
     /**
      * Get the `displayNames` of the specified ids, returning map of {id: displayName}.

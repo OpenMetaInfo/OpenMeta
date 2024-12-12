@@ -302,8 +302,7 @@ public class ModelController<K extends Serializable> {
     @PostMapping(value = "/deleteSlice")
     @Operation(description = "Delete one slice of the timeline model by `sliceId`.")
     @Parameter(name = "sliceId", description = "`sliceId` of the timeline slice data to delete.", schema = @Schema(type = "number"))
-    public ApiResponse<Boolean> deleteSlice(@PathVariable String modelName, @RequestParam K sliceId) {
-        sliceId = IdUtils.formatId(modelName, ModelConstant.SLICE_ID, sliceId);
+    public ApiResponse<Boolean> deleteSlice(@PathVariable String modelName, @RequestParam Long sliceId) {
         return ApiResponse.success(modelService.deleteSlice(modelName, sliceId));
     }
 
@@ -424,7 +423,7 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<Page<Map<String, Object>>> searchPage(@PathVariable String modelName,
                                                              @RequestBody(required = false) QueryParams queryParams) {
-        FlexQuery flexQuery = this.convertParamsToFlexQuery(queryParams);
+        FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
         flexQuery.setSummary(Boolean.TRUE.equals(queryParams.getSummary()));
         Page<Map<String, Object>> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
         return ApiResponse.success(modelService.searchPage(modelName, flexQuery, page));
@@ -445,7 +444,7 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<List<Map<String, Object>>> searchList(@PathVariable String modelName,
                                                              @RequestBody(required = false) QueryParams queryParams) {
-        FlexQuery flexQuery = this.convertParamsToFlexQuery(queryParams);
+        FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
         // Default limitSize for searchList.
         Integer limitSize = queryParams.getPageSize();
         limitSize = limitSize == null || limitSize < 1 ? BaseConstant.DEFAULT_PAGE_SIZE : limitSize;
@@ -455,27 +454,6 @@ public class ModelController<K extends Serializable> {
         return ApiResponse.success(modelService.searchList(modelName, flexQuery));
     }
 
-    /**
-     * Convert QueryParams to FlexQuery.
-     *
-     * @param queryParams QueryParams
-     * @return FlexQuery
-     */
-    private FlexQuery convertParamsToFlexQuery(QueryParams queryParams) {
-        if (queryParams == null) {
-            queryParams = new QueryParams();
-        }
-        ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
-        flexQuery.setFields(queryParams.getFields());
-        flexQuery.setConvertType(ConvertType.REFERENCE);
-        flexQuery.setGroupBy(queryParams.getGroupBy());
-        // Set AggFunction parameters
-        flexQuery.setAggFunctions(queryParams.getAggFunctions());
-        // Set SubQuery parameters
-        flexQuery.expandSubQueries(queryParams.getSubQueries());
-        return flexQuery;
-    }
 
     /**
      * Simple aggregation query params by `filters` and `aggFunctions`.
@@ -514,7 +492,7 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<PivotTable> searchPivot(@PathVariable String modelName,
                                                @RequestBody QueryParams queryParams) {
-        FlexQuery flexQuery = this.convertParamsToFlexQuery(queryParams);
+        FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
         flexQuery.setSplitBy(queryParams.getSplitBy());
         return ApiResponse.success(modelService.searchPivot(modelName, flexQuery));
     }
