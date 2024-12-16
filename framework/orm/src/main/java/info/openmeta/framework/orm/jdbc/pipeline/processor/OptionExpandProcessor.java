@@ -37,7 +37,7 @@ public class OptionExpandProcessor extends BaseProcessor {
     @Override
     public void processOutputRow(Map<String, Object> row) {
         if (row.containsKey(fieldName)) {
-            row.put(fieldName, getOptionItemValue((String) row.get(fieldName)));
+            row.put(fieldName, getOptionItemValue(row.get(fieldName) + ""));
         }
     }
 
