@@ -36,7 +36,7 @@ public class MultiOptionExpandProcessor extends OptionExpandProcessor {
     @Override
     public void processOutputRow(Map<String, Object> row) {
         if (row.containsKey(fieldName)) {
-            List<String> itemCodes = Cast.of(row.get(fieldName));
+            List<Object> itemCodes = Cast.of(row.get(fieldName));
             List<Object> itemValues = itemCodes.stream().map(this::getOptionItemValue).collect(Collectors.toList());
             if (ConvertType.DISPLAY.equals(convertType)) {
                 String value = itemValues.stream().map(Object::toString).collect(Collectors.joining(", "));
