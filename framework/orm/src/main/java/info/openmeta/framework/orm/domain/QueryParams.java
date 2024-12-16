@@ -4,6 +4,7 @@ import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.orm.enums.ConvertType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -73,9 +74,11 @@ public class QueryParams {
         // Set AggFunction parameters
         flexQuery.setAggFunctions(queryParams.getAggFunctions());
         // Set SubQuery parameters
-        SubQueries subQueries = new SubQueries();
-        subQueries.setQueryMap(queryParams.getSubQueries());
-        flexQuery.setSubQueries(subQueries);
+        if (!CollectionUtils.isEmpty(queryParams.getSubQueries())) {
+            SubQueries subQueries = new SubQueries();
+            subQueries.setQueryMap(queryParams.getSubQueries());
+            flexQuery.setSubQueries(subQueries);
+        }
         return flexQuery;
     }
 }
