@@ -73,7 +73,9 @@ public class QueryParams {
         // Set AggFunction parameters
         flexQuery.setAggFunctions(queryParams.getAggFunctions());
         // Set SubQuery parameters
-        flexQuery.expandSubQueries(queryParams.getSubQueries());
+        SubQueries subQueries = new SubQueries();
+        subQueries.setQueryMap(queryParams.getSubQueries());
+        flexQuery.setSubQueries(subQueries);
         return flexQuery;
     }
 }

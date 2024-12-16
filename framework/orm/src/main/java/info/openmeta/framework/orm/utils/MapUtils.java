@@ -45,8 +45,7 @@ public class MapUtils {
      * @return Map instance
      */
     public static ImmutableMap<String, Object> ofImmutable(String key, Object value) {
-        Map<String, Object> map = new HashMap<>();
-        map.put(key, value);
+        Map<String, Object> map = of(key, value);
         return ImmutableMap.copyOf(map);
     }
 

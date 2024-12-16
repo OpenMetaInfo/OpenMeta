@@ -1,8 +1,10 @@
 package info.openmeta.framework.orm.service;
 
+import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
+import info.openmeta.framework.orm.domain.SubQueries;
 import info.openmeta.framework.orm.entity.BaseModel;
 
 import java.io.Serializable;
@@ -62,6 +64,16 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
 
     /**
      * Read one data object by id.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param subQueries subQueries object, can expand relational fields
+     * @return data object
+     */
+    T readOne(K id, SubQueries subQueries);
+
+    /**
+     * Read one data object by id.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
@@ -82,6 +94,16 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
 
     /**
      * Read multiple data objects by ids.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param ids data ids list
+     * @param subQueries subQueries object, can expand relational fields
+     * @return data object list
+     */
+    List<T> readList(List<K> ids, SubQueries subQueries);
+
+    /**
+     * Read multiple data objects by ids.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
@@ -90,6 +112,16 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @return data object list
      */
     List<T> readList(List<K> ids, Collection<String> fields);
+
+    /**
+     * Read the specified field value based on id.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param method field method, Lambda expression, method reference passing parameters
+     * @return field value
+     */
+    <V extends Serializable, R> V readField(K id, SFunction<T, R> method);
 
     /**
      * Update one data object by its ID. Null values are not ignored.

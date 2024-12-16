@@ -1,13 +1,16 @@
 package info.openmeta.framework.orm.service.impl;
 
+import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
+import info.openmeta.framework.orm.domain.SubQueries;
 import info.openmeta.framework.orm.entity.BaseModel;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.service.EntityService;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.utils.BeanTool;
+import info.openmeta.framework.orm.utils.LambdaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
@@ -115,6 +118,20 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
 
     /**
      * Read one data object by id.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param subQueries sub queries for relational fields
+     * @return data object
+     */
+    @Override
+    public T readOne(K id, SubQueries subQueries) {
+        Map<String, Object> row = modelService.readOne(modelName, id, subQueries);
+        return CollectionUtils.isEmpty(row) ? null : BeanTool.mapToObject(row, entityClass);
+    }
+
+    /**
+     * Read one data object by id.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
@@ -137,7 +154,21 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      */
     @Override
     public List<T> readList(List<K> ids) {
-        return this.readList(ids, null);
+        return this.readList(ids, Collections.emptyList());
+    }
+
+    /**
+     * Read multiple data objects by ids.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param ids data ids list
+     * @param subQueries sub queries for relational fields
+     * @return data object list
+     */
+    @Override
+    public List<T> readList(List<K> ids, SubQueries subQueries) {
+        List<Map<String, Object>> rows = modelService.readList(modelName, ids, Collections.emptyList(), subQueries, ConvertType.TYPE_CAST);
+        return CollectionUtils.isEmpty(rows) ? Collections.emptyList() : BeanTool.mapListToObjects(rows, entityClass);
     }
 
     /**
@@ -151,8 +182,22 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      */
     @Override
     public List<T> readList(List<K> ids, Collection<String> fields) {
-        List<Map<String, Object>> rows = modelService.readList(modelName, ids, null);
+        List<Map<String, Object>> rows = modelService.readList(modelName, ids, fields);
         return CollectionUtils.isEmpty(rows) ? Collections.emptyList() : BeanTool.mapListToObjects(rows, entityClass);
+    }
+
+    /**
+     * Read the specified field value based on id.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param method field method, Lambda expression, method reference passing parameters
+     * @return field value
+     */
+    @Override
+    public <V extends Serializable, R> V readField(K id, SFunction<T, R> method) {
+        String fieldName = LambdaUtils.getAttributeName(method);
+        return modelService.readField(modelName, id, fieldName);
     }
 
     /**

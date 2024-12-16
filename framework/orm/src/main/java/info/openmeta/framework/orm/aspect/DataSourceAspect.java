@@ -24,7 +24,8 @@ import java.lang.reflect.Method;
 @Component
 public class DataSourceAspect {
 
-    @Around("@annotation(info.openmeta.framework.orm.annotation.DataSource)")
+    @Around("@annotation(info.openmeta.framework.orm.annotation.DataSource)" +
+            " || @within(info.openmeta.framework.orm.annotation.DataSource)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();

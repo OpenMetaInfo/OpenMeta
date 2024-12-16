@@ -1,9 +1,6 @@
 package info.openmeta.framework.orm.service;
 
-import info.openmeta.framework.orm.domain.Filters;
-import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.orm.domain.Page;
-import info.openmeta.framework.orm.domain.PivotTable;
+import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.enums.ConvertType;
 import jakarta.validation.constraints.NotNull;
 
@@ -66,7 +63,7 @@ public interface ModelService<K extends Serializable> {
      * @param field field name to read
      * @return field value
      */
-    Object readField(String modelName, K id, String field);
+    <V extends Serializable> V readField(String modelName, K id, String field);
 
     /**
      * Read one row by id, default to read all fields.
@@ -76,6 +73,16 @@ public interface ModelService<K extends Serializable> {
      * @return data row
      */
     Map<String, Object> readOne(String modelName, K id);
+
+    /**
+     * Read one row by id, default to read all fields.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param subQueries subQueries for relational fields
+     * @return data row
+     */
+    Map<String, Object> readOne(String modelName, K id, SubQueries subQueries);
 
     /**
      * Read one row by id.
@@ -94,10 +101,12 @@ public interface ModelService<K extends Serializable> {
      *
      * @param id data id
      * @param fields field list to read
+     * @param subQueries subQueries for relational fields
      * @param convertType data convert type of the return value.
      * @return data row
      */
-    Map<String, Object> readOne(String modelName, K id, Collection<String> fields, ConvertType convertType);
+    Map<String, Object> readOne(String modelName, K id, Collection<String> fields,
+                                SubQueries subQueries, ConvertType convertType);
 
     /**
      * Read multiple rows by ids.
@@ -116,10 +125,12 @@ public interface ModelService<K extends Serializable> {
      *
      * @param ids List of data ids
      * @param fields Field list to read
+     * @param subQueries subQueries for relational fields
      * @param convertType data convert type of the return value.
      * @return List<Map> of multiple data
      */
-    List<Map<String, Object>> readList(String modelName, @NotNull List<K> ids, Collection<String> fields, ConvertType convertType);
+    List<Map<String, Object>> readList(String modelName, @NotNull List<K> ids, Collection<String> fields,
+                                       SubQueries subQueries, ConvertType convertType);
 
     /**
      * Update one row by id.

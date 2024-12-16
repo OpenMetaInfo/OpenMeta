@@ -1,8 +1,8 @@
 package info.openmeta.framework.orm.utils;
 
 import info.openmeta.framework.base.utils.Cast;
-import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.base.utils.SFunction;
+import info.openmeta.framework.base.utils.StringTools;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +17,17 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class ListUtils {
+
+    /**
+     * Get field names list by lambda expression parameters
+     *
+     * @param lambdaFields field lambda expressions
+     * @return field names list
+     */
+    @SafeVarargs
+    public static <T, R> List<String> getLambdaFields(SFunction<T, R>... lambdaFields) {
+        return Arrays.stream(lambdaFields).map(LambdaUtils::getAttributeName).collect(Collectors.toList());
+    }
 
     /**
      * All not blank.
@@ -173,17 +184,6 @@ public abstract class ListUtils {
             log.warn("The deepCopyList exception occurs, returning the original collection. Src: " + src, e);
             return src;
         }
-    }
-
-    /**
-     * Get field names list by lambda expression parameters
-     *
-     * @param lambdaFields field lambda expressions
-     * @return field names list
-     */
-    @SafeVarargs
-    public static <T, R> List<String> getLambdaFields(SFunction<T, R>... lambdaFields) {
-        return Arrays.stream(lambdaFields).map(LambdaUtils::getAttributeName).collect(Collectors.toList());
     }
 
     /**
