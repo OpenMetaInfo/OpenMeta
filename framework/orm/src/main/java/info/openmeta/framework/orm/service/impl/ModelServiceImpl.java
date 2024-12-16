@@ -11,10 +11,7 @@ import info.openmeta.framework.base.exception.SecurityException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.Cast;
 import info.openmeta.framework.orm.constant.ModelConstant;
-import info.openmeta.framework.orm.domain.Filters;
-import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.orm.domain.Page;
-import info.openmeta.framework.orm.domain.PivotTable;
+import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.entity.TimelineSlice;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.enums.FieldType;
@@ -178,9 +175,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * @return field value
      */
     @Override
-    public Object readField(String modelName, K id, String field) {
-        Map<String, Object> row = this.readOne(modelName, id, Collections.singletonList(field), ConvertType.TYPE_CAST);
-        return row.get(field);
+    public <V extends Serializable> V readField(String modelName, K id, String field) {
+        Map<String, Object> row = this.readOne(modelName, id, Collections.singletonList(field), null, ConvertType.TYPE_CAST);
+        return Cast.of(row.get(field));
     }
 
     /**
@@ -192,7 +189,20 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public Map<String, Object> readOne(String modelName, K id) {
-        return this.readOne(modelName, id, Collections.emptyList(), ConvertType.TYPE_CAST);
+        return this.readOne(modelName, id, Collections.emptyList(), null, ConvertType.TYPE_CAST);
+    }
+
+    /**
+     * Read one row by id, default to read all fields.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param subQueries SubQueries object, used to specify the subQuery for different relational fields.
+     * @return data row
+     */
+    @Override
+    public Map<String, Object> readOne(String modelName, K id, SubQueries subQueries) {
+        return this.readOne(modelName, id, Collections.emptyList(), subQueries, ConvertType.TYPE_CAST);
     }
 
     /**
@@ -206,7 +216,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public Map<String, Object> readOne(String modelName, K id, Collection<String> fields) {
-        return this.readOne(modelName, id, fields, ConvertType.TYPE_CAST);
+        return this.readOne(modelName, id, fields, null, ConvertType.TYPE_CAST);
     }
 
     /**
@@ -215,12 +225,14 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      *
      * @param id data id
      * @param fields field list to read
+     * @param subQueries SubQueries object, used to specify the subQuery for different relational fields.
      * @param convertType data convert type of the return value.
      * @return data row
      */
     @Override
-    public Map<String, Object> readOne(String modelName, K id, Collection<String> fields, ConvertType convertType) {
-        List<Map<String, Object>> rows = this.readList(modelName, Collections.singletonList(id), fields, convertType);
+    public Map<String, Object> readOne(String modelName, K id, Collection<String> fields,
+                                       SubQueries subQueries, ConvertType convertType) {
+        List<Map<String, Object>> rows = this.readList(modelName, Collections.singletonList(id), fields, subQueries, convertType);
         Assert.notEmpty(rows, "Model {0} does not have data with id {1}!", modelName, id);
         return rows.getFirst();
     }
@@ -236,7 +248,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public List<Map<String, Object>> readList(String modelName, List<K> ids, Collection<String> fields) {
-        return this.readList(modelName, ids, fields, ConvertType.TYPE_CAST);
+        return this.readList(modelName, ids, fields, null, ConvertType.TYPE_CAST);
     }
 
     /**
@@ -245,11 +257,13 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      *
      * @param ids List of data ids
      * @param fields Field list to read
+     * @param subQueries SubQueries object, used to specify the subQuery for different relational fields.
      * @param convertType data convert type of the return value.
      * @return List<Map> of multiple data
      */
     @Override
-    public List<Map<String, Object>> readList(String modelName, @NotNull List<K> ids, Collection<String> fields, ConvertType convertType) {
+    public List<Map<String, Object>> readList(String modelName, @NotNull List<K> ids, Collection<String> fields,
+                                              SubQueries subQueries, ConvertType convertType) {
         ids = ids.stream().filter(IdUtils::validId).collect(Collectors.toList());
         if (ids.isEmpty()) {
             return Collections.emptyList();
@@ -574,7 +588,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public Map<String, Object> copyWithoutCreate(String modelName, K id) {
-        Map<String, Object> value = this.readOne(modelName, id, null);
+        Map<String, Object> value = this.readOne(modelName, id, Collections.emptyList());
         List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
         copyableFields.forEach(value::remove);
         return value;

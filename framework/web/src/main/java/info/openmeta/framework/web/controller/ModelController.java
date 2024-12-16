@@ -131,7 +131,8 @@ public class ModelController<K extends Serializable> {
      *
      * @param modelName     model name
      * @param id            data id
-     * @param fields        field list to read
+     * @param fields        field list to read, if not specified, all visible fields as the default
+     * @param subQueries    subQuery parameters for relational fields
      * @param effectiveDate effective date of timeline data
      * @return data row
      */
@@ -140,16 +141,18 @@ public class ModelController<K extends Serializable> {
     @Parameters({
             @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
+            @Parameter(name = "subQueries", description = "SubQuery parameters for relational fields."),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
     @DataMask
     public ApiResponse<Map<String, Object>> readOne(@PathVariable String modelName,
                                                     @RequestParam K id,
                                                     @RequestParam(required = false) List<String> fields,
+                                                    @RequestParam(required = false) SubQueries subQueries,
                                                     @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.readOne(modelName, id, fields, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.readOne(modelName, id, fields, subQueries, ConvertType.REFERENCE));
     }
 
     /**
@@ -160,6 +163,7 @@ public class ModelController<K extends Serializable> {
      * @param modelName     model name
      * @param ids           List of data ids
      * @param fields        Field list to read
+     * @param subQueries    subQuery parameters for relational fields
      * @param effectiveDate effective date of timeline data
      * @return List<Map> of multiple data
      */
@@ -168,17 +172,19 @@ public class ModelController<K extends Serializable> {
     @Parameters({
             @Parameter(name = "ids", description = "Data IDs to be read."),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
+            @Parameter(name = "subQueries", description = "SubQuery parameters for relational fields."),
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
     @DataMask
     public ApiResponse<List<Map<String, Object>>> readList(@PathVariable String modelName,
                                                            @RequestParam List<K> ids,
                                                            @RequestParam(required = false) List<String> fields,
+                                                           @RequestParam(required = false) SubQueries subQueries,
                                                            @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.readList(modelName, ids, fields, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.readList(modelName, ids, fields, subQueries, ConvertType.REFERENCE));
     }
 
     /**

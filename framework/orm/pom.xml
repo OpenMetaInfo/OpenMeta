@@ -6,7 +6,7 @@
     <parent>
         <groupId>info.openmeta</groupId>
         <artifactId>framework</artifactId>
-        <version>0.7.6</version>
+        <version>0.8.0</version>
     </parent>
 
     <artifactId>orm</artifactId>

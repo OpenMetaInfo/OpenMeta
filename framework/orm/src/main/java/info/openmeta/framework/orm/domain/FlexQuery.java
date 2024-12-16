@@ -3,7 +3,6 @@ package info.openmeta.framework.orm.domain;
 import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.LambdaUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -73,7 +72,7 @@ public class FlexQuery {
     private AggFunctions aggFunctions;
 
     // SubQuery parameters: field name - subQuery
-    private Map<String, SubQuery> subQueries = new HashMap<>(0);
+    private SubQueries subQueries;
 
     /**
      * Construct a FlexQuery object based on Fields.
@@ -146,6 +145,29 @@ public class FlexQuery {
     }
 
     /**
+     * Add selected fields to the field list
+     *
+     * @param fields Field list
+     * @return FlexQuery object
+     */
+    public FlexQuery select(Collection<String> fields) {
+        if (!CollectionUtils.isEmpty(fields)) {
+            this.fields = new ArrayList<>(fields);
+        }
+        return this;
+    }
+
+    public FlexQuery where(Filters filters) {
+        this.filters = filters;
+        return this;
+    }
+
+    public FlexQuery orderBy(Orders orders) {
+        this.orders = orders;
+        return this;
+    }
+
+    /**
      * Search in all timeline data, used to query and modify historical timeline rows
      */
     public FlexQuery acrossTimelineData() {
@@ -172,35 +194,17 @@ public class FlexQuery {
      * Update the subQuery conditions based on the ManyToOne/OneToOne fields in the cascade fields,
      * that is, the fields of the associated model to be read in the cascade.
      * Example:
-     *      1. ManyToOne/OneToOne: expandSubQuery(User::getDept)
-     *      2. OneToMany/ManyToMany: expandSubQuery(User::getRoles)
+     *      1. ManyToOne/OneToOne: filters.expandSubQuery(User::getDept)
+     *      2. OneToMany/ManyToMany: filters.expandSubQuery(User::getRoles)
      *
      * @param method Field lambda method reference
      */
-    public <T, R> void expandSubQuery(SFunction<T, R> method) {
-        String field = LambdaUtils.getAttributeName(method);
-        this.subQueries.put(field, new SubQuery());
-    }
-
-    /**
-     * Update the subQuery conditions based on the ManyToOne/OneToOne fields in the cascade fields,
-     * that is, the fields of the associated model to be read in the cascade.
-     *
-     * @param relationField Relation field
-     * @param fields Field set of the associated model to be read in the cascade
-     */
-    public void expandSubQuery(String relationField, List<String> fields) {
-        this.subQueries.put(relationField, new SubQuery(fields));
-    }
-
-    /**
-     * Set SubQuery conditions
-     * @param subQueries SubQuery condition Map
-     */
-    public void expandSubQueries(Map<String, SubQuery> subQueries) {
-        if (!CollectionUtils.isEmpty(subQueries)) {
-            this.subQueries.putAll(subQueries);
+    public <T, R> FlexQuery expandSubQuery(SFunction<T, R> method) {
+        if (this.subQueries == null) {
+            this.subQueries = new SubQueries();
         }
+        this.subQueries.expand(method);
+        return this;
     }
 
     /**
@@ -209,8 +213,10 @@ public class FlexQuery {
      * @return SubQuery object
      */
     public SubQuery extractSubQuery(String relationField) {
-        SubQuery subQuery = this.subQueries.getOrDefault(relationField, null);
-        return BeanTool.isAllFieldsNull(subQuery) ? null : subQuery;
+        if (this.subQueries == null) {
+            return null;
+        }
+        return this.subQueries.getQueryMap().get(relationField);
     }
 
     /**

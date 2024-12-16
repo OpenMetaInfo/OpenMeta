@@ -6,6 +6,7 @@ import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
+import info.openmeta.framework.orm.domain.SubQueries;
 import info.openmeta.framework.orm.entity.BaseModel;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.service.EntityService;
@@ -109,14 +110,16 @@ public abstract class ReflectTool {
      * @param modelName model name
      * @param ids id list
      * @param fields field list to read
+     * @param subQueries subQueries object
      * @param convertType format type
      * @return List<Map> data list
      */
-    public static List<Map<String, Object>> readList(String modelName, List<Serializable> ids, Set<String> fields, ConvertType convertType) {
+    public static List<Map<String, Object>> readList(String modelName, List<Serializable> ids, Set<String> fields,
+                                                     SubQueries subQueries, ConvertType convertType) {
         if (CollectionUtils.isEmpty(ids)) {
             return new ArrayList<>();
         }
-        return getModelService().readList(modelName, ids, fields, convertType);
+        return getModelService().readList(modelName, ids, fields, subQueries, convertType);
     }
 
     /**
