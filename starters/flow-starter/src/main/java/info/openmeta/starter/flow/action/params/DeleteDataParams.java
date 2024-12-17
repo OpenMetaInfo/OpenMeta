@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeleteDataParams implements ActionParams {
     @Schema(description = "The model name of the data to be deleted")
-    private String model;
+    private String modelName;
 
     @Schema(description = """
             The primary key variable name of the data to be deleted, supports field name and variable #{var}.""")

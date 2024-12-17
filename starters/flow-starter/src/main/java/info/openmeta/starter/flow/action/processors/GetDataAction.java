@@ -53,7 +53,7 @@ public class GetDataAction implements ActionProcessor<GetDataParams> {
      */
     @Override
     public void validateParams(FlowAction flowAction, GetDataParams actionParams) {
-        Assert.notBlank(actionParams.getModel(),
+        Assert.notBlank(actionParams.getModelName(),
                 "The model name parameter for GetDataAction {0} cannot be blank.", flowAction.getName());
         Assert.notNull(actionParams.getGetDataType(),
                 "The data type parameter for GetDataAction {0} cannot be blank.", flowAction.getName());
@@ -83,7 +83,7 @@ public class GetDataAction implements ActionProcessor<GetDataParams> {
         if (!Filters.isEmpty(actionParams.getFilters())) {
             // Resolve the variables and calculation formulas in the filters
             clonedFilters = actionParams.getFilters().deepCopy();
-            FlowUtils.resolveFilterValue(actionParams.getModel(), clonedFilters, actionContext);
+            FlowUtils.resolveFilterValue(actionParams.getModelName(), clonedFilters, actionContext);
         }
         Object result = null;
         if (COUNT_TYPES.contains(actionParams.getGetDataType())) {
@@ -101,7 +101,7 @@ public class GetDataAction implements ActionProcessor<GetDataParams> {
      * Execute count or determine whether it exists
      */
     private Object executeCount(GetDataParams actionParams, Filters filters) {
-        Long count = modelService.count(actionParams.getModel(), filters);
+        Long count = modelService.count(actionParams.getModelName(), filters);
         if (COUNT.equals(actionParams.getGetDataType())) {
             return count;
         } else if (EXIST.equals(actionParams.getGetDataType())) {
@@ -118,7 +118,7 @@ public class GetDataAction implements ActionProcessor<GetDataParams> {
         FlexQuery flexQuery = new FlexQuery(actionParams.getFields(), filters, actionParams.getOrders());
         // Set limitSize to 1 when getting a single row of data
         flexQuery.setLimitSize(1);
-        Map<String, Object> row = modelService.searchOne(actionParams.getModel(), flexQuery);
+        Map<String, Object> row = modelService.searchOne(actionParams.getModelName(), flexQuery);
         if (ONE_FIELD_VALUE.equals(actionParams.getGetDataType())) {
             // Extract the specified single field value of the first row data and update it to actionContext
             String fieldName = actionParams.getFields().getFirst();
@@ -139,7 +139,7 @@ public class GetDataAction implements ActionProcessor<GetDataParams> {
         } else {
             flexQuery.setLimitSize(MAX_BATCH_SIZE);
         }
-        List<Map<String, Object>> rows = modelService.searchList(actionParams.getModel(), flexQuery);
+        List<Map<String, Object>> rows = modelService.searchList(actionParams.getModelName(), flexQuery);
         if (!rows.isEmpty() && ONE_FIELD_VALUES.equals(actionParams.getGetDataType())) {
             // Extract the value list of the specified field from multiple rows of data,
             // and the field value is extracted to Set, which is automatically deduplicated

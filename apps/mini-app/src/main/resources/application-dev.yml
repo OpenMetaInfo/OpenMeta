@@ -5,7 +5,6 @@ system:
   enable-auth: false
   multi-tenancy:
     enable: false
-    isolated-database: false
 security:
   encryption:
     password: 12345678
