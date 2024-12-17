@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Option field processor
@@ -37,7 +38,7 @@ public class OptionExpandProcessor extends BaseProcessor {
     @Override
     public void processOutputRow(Map<String, Object> row) {
         if (row.containsKey(fieldName)) {
-            row.put(fieldName, getOptionItemValue(row.get(fieldName) + ""));
+            row.put(fieldName, getOptionItemValue(row.get(fieldName)));
         }
     }
 
@@ -45,14 +46,15 @@ public class OptionExpandProcessor extends BaseProcessor {
      * Get the item value corresponding to the Option itemCode.
      * The result is a string or an OptionReference object according to the convertType.
      *
-     * @param itemCode Option itemCode
+     * @param code Option code, compatible with String and Number.
      * @return itemName or OptionReference object according to the convertType.
      */
-    public Object getOptionItemValue(String itemCode) {
-        String optionSetCode = metaField.getOptionSetCode();
+    public Object getOptionItemValue(Object code) {
+        String itemCode = Objects.toString(code, null);
         if (StringUtils.isBlank(itemCode)) {
             return ConvertType.REFERENCE.equals(convertType) ? null : "";
         }
+        String optionSetCode = metaField.getOptionSetCode();
         MetaOptionItem metaOptionItem = OptionManager.getMetaOptionItem(optionSetCode, itemCode);
         if (metaOptionItem == null) {
             log.error("""

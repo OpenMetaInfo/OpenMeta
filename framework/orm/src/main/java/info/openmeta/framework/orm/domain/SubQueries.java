@@ -2,7 +2,7 @@ package info.openmeta.framework.orm.domain;
 
 import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.utils.LambdaUtils;
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,10 +18,22 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@Schema(example = "{\"jobId\": {}]",
+        description = """
+                Support multiple subQueries:
+                * {"jobId": {}}
+                * {"jobId": {"fields": ["id", "name"]}}
+                * {"jobId": {
+                    "fields": ["id", "name"],
+                    "orders": ["name": "DESC"]
+                    }
+                  }
+                """
+)
 public class SubQueries {
 
     // SubQuery map, key is the field name, value is the SubQuery object
+    @Schema(hidden = true)
     private Map<String, SubQuery> queryMap = new HashMap<>();
 
     /**

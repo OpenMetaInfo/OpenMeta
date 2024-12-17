@@ -56,7 +56,9 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
             selectFields.addAll(dependentFields);
         }
         // When subQuery is specified, append the XToMany relationship fields in subQuery to selectFields.
-        selectFields.addAll(flexQuery.getSubQueries().getQueryMap().keySet());
+        if (flexQuery.getSubQueries() != null) {
+            selectFields.addAll(flexQuery.getSubQueries().getQueryMap().keySet());
+        }
         // Update flexQuery.fields
         flexQuery.setFields(selectFields);
         // Only SELECT the stored fields of the current model, excluding cascaded fields (a.b.c), non-stored fields,
