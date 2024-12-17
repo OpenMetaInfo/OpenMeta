@@ -27,7 +27,7 @@ import java.util.Map;
 public class AsyncTaskParams implements ActionParams {
 
     @Schema(description = "The processor code of the async task")
-    private String asyncTaskCode;
+    private String asyncTaskHandlerCode;
 
     @Schema(description = """
             The params for the async task. The value can be a constant, a variable, or a calculation formula.

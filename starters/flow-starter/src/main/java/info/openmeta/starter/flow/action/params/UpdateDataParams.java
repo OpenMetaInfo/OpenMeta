@@ -32,7 +32,7 @@ import java.util.Map;
 public class UpdateDataParams implements ActionParams {
 
     @Schema(description = "The model of the data to be updated")
-    private String model;
+    private String modelName;
 
     @Schema(description = """
             The primary key variable name of the data to be updated,

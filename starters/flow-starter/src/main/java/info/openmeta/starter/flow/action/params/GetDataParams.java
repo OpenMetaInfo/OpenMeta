@@ -19,7 +19,7 @@ import java.util.List;
 public class GetDataParams implements ActionParams {
 
     @Schema(description = "The model name of the data to be obtained")
-    private String model;
+    private String modelName;
 
     @Schema(description = """
             The data format type to be obtained, supports multi-row, single-row, single-field value,

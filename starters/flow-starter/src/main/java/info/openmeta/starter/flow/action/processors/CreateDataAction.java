@@ -52,7 +52,7 @@ public class CreateDataAction implements ActionProcessor<CreateDataParams> {
      */
     @Override
     public void validateParams(FlowAction flowAction, CreateDataParams actionParams) {
-        Assert.notBlank(actionParams.getModel(),
+        Assert.notBlank(actionParams.getModelName(),
                 "The model name parameter for action {0} cannot be empty!", flowAction.getName());
         Assert.notEmpty(actionParams.getRowTemplate(),
                 "The data template parameter for action {0} cannot be empty!", flowAction.getName());
@@ -68,7 +68,7 @@ public class CreateDataAction implements ActionProcessor<CreateDataParams> {
     @Override
     public void execute(FlowAction flowAction, CreateDataParams actionParams, ActionContext actionContext) {
         // Generate updated data based on the data template
-        Map<String, Object> rowMap = FlowUtils.resolveRowTemplate(actionParams.getModel(), actionParams.getRowTemplate(), actionContext);
-        modelService.createOne(actionParams.getModel(), rowMap);
+        Map<String, Object> rowMap = FlowUtils.resolveRowTemplate(actionParams.getModelName(), actionParams.getRowTemplate(), actionContext);
+        modelService.createOne(actionParams.getModelName(), rowMap);
     }
 }

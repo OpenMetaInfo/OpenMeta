@@ -20,6 +20,6 @@ public class QueryAiParams implements ActionParams {
     private Long conversationId;
 
     @Schema(description = "Query text, support string interpolation #{var}")
-    private String query;
+    private String queryContent;
 
 }

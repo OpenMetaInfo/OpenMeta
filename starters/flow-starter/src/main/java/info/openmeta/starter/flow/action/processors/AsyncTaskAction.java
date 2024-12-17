@@ -54,8 +54,8 @@ public class AsyncTaskAction implements ActionProcessor<AsyncTaskParams> {
      */
     @Override
     public void validateParams(FlowAction flowAction, AsyncTaskParams actionParams) {
-        Assert.notBlank(actionParams.getAsyncTaskCode(),
-                "The task processor configuration for asynchronous task action {0} cannot be empty!",
+        Assert.notBlank(actionParams.getAsyncTaskHandlerCode(),
+                "The async task handler code {0} cannot be empty!",
                 flowAction.getName());
     }
 
@@ -75,7 +75,7 @@ public class AsyncTaskAction implements ActionProcessor<AsyncTaskParams> {
         flowAsyncTaskMessage.setFlowId(flowAction.getFlowId());
         flowAsyncTaskMessage.setNodeId(flowAction.getNodeId());
         flowAsyncTaskMessage.setActionId(flowAction.getId());
-        flowAsyncTaskMessage.setAsyncTaskCode(actionParams.getAsyncTaskCode());
+        flowAsyncTaskMessage.setAsyncTaskHandlerCode(actionParams.getAsyncTaskHandlerCode());
         flowAsyncTaskMessage.setAsyncTaskParams(asyncTaskParams);
         flowAsyncTaskMessage.setContext(ContextHolder.getContext());
         // Send the asynchronous task message

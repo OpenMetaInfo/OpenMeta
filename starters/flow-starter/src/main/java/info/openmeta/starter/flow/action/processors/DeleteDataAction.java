@@ -60,7 +60,7 @@ public class DeleteDataAction implements ActionProcessor<DeleteDataParams> {
      */
     @Override
     public void validateParams(FlowAction flowAction, DeleteDataParams actionParams) {
-        Assert.notBlank(actionParams.getModel(),
+        Assert.notBlank(actionParams.getModelName(),
                 "The model name for Delete Action {0} cannot be empty!", flowAction.getName());
         Assert.notTrue(StringUtils.isBlank(actionParams.getPkVariable()) && Filters.isEmpty(actionParams.getFilters()),
                 "In the parameter configuration of the Delete Action {0}, at least " +
@@ -93,12 +93,12 @@ public class DeleteDataAction implements ActionProcessor<DeleteDataParams> {
         if (!Filters.isEmpty(actionParams.getFilters())) {
             // Convert variables and calculation formulas in filters
             Filters clonedFilters = actionParams.getFilters().deepCopy();
-            FlowUtils.resolveFilterValue(actionParams.getModel(), clonedFilters, actionContext);
+            FlowUtils.resolveFilterValue(actionParams.getModelName(), clonedFilters, actionContext);
             deleteFilters = Filters.merge(deleteFilters, clonedFilters);
         }
         if (Filters.isEmpty(deleteFilters)) {
             return;
         }
-        modelService.deleteByFilters(actionParams.getModel(), deleteFilters);
+        modelService.deleteByFilters(actionParams.getModelName(), deleteFilters);
     }
 }
