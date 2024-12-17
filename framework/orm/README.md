@@ -23,6 +23,8 @@ spring:
   datasource:
     dynamic:
       enable: true
+      # mode: read-write-separation, switch-by-model, multi-tenancy-isolated, multi-datasource(default)
+      mode: read-write-separation
       datasource:
         primary:
           driver-class-name: com.mysql.cj.jdbc.Driver
@@ -60,7 +62,7 @@ Datasource propagation mechanism:
 In the read-write separation scenario, and non-transactional context environment, the read-after-write consistency problem may occur.
 The solution is to use the `@DataSource` annotation to specify the datasource for the read operation.
 ```java
-// When 'primary' is the write datasource.
+// When 'primary' is the writable datasource.
 @DataSource("primary")
 public void readMethod1() {
     // ...

@@ -32,11 +32,12 @@ public class JdbcProxy {
     /**
      * Insert and return id.
      *
+     * @param modelName Model name can be used to switch datasource
      * @param sqlParams SQL parameters
      */
     @WriteOperation
     @ExecuteSql
-    public Long insert(SqlParams sqlParams) {
+    public Long insert(String modelName, SqlParams sqlParams) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sqlParams.getSql(), Statement.RETURN_GENERATED_KEYS);
@@ -52,23 +53,25 @@ public class JdbcProxy {
     /**
      * Update and return the number of affected rows.
      *
+     * @param modelName Model name can be used to switch datasource
      * @param sqlParams SQL parameters
      */
     @WriteOperation
     @ExecuteSql
-    public int update(SqlParams sqlParams) {
+    public int update(String modelName, SqlParams sqlParams) {
         return jdbcTemplate.update(sqlParams.getSql(), sqlParams.getArgsArray());
     }
 
     /**
      * Batch update and return the number of affected rows.
      *
+     * @param modelName Model name can be used to switch datasource
      * @param sqlParams SQL parameters
      * @param batchArgs Batch parameters
      */
     @WriteOperation
     @ExecuteSql
-    public int batchUpdate(SqlParams sqlParams, List<Object[]> batchArgs) {
+    public int batchUpdate(String modelName, SqlParams sqlParams, List<Object[]> batchArgs) {
         int[] affectedRows = jdbcTemplate.batchUpdate(sqlParams.getSql(), batchArgs);
         return Arrays.stream(affectedRows).sum();
     }
@@ -77,23 +80,25 @@ public class JdbcProxy {
      * Query and return List<Map>.
      * MapRowMapper utility class is used to process row values, the key of Map is the camel fieldName.
      *
+     * @param modelName Model name can be used to switch datasource
      * @param sqlParams SQL parameters
      * @return List<Map>
      */
     @ExecuteSql
-    public List<Map<String, Object>> queryForList(SqlParams sqlParams) {
+    public List<Map<String, Object>> queryForList(String modelName, SqlParams sqlParams) {
         return jdbcTemplate.query(sqlParams.getSql(), new MapRowMapper(), sqlParams.getArgsArray());
     }
 
     /**
      * Query and return a single value of the specified type, such as count(*).
      *
+     * @param modelName Model name can be used to switch datasource
      * @param sqlParams   SQL parameters
      * @param entityClass Entity class
      * @return Single value
      */
     @ExecuteSql
-    public Object queryForObject(SqlParams sqlParams, Class<?> entityClass) {
+    public Object queryForObject(String modelName, SqlParams sqlParams, Class<?> entityClass) {
         return jdbcTemplate.queryForObject(sqlParams.getSql(), entityClass, sqlParams.getArgsArray());
     }
 

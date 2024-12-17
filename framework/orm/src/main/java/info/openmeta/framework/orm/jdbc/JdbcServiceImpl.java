@@ -89,14 +89,14 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
             rows.forEach(row -> {
                 List<Object> valueList = fields.stream().map(row::get).collect(Collectors.toList());
                 sqlParams.setArgs(valueList);
-                Serializable id = jdbcProxy.insert(sqlParams);
+                Serializable id = jdbcProxy.insert(modelName, sqlParams);
                 row.put(ModelConstant.ID, id);
             });
         } else {
             // When the idStrategy is not DB_AUTO_ID, the id in the data has been assigned a value by default,
             // and the insert can be batch executed without the database returning ids
             List<Object[]> batchValues = getBatchValues(fields, rows);
-            jdbcProxy.batchUpdate(sqlParams, batchValues);
+            jdbcProxy.batchUpdate(modelName, sqlParams, batchValues);
         }
         // Collect changeLogs after filling in the id
         changeLogPublisher.publishCreationLog(modelName, rows, insertTime);
@@ -125,7 +125,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
             fields.add(primaryKey);
         }
         SqlParams sqlParams = StaticSqlBuilder.getSelectSql(modelName, fields, ids);
-        List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
+        List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
         if (!ConvertType.ORIGINAL.equals(convertType)) {
             FlexQuery flexQuery = new FlexQuery(fields);
@@ -151,7 +151,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         } else {
             sqlParams = SqlBuilderFactory.buildSelectSql(modelName, flexQuery);
         }
-        List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
+        List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         if (CollectionUtils.isEmpty(rows)) {
             return Collections.emptyList();
         }
@@ -175,7 +175,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     public <EK extends Serializable> List<EK> getIds(String modelName, String fieldName, FlexQuery flexQuery) {
         flexQuery.setFields(Sets.newHashSet(fieldName));
         SqlParams sqlParams = SqlBuilderFactory.buildSelectSql(modelName, flexQuery);
-        List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
+        List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         return Cast.of(rows.stream()
                 .map(row -> row.get(fieldName))
                 .toList());
@@ -210,7 +210,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
             page.setTotal(total);
         }
         SqlParams sqlParams = SqlBuilderFactory.buildPageSql(modelName, flexQuery, page);
-        List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
+        List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
         if (!ConvertType.ORIGINAL.equals(flexQuery.getConvertType())) {
             DataReadPipeline dataPipeline = new DataReadPipeline(modelName, flexQuery);
@@ -235,7 +235,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
             Integer oldVersion = (Integer) nextVersion - 1;
             sqlParams.setSql(sqlParams.getSql() + " AND version = ?");
             sqlParams.addArgValue(oldVersion);
-            int result = jdbcProxy.update(sqlParams);
+            int result = jdbcProxy.update(modelName, sqlParams);
             if (result == 0) {
                 throw new VersionException("""
                         Data version does not match, may have been modified, please refresh and try again!
@@ -243,7 +243,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
             }
             return result;
         } else {
-            return jdbcProxy.update(sqlParams);
+            return jdbcProxy.update(modelName, sqlParams);
         }
     }
 
@@ -307,7 +307,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         List<Map<String, Object>> originalRows = this.selectByFilter(modelName, flexQuery);
         // Physical deletion of timeline slice
         SqlParams sqlParams = StaticSqlBuilder.getDeleteTimelineSliceSql(modelName, sliceId);
-        boolean result = jdbcProxy.update(sqlParams) > 0;
+        boolean result = jdbcProxy.update(modelName, sqlParams) > 0;
         // Collect changeLogs, changeLogs are bound to the database primary key
         changeLogPublisher.publishDeletionLog(modelName, originalRows, LocalDateTime.now());
         return result;
@@ -337,7 +337,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         } else {
             // Delete data physically
             SqlParams sqlParams = StaticSqlBuilder.getDeleteSql(modelName, ids);
-            count = jdbcProxy.update(sqlParams);
+            count = jdbcProxy.update(modelName, sqlParams);
         }
         // Collect changeLogs
         changeLogPublisher.publishDeletionLog(modelName, deletableRows, deleteTime);
@@ -354,7 +354,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     @SkipPermissionCheck
     public Long count(String modelName, FlexQuery flexQuery) {
         SqlParams sqlParams = SqlBuilderFactory.buildCountSql(modelName, flexQuery);
-        return (Long) jdbcProxy.queryForObject(sqlParams, Long.class);
+        return (Long) jdbcProxy.queryForObject(modelName, sqlParams, Long.class);
     }
 
     /**
@@ -367,7 +367,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     public <T> List<T> selectMetaEntityList(Class<T> entityClass, String orderBy) {
         String modelName = entityClass.getSimpleName();
         SqlParams sqlParams = StaticSqlBuilder.getSelectAllMetaSql(modelName, orderBy);
-        List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
+        List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         // Convert the original value of the database to an object
         return BeanTool.originalMapListToObjects(rows, entityClass, false);
     }
@@ -375,14 +375,14 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     /**
      * Query data by model and class object, not using the metadata of modelManager.
      *
-     * @param model Model name
+     * @param modelName Model name
      * @param entityClass Entity class
      * @param orderBy Order by
      * @return Object list
      */
-    public <T> List<T> selectMetaEntityList(String model, Class<T> entityClass, String orderBy) {
-        SqlParams sqlParams = StaticSqlBuilder.getSelectAllMetaSql(model, orderBy);
-        List<Map<String, Object>> rows = jdbcProxy.queryForList(sqlParams);
+    public <T> List<T> selectMetaEntityList(String modelName, Class<T> entityClass, String orderBy) {
+        SqlParams sqlParams = StaticSqlBuilder.getSelectAllMetaSql(modelName, orderBy);
+        List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         // Convert the original value of the database to an object
         return BeanTool.originalMapListToObjects(rows, entityClass, true);
     }

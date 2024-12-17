@@ -5,7 +5,6 @@ system:
   enable-auth: false
   multi-tenancy:
     enable: true
-    isolated-database: false
 security:
   encryption:
     password: 12345678
@@ -21,20 +20,21 @@ spring:
       password: admin
       timeout: 1000
   datasource:
-#    dynamic:
-#      enable: true
-#      read-write-separation: true
-#      datasource:
-#        primary:
-#          driver-class-name: com.mysql.cj.jdbc.Driver
-#          url: jdbc:mysql://localhost:3306/demo
-#          username: admin
-#          password: admin
-#        db1:
-#          driver-class-name: com.mysql.cj.jdbc.Driver
-#          url: jdbc:mysql://localhost:3306/db1
-#          username: admin
-#          password: admin
+    dynamic:
+      enable: true
+      # mode: read-write-separation, switch-by-model, multi-tenancy-isolated, multi-datasource(default)
+      mode: multi-datasource
+      datasource:
+        primary:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://localhost:3306/demo
+          username: admin
+          password: admin
+        db1:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://localhost:3306/db1
+          username: root
+          password: admin
 #        db2:
 #          driver-class-name: com.mysql.cj.jdbc.Driver
 #          url: jdbc:mysql://localhost:3306/db2
