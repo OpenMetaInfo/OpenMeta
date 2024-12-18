@@ -9,6 +9,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -21,16 +22,17 @@ import java.lang.reflect.Method;
 /**
  * Read-write-separation datasource aspect.
  * DataSource routing according to the read-write-separation strategy.
- * If in transaction, use the primary datasource.
- * If not in transaction, and execute write operation, use the primary datasource.
- * If not in transaction and not execute write operation, and already set datasource, use the specified datasource.
- * If not in transaction and not execute write operation, and not set datasource, use the random readonly datasource.
+ *  1. If in transaction, use the primary datasource.
+ *  2. If not in transaction, and execute write operation, use the primary datasource.
+ *  3. If not in transaction and not execute write operation, and already set datasource, use the specified datasource.
+ *  4. If not in transaction and not execute write operation, and not set datasource, use the random readonly datasource.
  */
 @Aspect
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ConditionalOnProperty(prefix = "spring.datasource.dynamic", name = "read-write-separation", havingValue = "true")
-public class ReadWriteDataSourceAspect {
+@ConditionalOnProperty(name = "spring.datasource.dynamic.enable", havingValue = "true")
+@ConditionalOnExpression("'${spring.datasource.dynamic.mode:}' == 'read-write-separation'")
+public class DataSourceReadWriteAspect {
 
     @Around("@annotation(info.openmeta.framework.orm.annotation.ExecuteSql)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {

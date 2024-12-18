@@ -21,7 +21,7 @@ public class FlowAsyncTaskConsumer implements RocketMQListener<FlowAsyncTaskMess
     @Override
     public void onMessage(FlowAsyncTaskMessage flowAsyncTaskMessage) {
         ContextHolder.setContext(flowAsyncTaskMessage.getContext());
-        asyncTaskFactory.executeAsyncTask(flowAsyncTaskMessage.getAsyncTaskCode(), flowAsyncTaskMessage.getAsyncTaskParams());
+        asyncTaskFactory.executeAsyncTask(flowAsyncTaskMessage.getAsyncTaskHandlerCode(), flowAsyncTaskMessage.getAsyncTaskParams());
     }
 
 }

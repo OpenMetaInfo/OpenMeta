@@ -127,6 +127,8 @@ public class ModelManager {
             validateMultiTenant(metaModel);
             // Check if the optimistic lock control model contains the version field
             validateVersionField(metaModel);
+            // Check if the model dataSource attribute is valid
+            validateModelDataSource(metaModel);
         }
     }
 
@@ -270,6 +272,20 @@ public class ModelManager {
             Assert.isTrue(MODEL_FIELDS.get(metaModel.getModelName()).containsKey(ModelConstant.VERSION),
                     "The model {0} must contain the `version` field when using optimistic lock control!",
                     metaModel.getModelName());
+        }
+    }
+
+    /**
+     * Validate the model dataSource attribute.
+     * The system model cannot be configured with a dataSource.
+     *
+     * @param metaModel model metadata object
+     */
+    private static void validateModelDataSource(MetaModel metaModel) {
+        String dataSource = metaModel.getDataSource();
+        if (metaModel.isSystemModel() && StringUtils.isNotBlank(dataSource)) {
+            throw new IllegalArgumentException("The system model {0} cannot be configured with a dataSource {1}!",
+                    metaModel.getModelName(), dataSource);
         }
     }
 

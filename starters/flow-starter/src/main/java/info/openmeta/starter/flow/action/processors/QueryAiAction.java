@@ -41,7 +41,7 @@ public class QueryAiAction implements ActionProcessor<QueryAiParams> {
      */
     @Override
     public void validateParams(FlowAction flowAction, QueryAiParams actionParams) {
-        Assert.notBlank(actionParams.getQuery(),
+        Assert.notBlank(actionParams.getQueryContent(),
                 "The query parameter for Query AI Action {0} cannot be empty.", flowAction.getName());
     }
 
@@ -56,7 +56,7 @@ public class QueryAiAction implements ActionProcessor<QueryAiParams> {
     @Override
     public void execute(FlowAction flowAction, QueryAiParams actionParams, ActionContext actionContext) {
         // Compute string interpolation
-        String query = ComputeUtils.stringInterpolation(actionParams.getQuery(), actionContext.getEnv());
+        String query = ComputeUtils.stringInterpolation(actionParams.getQueryContent(), actionContext.getEnv());
         ChatMessage chatMessage = new ChatMessage(actionParams.getRobotId(), actionParams.getConversationId(), query);
         AiMessage aiMessage = robotService.chat(chatMessage);
         // Put the AI reply content into the Action context

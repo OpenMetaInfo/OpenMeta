@@ -36,19 +36,19 @@ public class AsyncTaskFactory<T extends TaskHandlerParams> {
 
     /**
      * Execute asynchronous task.
-     * @param asyncTaskCode The code of the asynchronous task handler.
+     * @param asyncTaskHandlerCode The code of the asynchronous task handler.
      * @param asyncTaskParams The parameters of the asynchronous task.
      */
-    public void executeAsyncTask(String asyncTaskCode, Map<String, Object> asyncTaskParams) {
-        if (taskHandlerMap.containsKey(asyncTaskCode)) {
-            AsyncTaskHandler<T> asyncTaskHandler = taskHandlerMap.get(asyncTaskCode);
+    public void executeAsyncTask(String asyncTaskHandlerCode, Map<String, Object> asyncTaskParams) {
+        if (taskHandlerMap.containsKey(asyncTaskHandlerCode)) {
+            AsyncTaskHandler<T> asyncTaskHandler = taskHandlerMap.get(asyncTaskHandlerCode);
             Class<T> paramsClass = asyncTaskHandler.getParamsType();
             T taskHandlerParams;
             try {
                 taskHandlerParams = BeanTool.mapToObject(asyncTaskParams, paramsClass);
             } catch (JSONException e) {
                 throw new JSONException("Failed to convert asynchronous task {0} parameters to {1} object: {2}",
-                        asyncTaskCode, paramsClass.getSimpleName(), e.getMessage());
+                        asyncTaskHandlerCode, paramsClass.getSimpleName(), e.getMessage());
             }
             asyncTaskHandler.validateParams(taskHandlerParams);
             asyncTaskHandler.execute(taskHandlerParams);

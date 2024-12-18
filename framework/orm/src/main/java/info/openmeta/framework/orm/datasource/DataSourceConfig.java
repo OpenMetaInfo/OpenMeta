@@ -2,8 +2,10 @@ package info.openmeta.framework.orm.datasource;
 
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.enums.DatabaseType;
+import info.openmeta.framework.orm.enums.DynamicDataSourceMode;
 import info.openmeta.framework.orm.jdbc.database.DBUtil;
 import info.openmeta.framework.orm.jdbc.database.dialect.DialectInterface;
+import info.openmeta.framework.orm.meta.ModelManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,7 @@ import java.util.Map;
  *   datasource:
  *     dynamic:
  *       enable: true
- *       read-write-separation: false
+ *       mode: read-write-separation
  *       datasource:
  *         primary:
  *           driver-class-name: com.mysql.cj.jdbc.Driver
@@ -51,14 +53,15 @@ import java.util.Map;
  */
 @Slf4j
 @Configuration
-@ConditionalOnProperty(prefix = "spring.datasource.dynamic", name = "enable", havingValue = "true")
+@ConditionalOnProperty(name = "spring.datasource.dynamic.enable", havingValue = "true")
 public class DataSourceConfig {
 
     /** Store the dialect of each data source */
     private static final Map<String, DialectInterface> dataSourceDialectMap = new HashMap<>();
 
-    @Value("${spring.datasource.dynamic.read-write-separation:false}")
-    private boolean readWriteSeparation;
+    /** Dynamic data source mode, default is multi-datasource */
+    @Value("${spring.datasource.dynamic.mode:multi-datasource}")
+    private DynamicDataSourceMode dynamicDataSourceMode;
 
     @Autowired
     private DynamicDataSourceProperties dynamicDataSourceProperties;
@@ -68,7 +71,7 @@ public class DataSourceConfig {
 
     @Bean
     @Primary
-    public DataSource dynamicDataSource() {
+    public DataSource dataSource() {
         Map<Object, Object> targetDataSources = new HashMap<>();
         DataSource defaultDataSource = null;
         // Get datasource configuration
@@ -98,8 +101,8 @@ public class DataSourceConfig {
             if (defaultDataSource == null) {
                 defaultDataSource = dataSource;
                 defaultDataSourceKey = dsKey;
-            } else if (readWriteSeparation) {
-                // If read-write separation is enabled, the first dataSource is the primary dataSource
+            } else if (DynamicDataSourceMode.READ_WRITE_SEPARATION.equals(dynamicDataSourceMode)) {
+                // If read-write-separation is enabled, the first dataSource is the primary dataSource
                 // The other dataSource is the readonly dataSource
                 ReadonlyDataSourceHolder.addReadonlyDataSourceKey(dsKey);
             }
@@ -142,6 +145,15 @@ public class DataSourceConfig {
      */
     public static String getPrimaryDataSourceKey() {
         return defaultDataSourceKey;
+    }
+
+    /**
+     * Get the datasource key by model name
+     * @param modelName model name
+     * @return datasource key
+     */
+    public static String getDataSourceKeyByModel(String modelName) {
+        return ModelManager.getModel(modelName).getDataSource();
     }
 
     /**

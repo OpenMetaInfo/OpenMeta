@@ -9,6 +9,7 @@ import info.openmeta.framework.base.enums.Language;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.orm.datasource.DataSourceContextHolder;
+import info.openmeta.framework.orm.enums.DynamicDataSourceMode;
 import info.openmeta.framework.web.interceptor.ContextInterceptor;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.framework.web.service.CacheService;
@@ -48,8 +49,8 @@ public class ContextInterceptorImpl implements ContextInterceptor {
     @Value("${system.multi-tenancy.enable:false}")
     private boolean multiTenancy;
 
-    @Value("${system.multi-tenancy.isolated-database:false}")
-    private boolean isolatedDatabase;
+    @Value("${spring.datasource.dynamic.mode:}")
+    private DynamicDataSourceMode dynamicDataSourceMode;
 
     /**
      * Login address, default to `/login`
@@ -201,7 +202,7 @@ public class ContextInterceptorImpl implements ContextInterceptor {
     private void setMultiTenancyEnv(Context context, UserInfo userInfo) {
         Assert.notNull(userInfo.getTenantId(), "User tenantId cannot be null in multi-tenancy mode.");
         context.setTenantId(userInfo.getTenantId());
-        if (isolatedDatabase) {
+        if (DynamicDataSourceMode.MULTI_TENANCY_ISOLATED.equals(dynamicDataSourceMode)) {
             Assert.notBlank(userInfo.getDatasourceKey(),
                     "User datasourceKey cannot be blank in isolated database multi-tenancy mode.");
             // Set the datasource key for the current thread

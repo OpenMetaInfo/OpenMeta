@@ -96,15 +96,15 @@ public class UpdateDataAction implements ActionProcessor<UpdateDataParams> {
         if (!Filters.isEmpty(actionParams.getFilters())) {
             // Convert variables and calculation formulas in filters
             Filters clonedFilters = actionParams.getFilters().deepCopy();
-            FlowUtils.resolveFilterValue(actionParams.getModel(), clonedFilters, actionContext);
+            FlowUtils.resolveFilterValue(actionParams.getModelName(), clonedFilters, actionContext);
             updateFilters = Filters.merge(updateFilters, clonedFilters);
         }
         if (Filters.isEmpty(updateFilters)) {
             return;
         }
         // Generate updated data based on the data template
-        Map<String, Object> rowMap = FlowUtils.resolveRowTemplate(actionParams.getModel(), actionParams.getRowTemplate(), actionContext);
-        modelService.updateByFilter(actionParams.getModel(), updateFilters, rowMap);
+        Map<String, Object> rowMap = FlowUtils.resolveRowTemplate(actionParams.getModelName(), actionParams.getRowTemplate(), actionContext);
+        modelService.updateByFilter(actionParams.getModelName(), updateFilters, rowMap);
     }
 
 }

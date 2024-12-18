@@ -27,6 +27,8 @@ public class MetaModel implements Serializable {
 
     private String tableName;
 
+    private IdStrategy idStrategy;
+
     private StorageType storageType;
 
     // Model level default orders, such as "name ASC"
@@ -48,7 +50,9 @@ public class MetaModel implements Serializable {
 
     private boolean multiTenant;
 
-    private IdStrategy idStrategy;
+    private boolean systemModel;
+
+    private String dataSource;
 
     private List<MetaField> modelFields;
 

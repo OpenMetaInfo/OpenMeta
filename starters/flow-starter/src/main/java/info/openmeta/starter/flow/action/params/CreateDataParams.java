@@ -31,7 +31,7 @@ import java.util.Map;
 public class CreateDataParams implements ActionParams {
 
     @Schema(description = "The model name of the data to be created")
-    private String model;
+    private String modelName;
 
     /**
      * The field value configuration of the data to be created.
