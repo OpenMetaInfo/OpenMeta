@@ -28,7 +28,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ConditionalOnProperty(name = "spring.datasource.dynamic.enable", havingValue = "true")
-@ConditionalOnExpression("'${spring.datasource.dynamic.mode:}' == 'swith-by-model'")
+@ConditionalOnExpression("'${spring.datasource.dynamic.mode:}' == 'switch-by-model'")
 public class DataSourceByModelAspect {
 
     /**
