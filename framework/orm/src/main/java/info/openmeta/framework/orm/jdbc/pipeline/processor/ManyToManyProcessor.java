@@ -271,7 +271,7 @@ public class ManyToManyProcessor extends BaseProcessor {
      * @return Middle model count: [{relatedField, count}, ...]
      */
     private List<Map<String, Object>> getMiddleCount(List<Serializable> mainModelIds) {
-        Filters filters = Filters.in(ModelConstant.ID, mainModelIds);
+        Filters filters = new Filters().in(ModelConstant.ID, mainModelIds);
         // When there is a subQuery filters, merge them with `AND` logic
         filters.and(subQuery.getFilters());
         // count subQuery on the middle model
@@ -290,7 +290,7 @@ public class ManyToManyProcessor extends BaseProcessor {
      * @return Associated model rows
      */
     private List<Map<String, Object>> getAssociatedRows(String associatedModel, List<Serializable> ids) {
-        Filters filters = Filters.in(ModelConstant.ID, ids);
+        Filters filters = new Filters().in(ModelConstant.ID, ids);
         FlexQuery relatedFlexQuery;
         if (subQuery == null) {
             relatedFlexQuery = new FlexQuery(Collections.emptyList(), filters);

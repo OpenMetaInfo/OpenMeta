@@ -1,5 +1,6 @@
 package info.openmeta.framework.orm.aspect;
 
+import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.datasource.DataSourceConfig;
 import info.openmeta.framework.orm.datasource.DataSourceContextHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +40,10 @@ public class DataSourceByModelAspect {
         String previousDataSource = DataSourceContextHolder.getDataSourceKey();
         Object[] methodArgs = joinPoint.getArgs();
         String modelName = (String) methodArgs[0];
+        // The system model cannot switch datasource.
+        if (ModelConstant.SYSTEM_MODEL.contains(modelName)) {
+            return joinPoint.proceed();
+        }
         String modelDataSourceKey = DataSourceConfig.getDataSourceKeyByModel(modelName);
         // If the model-level datasource is not configured,
         // or the model-level datasource is the same as the current datasource, no need to switch.

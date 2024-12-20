@@ -111,7 +111,7 @@ public class FilterXToManyParser {
         StringBuilder sb = new StringBuilder();
         for (XToManyFieldFilters xToManyFieldFilters : xToManyFieldFiltersMap.values()) {
             Filters xToManyFilters = new Filters();
-            xToManyFieldFilters.getFilterUnits().forEach(xToManyFilters::or);
+            xToManyFieldFilters.getFilterUnits().forEach(filterUnit -> xToManyFilters.or(Filters.of(filterUnit)));
             // Get the ids of the main model through the XToMany field, according to the merged Filters conditions.
             // The operator after the value replacement is always `IN`.
             List<Serializable> ids = this.getIdsFromXToMany(xToManyFieldFilters.getMetaField(), xToManyFilters);
@@ -191,7 +191,7 @@ public class FilterXToManyParser {
     }
 
     /**
-     * In the AND search mode of the XToMany field, when there is a negative search, such as `!=`, `NOT HAS`, `NOT IN`,
+     * In the AND search mode of the XToMany field, when there is a negative search, such as `!=`, `NOT CONTAINS`, `NOT IN`,
      * all are converted to positive conditions, and searched by exclusion.
      *
      * @param metaField    XToMany field object
@@ -208,7 +208,7 @@ public class FilterXToManyParser {
                 // When reverse search is needed, reverse the filterUnit operator and connect them by OR.
                 reversedFilters.or(filterUnit.getField(), filterUnit.getOperator().reverse(), filterUnit.getValue());
             } else {
-                positiveFilters.and(filterUnit);
+                positiveFilters.and(filterUnit.getField(), filterUnit.getOperator(), filterUnit.getValue());
             }
         }
         List<Serializable> finalIds;
@@ -232,14 +232,14 @@ public class FilterXToManyParser {
     private List<Serializable> reverseSearch(MetaField metaField, Filters positiveFilters, Filters reversedFilters) {
         List<Serializable> finalIds = new ArrayList<>();
         // Merge the positiveFilters and reversedFilters to generate the filters of the data to be excluded.
-        Filters negationFilters = Filters.merge(positiveFilters, reversedFilters);
+        Filters negationFilters = Filters.and(positiveFilters, reversedFilters);
         List<Serializable> excludedIds;
         if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
             // OneToMany scenario
             excludedIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), negationFilters);
             // When the reverse search result is empty, there is no data to be excluded,
             // directly execute the positive search, otherwise merge and search.
-            Filters finalFilters = CollectionUtils.isEmpty(excludedIds) ? positiveFilters : Filters.merge(positiveFilters, Filters.of(metaField.getRelatedField(), Operator.NOT_IN, excludedIds));
+            Filters finalFilters = CollectionUtils.isEmpty(excludedIds) ? positiveFilters : Filters.and(positiveFilters, Filters.of(metaField.getRelatedField(), Operator.NOT_IN, excludedIds));
             finalIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), finalFilters);
         } else {
             // ManyToMany scenario:

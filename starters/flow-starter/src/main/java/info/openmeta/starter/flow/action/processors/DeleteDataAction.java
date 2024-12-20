@@ -80,21 +80,21 @@ public class DeleteDataAction implements ActionProcessor<DeleteDataParams> {
     @Override
     public void execute(FlowAction flowAction, DeleteDataParams actionParams, ActionContext actionContext) {
         String pkVariable = actionParams.getPkVariable();
-        Filters deleteFilters = null;
+        Filters deleteFilters = new Filters();
         if (StringTools.isVariable(pkVariable)) {
             // String variable parameter `#{}`: retrieve ids from the actionContext
             Collection<?> ids = FlowUtils.getIdsFromPkVariable(flowAction, pkVariable, actionContext);
             if (CollectionUtils.isEmpty(ids)) {
                 return;
             }
-            deleteFilters = Filters.in(ID, ids);
+            deleteFilters.in(ID, ids);
         }
         // Merge primary key list with filters to form the final delete conditions
         if (!Filters.isEmpty(actionParams.getFilters())) {
             // Convert variables and calculation formulas in filters
             Filters clonedFilters = actionParams.getFilters().deepCopy();
             FlowUtils.resolveFilterValue(actionParams.getModelName(), clonedFilters, actionContext);
-            deleteFilters = Filters.merge(deleteFilters, clonedFilters);
+            deleteFilters.and(clonedFilters);
         }
         if (Filters.isEmpty(deleteFilters)) {
             return;

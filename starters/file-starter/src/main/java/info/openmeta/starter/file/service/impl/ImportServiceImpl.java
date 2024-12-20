@@ -216,7 +216,7 @@ public class ImportServiceImpl implements ImportService {
     public ImportTemplateDTO getImportTemplateDTO(ImportTemplate importTemplate, Map<String, Object> env) {
         ImportTemplateDTO importTemplateDTO = this.convertToImportTemplateDTO(importTemplate, env);
         // Construct the headers order by sequence of the export fields
-        Filters filters = Filters.eq(ImportTemplateField::getTemplateId, importTemplate.getId());
+        Filters filters = new Filters().eq(ImportTemplateField::getTemplateId, importTemplate.getId());
         Orders orders = Orders.ofAsc(ImportTemplateField::getSequence);
         List<ImportTemplateField> importTemplateFields = importTemplateFieldService.searchList(new FlexQuery(filters, orders));
         importTemplateFields.forEach(importTemplateField -> {

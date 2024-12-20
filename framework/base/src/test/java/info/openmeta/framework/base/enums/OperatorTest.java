@@ -26,9 +26,9 @@ class OperatorTest {
     }
 
     @Test()
-    void ofNotHas() {
-        Operator operator = Operator.of("NOT HAS");
-        Assertions.assertEquals(Operator.NOT_HAS, operator);
+    void ofNotContains() {
+        Operator operator = Operator.of("NOT CONTAINS");
+        Assertions.assertEquals(Operator.NOT_CONTAINS, operator);
     }
 
     @Test()

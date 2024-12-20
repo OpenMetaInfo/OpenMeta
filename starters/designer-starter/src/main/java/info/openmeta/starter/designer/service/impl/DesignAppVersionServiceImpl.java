@@ -73,7 +73,8 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
                 DesignAppVersion::getAppId,
                 DesignAppVersion::getLocked,
                 DesignAppVersion::getPublished);
-        Filters filters = Filters.eq(DesignAppVersion::getEnvId, envId).andEq(DesignAppVersion::getLocked, false);
+        Filters filters = new Filters().eq(DesignAppVersion::getEnvId, envId)
+                .eq(DesignAppVersion::getLocked, false);
         FlexQuery flexQuery = new FlexQuery().select(fields).where(filters);
         List<DesignAppVersion> appVersions = this.searchList(flexQuery);
         if (appVersions.isEmpty()) {

@@ -81,7 +81,7 @@ public class PlaintextToCiphertextHandler implements AsyncTaskHandler<PlaintextT
         // Construct the pagination query for reading dependent fields.
         Set<String> readFields = ModelManager.isTimelineModel(taskParams.getModel()) ? Sets.newHashSet(ID, SLICE_ID) : Sets.newHashSet(ID);
         readFields.addAll(taskParams.getFields());
-        Filters filters = Filters.in(ID, taskParams.getIds());
+        Filters filters = new Filters().in(ID, taskParams.getIds());
         FlexQuery flexQuery = new FlexQuery(readFields, filters).acrossTimelineData();
         // Get the original value from the database.
         flexQuery.setConvertType(ConvertType.ORIGINAL);

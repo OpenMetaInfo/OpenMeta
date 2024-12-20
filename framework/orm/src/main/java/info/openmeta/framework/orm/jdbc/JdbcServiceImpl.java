@@ -189,7 +189,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
      * @return true or false
      */
     public boolean exist(String modelName, Serializable id) {
-        Long count = this.count(modelName, new FlexQuery(Filters.eq(ModelConstant.ID, id)));
+        Long count = this.count(modelName, new FlexQuery(new Filters().eq(ModelConstant.ID, id)));
         return count != null && count > 0;
     }
 
@@ -302,7 +302,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
      */
     public boolean deleteBySliceId(String modelName, Serializable sliceId) {
         // Get the original data before deletion for collecting changeLogs
-        FlexQuery flexQuery = new FlexQuery(Filters.eq(ModelConstant.SLICE_ID, sliceId)).acrossTimelineData();
+        FlexQuery flexQuery = new FlexQuery(new Filters().eq(ModelConstant.SLICE_ID, sliceId)).acrossTimelineData();
         flexQuery.setConvertType(ConvertType.ORIGINAL);
         List<Map<String, Object>> originalRows = this.selectByFilter(modelName, flexQuery);
         // Physical deletion of timeline slice

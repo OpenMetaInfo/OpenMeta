@@ -5,6 +5,7 @@ import com.plexpt.chatgpt.entity.chat.ChatCompletionResponse;
 import info.openmeta.framework.base.exception.IntegrationException;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.starter.ai.constant.AiConstant;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -12,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSourceListener;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;

@@ -100,7 +100,7 @@ public class ExportByTemplate extends CommonExport {
     private void extractFieldsAndLabels(String modelName, Long exportTemplateId,
                                         List<String> fieldNames, List<String> headers) {
         // Construct the headers order by sequence of the export fields
-        Filters filters = Filters.eq(ExportTemplateField::getTemplateId, exportTemplateId);
+        Filters filters = new Filters().eq(ExportTemplateField::getTemplateId, exportTemplateId);
         Orders orders = Orders.ofAsc(ExportTemplateField::getSequence);
         List<ExportTemplateField> exportFields = exportTemplateFieldService.searchList(new FlexQuery(filters, orders));
         exportFields.forEach(exportField -> {
@@ -128,7 +128,7 @@ public class ExportByTemplate extends CommonExport {
                 // Get the data to be exported
                 FlexQuery flexQuery = new FlexQuery(fieldNames, template.getFilters(), template.getOrders());
                 flexQuery.setConvertType(ConvertType.DISPLAY);
-                flexQuery.setFilters(Filters.merge(flexQuery.getFilters(), dynamicTemplateMap.get(template.getId())));
+                flexQuery.setFilters(Filters.and(flexQuery.getFilters(), dynamicTemplateMap.get(template.getId())));
                 flexQuery.setFields(fieldNames);
                 List<Map<String, Object>> rows = this.getExportedData(template.getModelName(), flexQuery);
                 List<List<Object>> rowsTable = ListUtils.convertToTableData(fieldNames, rows);

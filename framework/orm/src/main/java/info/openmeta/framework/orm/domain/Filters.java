@@ -17,6 +17,7 @@ import info.openmeta.framework.orm.enums.FilterType;
 import info.openmeta.framework.orm.enums.LogicOperator;
 import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.LambdaUtils;
+import info.openmeta.framework.orm.utils.ListUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,31 +41,33 @@ import static info.openmeta.framework.orm.enums.FilterType.EMPTY;
  * So, there are 3 types of filters object: EMPTY, TREE, LEAF. Default type: EMPTY, equals to [].
  * The logic operator is AND by default, and the logic operator AND, OR is case-insensitive.
  * FilterUnit value cannot be null, when the Operator is `IS SET` or `IS NOT SET`, the value will be ignored.
- * Examples:
+ *  Examples of API usage:
  *      []
- *      ["name", "=", "Tom"]
- *      [["name", "=", "Tom"], ["version", "=", "6"]]
- *      [["name", "=", "Tom"], "OR", ["code", "=", "A010"], "OR", ["version", "=", "2"]]
- *      [["name", "=", "Tom"], "OR", ["code", "=", "A010"]], "AND", ["version", "=", "2"]]
- *  <p>
+ *      ["title", "=", "PM"]
+ *      [["title", "=", "PM"], ["grade", "=", 6]]
+ *      [["title", "=", "PM"], "OR", ["code", "=", "A010"], "OR", ["grade", "=", 6]]
+ *      [[["title", "=", "PM"], "OR", ["code", "=", "A010"]], "AND", ["grade", "=", 6]]
  *  Support value using @{fieldName} to reserve field name for field comparison.
  *  For example,
  *      ["updatedTime", ">", "@{createdTime}"] converts to sql: `updated_time > created_time`
  *  The reserved field name must be a field of the same model as the leftmost field name.
+ * <p>
+ *  Example of semantic query:
+ *    name = "PM" OR (code = "A010" AND grade = 1)
  */
 @Data
 @NoArgsConstructor
 @JsonSerialize(using = FiltersSerializer.class)
 @JsonDeserialize(using = FiltersDeserializer.class)
 @Schema(type = "array",
-        example = "[\"name\", \"=\", \"Tom\"]",
+        example = "[\"name\", \"=\", \"PM\"]",
         description = """
                 Support nested filters, such as [a OR b] AND [c OR d OR [e AND f] OR g]
                 * []
-                * ["name", "=", "Tom"]
-                * [["name", "=", "Tom"], ["version", "=", "6"]]
-                * [["name", "=", "Tom"], "OR", ["code", "=", "A010"], "OR", ["version", "=", "2"]]
-                * [["name", "=", "Tom"], "OR", ["code", "=", "A010"]], "AND", ["version", "=", "2"]]
+                * ["title", "=", "PM"]
+                * [["title", "=", "PM"], ["grade", "=", 6]]
+                * [["title", "=", "PM"], "OR", ["code", "=", "A010"], "OR", ["grade", "=", 6]]
+                * [["title", "=", "PM"], "OR", ["code", "=", "A010"]], "AND", ["grade", "=", 6]]
                 """
 )
 public class Filters {
@@ -83,8 +86,8 @@ public class Filters {
 
     /**
      * Convert String type filters to filters object.
-     * Support structured query: "[["name", "=", "Test"], "OR", ["code", "=", "A01"]]"
-     * Semantic query: "name = \"Test\" OR (code = \"A01\" AND version = 1)"
+     * Support structured query: `[["title", "=", "PM"], "OR", ["code", "=", "A010"]]`
+     * Semantic query: `name = "PM" OR (code = "A010" AND grade = 1)`
      * @param filterString String type filters
      * @return filters object
      */
@@ -101,7 +104,7 @@ public class Filters {
 
     /**
      * Convert semantic query string to filters object.
-     * @param semanticString String type filters, e.g.: name = "Test OR (code = "A01" AND version = 1)
+     * @param semanticString String type filters, e.g.: `name = "PM" OR (code = "A010" AND grade = 1)`
      * @return filters object
      */
     public static Filters ofSemantic(String semanticString) {
@@ -140,7 +143,7 @@ public class Filters {
 
     /**
      * Convert List object to a filters object.
-     * @param listObject List object, e.g.: [["name", "=", "Test"], "OR", ["amount", "=", 1]]
+     * @param listObject List object, e.g.: [["title", "=", "PM"], "OR", ["grade", "=", 1]]
      * @return filters object
      */
     public static Filters of(List<?> listObject) {
@@ -163,19 +166,6 @@ public class Filters {
     }
 
     /**
-     * Initialize a leaf node with method reference (lambda expression), operator, and value.
-     *
-     * @param method field method, Lambda expression, method reference passing parameters
-     * @param operator operator
-     * @param value value
-     * @return filters instance
-     */
-    public static <T, R> Filters of(SFunction<T, R> method, Operator operator, Object value) {
-        String field = LambdaUtils.getAttributeName(method);
-        return of(field, operator, value);
-    }
-
-    /**
      * Create a leaf node with filterUnit object.
      *
      * @param filterUnit filterUnit object
@@ -189,56 +179,439 @@ public class Filters {
     }
 
     /**
-     * Create a leaf node with field, EQUAL operator, and value.
+     * Add a filterUnit to the current Filters object.
      *
-     * @param field field name
+     * @param method method reference of the field
+     * @param operator operator
      * @param value value
-     * @return filters instance
+     * @return the updated Filters object with the added filterUnit
      */
-    public static Filters eq(String field, Object value) {
-        return Filters.of(field, Operator.EQUAL, value);
-    }
-
-    /**
-     * Create a leaf node with method reference (lambda expression), EQUAL operator, and value.
-     *
-     * @param method field method, Lambda expression, method reference passing parameters
-     * @param value value
-     * @return filters instance
-     */
-    public static <T, R> Filters eq(SFunction<T, R> method, Object value) {
-        return Filters.of(method, Operator.EQUAL, value);
-    }
-
-    /**
-     * Create a leaf node with field, IN operator, and value.
-     *
-     * @param field field name
-     * @param value value
-     * @return filters instance
-     */
-    public static Filters in(String field, Object value) {
-        return Filters.of(field, Operator.IN, value);
-    }
-
-    /**
-     * Create a leaf node with method reference (lambda expression), IN operator, and value.
-     *
-     * @param method field method, Lambda expression, method reference passing parameters
-     * @param value value
-     * @return filters instance
-     */
-    public static <T, R> Filters in(SFunction<T, R> method, Object value) {
-        return Filters.of(method, Operator.IN, value);
-    }
-
-    public Filters between(String field, List<?> value) {
-        return Filters.of(field, Operator.BETWEEN, value);
-    }
-
-    public <T, R> Filters between(SFunction<T, R> method, List<?> value) {
+    public <T, R> Filters add(SFunction<T, R> method, Operator operator, Object value) {
         String field = LambdaUtils.getAttributeName(method);
-        return Filters.of(field, Operator.BETWEEN, value);
+        return this.add(field, operator, value);
+    }
+
+    /**
+     * Add a filterUnit to the current Filters object.
+     *
+     * @param field fieldName
+     * @param operator operator
+     * @param value value
+     * @return the updated Filters object with the added filterUnit
+     */
+    public Filters add(String field, Operator operator, Object value) {
+        if (EMPTY.equals(this.getType())) {
+            this.setType(FilterType.LEAF);
+            this.setFilterUnit(FilterUnit.of(field, operator, value));
+        } else if (FilterType.LEAF.equals(this.type)) {
+            this.convertLeafToTree();
+            this.children.add(Filters.of(field, operator, value));
+        } else if (FilterType.TREE.equals(this.type)) {
+            this.children.add(Filters.of(field, operator, value));
+        } else {
+            throw new IllegalArgumentException("Unsupported filter type: " + this.type);
+        }
+        return this;
+    }
+
+    /**
+     * Add an EQUAL filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters eq(SFunction<T, R> method, Object value) {
+        return this.add(method, Operator.EQUAL, value);
+    }
+
+    /**
+     * Add an EQUAL filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters eq(String field, Object value) {
+        return this.add(field, Operator.EQUAL, value);
+    }
+
+    /**
+     * Add a NOT_EQUAL filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters ne(SFunction<T, R> method, Object value) {
+        return this.add(method, Operator.NOT_EQUAL, value);
+    }
+
+    /**
+     * Add a NOT_EQUAL filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters ne(String field, Object value) {
+        return this.add(field, Operator.NOT_EQUAL, value);
+    }
+
+    /**
+     * Add a GREATER_THAN filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters gt(SFunction<T, R> method, Object value) {
+        return this.add(method, Operator.GREATER_THAN, value);
+    }
+
+    /**
+     * Add a GREATER_THAN filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters gt(String field, Object value) {
+        return this.add(field, Operator.GREATER_THAN, value);
+    }
+
+    /**
+     * Add a GREATER_THAN_OR_EQUAL filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters ge(SFunction<T, R> method, Object value) {
+        return this.add(method, Operator.GREATER_THAN_OR_EQUAL, value);
+    }
+
+    /**
+     * Add a GREATER_THAN_OR_EQUAL filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters ge(String field, Object value) {
+        return this.add(field, Operator.GREATER_THAN_OR_EQUAL, value);
+    }
+
+    /**
+     * Add a LESS_THAN filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters lt(SFunction<T, R> method, Object value) {
+        return this.add(method, Operator.LESS_THAN, value);
+    }
+
+    /**
+     * Add a LESS_THAN filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters lt(String field, Object value) {
+        return this.add(field, Operator.LESS_THAN, value);
+    }
+
+    /**
+     * Add a LESS_THAN_OR_EQUAL filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters le(SFunction<T, R> method, Object value) {
+        return this.add(method, Operator.LESS_THAN_OR_EQUAL, value);
+    }
+
+    /**
+     * Add a LESS_THAN_OR_EQUAL filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters le(String field, Object value) {
+        return this.add(field, Operator.LESS_THAN_OR_EQUAL, value);
+    }
+
+    /**
+     * Add a CONTAINS filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters contains(SFunction<T, R> method, String value) {
+        return this.add(method, Operator.CONTAINS, value);
+    }
+
+    /**
+     * Add a CONTAINS filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters contains(String field, String value) {
+        return this.add(field, Operator.CONTAINS, value);
+    }
+
+    /**
+     * Add a NOT_CONTAINS filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters notContains(SFunction<T, R> method, String value) {
+        return this.add(method, Operator.NOT_CONTAINS, value);
+    }
+
+    /**
+     * Add a NOT_CONTAINS filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters notContains(String field, String value) {
+        return this.add(field, Operator.NOT_CONTAINS, value);
+    }
+
+    /**
+     * Add a START_WITH filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters startWith(SFunction<T, R> method, String value) {
+        return this.add(method, Operator.START_WITH, value);
+    }
+
+    /**
+     * Add a START_WITH filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters startWith(String field, String value) {
+        return this.add(field, Operator.START_WITH, value);
+    }
+
+    /**
+     * Add a NOT_START_WITH filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters notStartWith(SFunction<T, R> method, String value) {
+        return this.add(method, Operator.NOT_START_WITH, value);
+    }
+
+    /**
+     * Add a NOT_START_WITH filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters notStartWith(String field, String value) {
+        return this.add(field, Operator.NOT_START_WITH, value);
+    }
+
+    /**
+     * Add an IN filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters in(SFunction<T, R> method, Collection<?> value) {
+        return this.add(method, Operator.IN, value);
+    }
+
+    /**
+     * Add an IN filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters in(String field, Collection<?> value) {
+        return this.add(field, Operator.IN, value);
+    }
+
+    /**
+     * Add a NOT_IN filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters notIn(SFunction<T, R> method, Collection<?> value) {
+        return this.add(method, Operator.NOT_IN, value);
+    }
+
+    /**
+     * Add a NOT_IN filter to the current Filters object.
+     * @param field field name
+     * @param value the comparison value
+     * @return the updated filters
+     */
+    public Filters notIn(String field, Collection<?> value) {
+        return this.add(field, Operator.NOT_IN, value);
+    }
+
+    /**
+     * Add a BETWEEN filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value1 the first comparison value
+     * @param value2 the second comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters between(SFunction<T, R> method, Object value1, Object value2) {
+        return this.add(method, Operator.BETWEEN, Arrays.asList(value1, value2));
+    }
+
+    /**
+     * Add a BETWEEN filter to the current Filters object.
+     * @param field field name
+     * @param value1 the first comparison value
+     * @param value2 the second comparison value
+     * @return the updated filters
+     */
+    public Filters between(String field, Object value1, Object value2) {
+        return this.add(field, Operator.BETWEEN, Arrays.asList(value1, value2));
+    }
+
+    /**
+     * Add a NOT_BETWEEN filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param value1 the first comparison value
+     * @param value2 the second comparison value
+     * @return the updated filters
+     */
+    public <T, R> Filters notBetween(SFunction<T, R> method, Object value1, Object value2) {
+        return this.add(method, Operator.NOT_BETWEEN, Arrays.asList(value1, value2));
+    }
+
+    /**
+     * Add a NOT_BETWEEN filter to the current Filters object.
+     * @param field field name
+     * @param value1 the first comparison value
+     * @param value2 the second comparison value
+     * @return the updated filters
+     */
+    public Filters notBetween(String field, Object value1, Object value2) {
+        return this.add(field, Operator.NOT_BETWEEN, Arrays.asList(value1, value2));
+    }
+
+    /**
+     * Add an IS_SET filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @return the updated filters
+     */
+    public <T, R> Filters isSet(SFunction<T, R> method) {
+        return this.add(method, Operator.IS_SET, null);
+    }
+
+    /**
+     * Add an IS_SET filter to the current Filters object.
+     * @param field field name
+     * @return the updated filters
+     */
+    public Filters isSet(String field) {
+        return this.add(field, Operator.IS_SET, null);
+    }
+
+    /**
+     * Add an IS_NOT_SET filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @return the updated filters
+     */
+    public <T, R> Filters isNotSet(SFunction<T, R> method) {
+        return this.add(method, Operator.IS_NOT_SET, null);
+    }
+
+    /**
+     * Add an IS_NOT_SET filter to the current Filters object.
+     * @param field field name
+     * @return the updated filters
+     */
+    public Filters isNotSet(String field) {
+        return this.add(field, Operator.IS_NOT_SET, null);
+    }
+
+    /**
+     * Add a PARENT_OF filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param idPath the string value of the id path
+     * @return the updated filters
+     */
+    public <T, R> Filters parentOf(SFunction<T, R> method, String idPath) {
+        return this.add(method, Operator.PARENT_OF, Collections.singletonList(idPath));
+    }
+
+    /**
+     * Add a PARENT_OF filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param idPaths the collection of id paths
+     * @return the updated filters
+     */
+    public <T, R> Filters parentOf(SFunction<T, R> method, Collection<?> idPaths) {
+        return this.add(method, Operator.PARENT_OF, idPaths);
+    }
+
+    /**
+     * Add a PARENT_OF filter to the current Filters object.
+     * @param field field name
+     * @param idPath the string value of the id path
+     * @return the updated filters
+     */
+    public Filters parentOf(String field, String idPath) {
+        return this.add(field, Operator.PARENT_OF, Collections.singletonList(idPath));
+    }
+
+    /**
+     * Add a PARENT_OF filter to the current Filters object.
+     * @param field field name
+     * @param idPaths the collection of id paths
+     * @return the updated filters
+     */
+    public Filters parentOf(String field, Collection<?> idPaths) {
+        return this.add(field, Operator.PARENT_OF, idPaths);
+    }
+
+    /**
+     * Add a CHILD_OF filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param idPath the string value of the id path
+     * @return the updated filters
+     */
+    public <T, R> Filters childOf(SFunction<T, R> method, String idPath) {
+        return this.add(method, Operator.CHILD_OF, Collections.singletonList(idPath));
+    }
+
+    /**
+     * Add a CHILD_OF filter to the current Filters object using method reference (lambda expression).
+     * @param method the method reference of the field
+     * @param idPaths the collection of id paths
+     * @return the updated filters
+     */
+    public <T, R> Filters childOf(SFunction<T, R> method, Collection<?> idPaths) {
+        return this.add(method, Operator.CHILD_OF, idPaths);
+    }
+
+    /**
+     * Add a CHILD_OF filter to the current Filters object.
+     * @param field field name
+     * @param idPath the string value of the id path
+     * @return the updated filters
+     */
+    public Filters childOf(String field, String idPath) {
+        return this.add(field, Operator.CHILD_OF, Collections.singletonList(idPath));
+    }
+
+    /**
+     * Add a CHILD_OF filter to the current Filters object.
+     * @param field field name
+     * @param idPaths the collection of id paths
+     * @return the updated filters
+     */
+    public Filters childOf(String field, Collection<?> idPaths) {
+        return this.add(field, Operator.CHILD_OF, idPaths);
     }
 
     /**
@@ -257,7 +630,56 @@ public class Filters {
     }
 
     /**
-     * Add an FilterUnit to `AND` logical filters.
+     * Static method to create a new `AND` logical filters.
+     *
+     * @return empty filters object with `AND` logic
+     */
+    public static Filters and() {
+        Filters filters = new Filters();
+        filters.setType(FilterType.TREE);
+        filters.setLogicOperator(LogicOperator.AND);
+        return filters;
+    }
+
+    /**
+     * Add a Filters object to `AND` logical filters.
+     *
+     * @param filters filters object
+     * @return filters after `AND`
+     */
+    public Filters and(Filters filters) {
+        return this.combine(LogicOperator.AND, filters);
+    }
+
+    /**
+     * Combine multiple filters into a new `AND` logical filters.
+     *
+     * @param filters1 filters object1
+     * @param filters2 filters object2
+     * @param filtersArray the variable number of filters objects
+     * @return filters after combined with `AND` logic
+     */
+    public static Filters and(Filters filters1, Filters filters2, Filters... filtersArray) {
+        return combine(LogicOperator.AND, filters1, filters2, filtersArray);
+    }
+
+    /**
+     * Combine a list of filters into a new `AND` logical filters.
+     *
+     * @param filtersList list of filters
+     * @return new filters object after combined with `AND` logic
+     */
+    public static Filters and(List<Filters> filtersList) {
+        if (CollectionUtils.isEmpty(filtersList)) {
+            return null;
+        }
+        Filters combinedFilters = and();
+        combinedFilters.setChildren(filtersList.stream().filter(f -> !Filters.isEmpty(f)).toList());
+        return combinedFilters;
+    }
+
+    /**
+     * Combine current filters with a new filter using `AND` logic.
      *
      * @param field field
      * @param operator operator
@@ -268,180 +690,34 @@ public class Filters {
     }
 
     /**
-     * Add an FilterUnit to `AND` logical filters through method reference.
+     * Static method to create a new `OR` logical filters.
+     * Example: Filters.or().eq(Job::getTitle, "PM").eq(Job::getGrade, 6)
      *
-     * @param method field method, Lambda expression, method reference passing parameters
-     * @param operator operator
-     * @param value value
+     * @return filters after `OR`
      */
-    public <T, R> Filters and(SFunction<T, R> method, Operator operator, Object value) {
-        String field = LambdaUtils.getAttributeName(method);
-        return this.and(Filters.of(field, operator, value));
+    public static Filters or() {
+        Filters filters = new Filters();
+        filters.setType(FilterType.TREE);
+        filters.setLogicOperator(LogicOperator.OR);
+        return filters;
     }
 
     /**
-     * Add a FilterUnit to `AND` logical filters.
-     *
-     * @param filterUnit object
-     */
-    public void and(FilterUnit filterUnit) {
-        Filters filters = of(filterUnit);
-        this.and(filters);
-    }
-
-    /**
-     * Add a child Filters object to `AND` logical filters.
+     * Add a Filters object to `OR` logical filters.
      *
      * @param filters filters object
-     * @return filters after `AND`
+     * @return filters after `OR`
      */
-    public Filters and(Filters filters) {
-        if (Filters.isEmpty(filters)) {
-            return this;
-        }
-        if (FilterType.TREE.equals(this.type) && LogicOperator.OR.equals(this.logicOperator)) {
-            this.logicOperator = LogicOperator.AND;
-            Filters originalFilters = this.shallowCopy();
-            this.setChildren(Arrays.asList(originalFilters, filters));
-        } else if (FilterType.LEAF.equals(this.type)) {
-            this.transferType();
-        }
-        this.type = FilterType.TREE;
-        this.logicOperator = LogicOperator.AND;
-        this.children.add(filters);
-        return this;
+    public Filters or(Filters filters) {
+        return this.combine(LogicOperator.OR, filters);
     }
 
     /**
-     * And an `EQUAL` filterUnit to `AND` logical filters.
-     *
-     * @param field field
-     * @param value value
-     * @return filters after `AND`
-     */
-    public Filters andEq(String field, Object value) {
-        return this.and(field, Operator.EQUAL, value);
-    }
-
-    /**
-     * And an `EQUAL` filterUnit to `AND` logical filters.
-     *
-     * @param method field method, Lambda expression, method reference passing parameters
-     * @param value value
-     * @return filters after `AND`
-     */
-    public <T, R> Filters andEq(SFunction<T, R> method, Object value) {
-        String field = LambdaUtils.getAttributeName(method);
-        return this.and(Filters.eq(field, value));
-    }
-
-    /**
-     * Create a leaf node with field, NOT_EQUAL operator, and value.
+     * Combine current filters with a new filter using `OR` logic.
      *
      * @param field field name
-     * @param value value
-     * @return filters instance
-     */
-    public Filters andNe(String field, Object value) {
-        return this.and(field, Operator.NOT_EQUAL, value);
-    }
-
-    /**
-     * Create a leaf node with field, LESS_THAN_OR_EQUAL operator, and value.
-     * @param field field name
-     * @param value value
-     * @return filters instance
-     */
-    public Filters andLe(String field, Object value) {
-        return this.and(field, Operator.LESS_THAN_OR_EQUAL, value);
-    }
-
-    /**
-     * Create a leaf node with field, GREATER_THAN_OR_EQUAL operator, and value.
-     * @param field field name
-     * @param value value
-     * @return filters instance
-     */
-    public Filters andGe(String field, Object value) {
-        return this.and(field, Operator.GREATER_THAN_OR_EQUAL, value);
-    }
-
-    /**
-     * Create a leaf node with field, GREATER_THAN_OR_EQUAL operator, and value.
-     * @param method field method, Lambda expression, method reference passing parameters
-     * @param value value
-     * @return filters instance
-     */
-    public <T, R> Filters andGe(SFunction<T, R> method, Object value) {
-        String field = LambdaUtils.getAttributeName(method);
-        return this.and(field, Operator.GREATER_THAN_OR_EQUAL, value);
-    }
-
-    /**
-     * Create a leaf node with field, GREATER_THAN operator, and value.
-     *
-     * @param field field name
-     * @param value value
-     * @return filters instance
-     */
-    public Filters andGt(String field, Object value) {
-        return this.and(field, Operator.GREATER_THAN, value);
-    }
-
-    public Filters andIn(String field, Object value) {
-        return this.and(Filters.in(field, value));
-    }
-
-    public Filters andNotIn(String field, Collection<?> value) {
-        return this.and(Filters.of(field, Operator.NOT_IN, value));
-    }
-
-    public <T, R> Filters andIn(SFunction<T, R> method, Collection<?> value) {
-        String field = LambdaUtils.getAttributeName(method);
-        return this.and(Filters.in(field, value));
-    }
-
-    /**
-     * Merge multiple filters into a new `AND` logical filters.
-     * The internal of a single filters may be `OR` or `AND`.
-     *
-     * @param filtersArray filters object array
-     * @return filters after merge
-     */
-    public static Filters merge(Filters... filtersArray) {
-        return merge(LogicOperator.AND, filtersArray);
-    }
-
-    /**
-     * Merge multiple filters into a new filters object with specified logic operator.
-     * The internal of a single filters may be `OR` or `AND`.
-     *
-     * @param logicOperator logic operator, `OR` or `AND`.
-     * @param filtersArray filters object array
-     * @return filters after merge
-     */
-    public static Filters merge(LogicOperator logicOperator, Filters... filtersArray) {
-        // Just merge filters which is not empty.
-        List<Filters> filtersList =  Arrays.stream(filtersArray).filter(f -> !Filters.isEmpty(f)).collect(Collectors.toList());
-        if (filtersList.isEmpty()) {
-            return null;
-        } else if (filtersList.size() == 1) {
-            return filtersList.getFirst();
-        } else {
-            Filters combinedFilters = new Filters();
-            combinedFilters.setType(FilterType.TREE);
-            combinedFilters.setLogicOperator(logicOperator);
-            combinedFilters.setChildren(filtersList);
-            return combinedFilters;
-        }
-    }
-
-    /**
-     * Add a filterUnit to `OR` logical filters.
-     *
-     * @param field field
      * @param operator operator
-     * @param value value
+     * @param value the comparison value
      * @return filters after `OR`
      */
     public Filters or(String field, Operator operator, Object value) {
@@ -449,82 +725,88 @@ public class Filters {
     }
 
     /**
-     * Add a filterUnit with reversed field to `OR` logical filters.
+     * Combine multiple filters into a new `OR` logical filters.
      *
-     * @param leftField left field
-     * @param operator operator
-     * @param rightField right field
-     * @return filters after `OR`
+     * @param filters1 filters object1
+     * @param filters2 filters object2
+     * @param filtersArray the variable number of filters objects
+     * @return filters after combined with `OR` logic
      */
-    public Filters orReserved(String leftField, Operator operator, String rightField) {
-        String reversedField = StringConstant.RESERVED_PREFIX + rightField + "}";
-        return this.or(Filters.of(leftField, operator, reversedField));
-    }
-
-    /**
-     * Add a filterUnit to `OR` logical filters through method reference.
-     *
-     * @param method field method, Lambda expression, method reference passing parameters
-     * @param operator operator
-     * @param value value
-     * @return filters after `OR`
-     */
-    public <T, R> Filters or(SFunction<T, R> method, Operator operator, Object value) {
-        String field = LambdaUtils.getAttributeName(method);
-        return or(field, operator, value);
-    }
-
-    /**
-     * Add a filterUnit to `OR` logical filters.
-     *
-     * @param filterUnit object
-     */
-    public void or(FilterUnit filterUnit) {
-        Filters filters = of(filterUnit);
-        this.or(filters);
-    }
-
-    /**
-     * Add a child Filters object to `OR` logical filters.
-     *
-     * @param filters filters object
-     * @return filters after `OR`
-     */
-    public Filters or(Filters filters) {
-        if (Filters.isEmpty(filters)) {
-            return this;
-        }
-        if (FilterType.TREE.equals(this.type) && LogicOperator.AND.equals(this.logicOperator)) {
-            this.logicOperator = LogicOperator.OR;
-            Filters originalFilters = this.shallowCopy();
-            this.setChildren(Arrays.asList(originalFilters, filters));
-        } else if (FilterType.LEAF.equals(this.type)) {
-            this.transferType();
-        }
-        this.type = FilterType.TREE;
-        this.logicOperator = LogicOperator.OR;
-        this.children.add(filters);
-        return this;
+    public static Filters or(Filters filters1, Filters filters2, Filters... filtersArray) {
+        return combine(LogicOperator.OR, filters1, filters2, filtersArray);
     }
 
     /**
      * Convert LEAF type filters to TREE type filters.
      */
-    private void transferType() {
-        this.children.add(of(this.filterUnit.getField(), this.filterUnit.getOperator(), this.filterUnit.getValue()));
+    private void convertLeafToTree() {
+        this.setType(FilterType.TREE);
+        this.children.add(of(this.filterUnit));
         this.filterUnit = null;
+        if (this.logicOperator == null) {
+            this.logicOperator = LogicOperator.DEFAULT_LOGIC_OPERATOR;
+        }
     }
 
     /**
-     * Add a child filters to current filters.
+     * Combine current filters with a new filter using specified logic operator.
+     * e.g. f1.combine(logicOperator, f2)
      *
-     * @param filters child filters
+     * @param logicOperator logic operator
+     * @param filters filters object
+     * @return updated filters object
      */
-    public void addChild(Filters filters){
-        if (filters == null) {
-            return;
+    private Filters combine(LogicOperator logicOperator, Filters filters) {
+        if (Filters.isEmpty(filters)) {
+            return this;
+        } else if (EMPTY.equals(this.getType())) {
+            this.setType(FilterType.TREE);
+            this.setLogicOperator(logicOperator);
+            this.children.add(filters);
+        } else if (FilterType.TREE.equals(this.type)) {
+            if (!Objects.equals(this.logicOperator, logicOperator)) {
+                Filters originalFilters = this.shallowCopy();
+                this.logicOperator = logicOperator;
+                this.setChildren(ListUtils.of(originalFilters, filters));
+            } else {
+                this.children.add(filters);
+            }
+        } else if (FilterType.LEAF.equals(this.type)) {
+            this.logicOperator = logicOperator;
+            this.convertLeafToTree();
+            this.children.add(filters);
         }
-        this.children.add(filters);
+        return this;
+    }
+
+    /**
+     * Combine multiple filters into a new filters object using specified logic operator.
+     *
+     * @param logicOperator logic operator, `OR` or `AND`.
+     * @param filtersArray filters object array
+     * @return new filters object after combined
+     */
+    private static Filters combine(LogicOperator logicOperator, Filters filters1, Filters filters2, Filters... filtersArray) {
+        // Just combine filters which are not empty.
+        List<Filters> filtersList = new ArrayList<>();
+        if (!Filters.isEmpty(filters1)) {
+            filtersList.add(filters1);
+        }
+        if (!Filters.isEmpty(filters2)) {
+            filtersList.add(filters2);
+        }
+        filtersList.addAll(Arrays.stream(filtersArray).filter(f -> !Filters.isEmpty(f)).toList());
+        // If all filters are empty, return null.
+        if (filtersList.isEmpty()) {
+            return null;
+        } else if (filtersList.size() == 1) {
+            return filtersList.getFirst();
+        } else {
+            // Default is `AND` logic.
+            Filters combinedFilters = LogicOperator.OR.equals(logicOperator)? or() : and();
+            combinedFilters.setChildren(filtersList);
+            return combinedFilters;
+        }
     }
 
     /**
@@ -532,24 +814,14 @@ public class Filters {
      *
      * @return field name set
      */
-    public Set<String> allFields() {
+    public Set<String> extractFields() {
         Set<String> fields = new HashSet<>();
         if (FilterType.TREE.equals(this.type)) {
-            this.children.forEach(filters -> fields.addAll(filters.allFields()));
+            this.children.forEach(filters -> fields.addAll(filters.extractFields()));
         } else if (FilterType.LEAF.equals(this.type)) {
             fields.add(this.filterUnit.getField());
         }
         return fields;
-    }
-
-    /**
-     * Determine if the filters object contains the specified field.
-     *
-     * @param field field name
-     * @return contains or not
-     */
-    public boolean containsField(String field) {
-        return allFields().contains(field);
     }
 
     /**
@@ -563,7 +835,7 @@ public class Filters {
         if (Filters.isEmpty(filters)) {
             return false;
         }
-        return filters.allFields().contains(field);
+        return filters.extractFields().contains(field);
     }
 
     /**
@@ -577,11 +849,11 @@ public class Filters {
             // Empty filters: [], which will be ignored in the final SQL.
             return new Filters();
         } else if (filterList.get(0) instanceof String && filterList.size() == FilterUnit.UNIT_LENGTH) {
-            // LEAF type filters: ["name", "=", "Test"]
+            // LEAF type filters: ["title", "=", "PM"]
             return Filters.of(((String) filterList.get(0)).trim(), Operator.of(((String) filterList.get(1)).trim()), filterList.get(2));
         } else if (filterList.get(0) instanceof List) {
             if (filterList.size() == 1) {
-                // Remove redundant [] noise, such as: [[]], [["name", "=", "Tom"]], [[[leaf1], "AND", [leaf2]]]
+                // Remove redundant [] noise, such as: [[]], [["title", "=", "PM"]], [[[leaf1], "AND", [leaf2]]]
                 return listToFilters((List<?>) filterList.getFirst());
             } else {
                 return parseList(filterList);
@@ -593,7 +865,7 @@ public class Filters {
 
     /**
      * Parse FilterUnit and logical operator filters: [leaf1, "OR", leaf2], and trim the logical operator.
-     * Such as: [["name", "=", "Tom"], "OR", ["code", "=", "A010"]].
+     * Such as: [["title", "=", "PM"], "OR", ["code", "=", "A010"]].
      *
      * @param filterList the original list object to be converted
      * @return parsed filters object
@@ -605,8 +877,8 @@ public class Filters {
             if (node instanceof List) {
                 Filters child = listToFilters((List<?>) node);
                 // Ignore EMPTY node
-                if (child.getType() != EMPTY) {
-                    filters.addChild(child);
+                if (!Filters.isEmpty(child)) {
+                    filters.getChildren().add(child);
                 }
             } else if (node instanceof String) {
                 parseLogicOperator(filters, ((String) node), filterList);
@@ -621,9 +893,9 @@ public class Filters {
         }
         if (filters.getChildren().size() == 1) {
             // When there is only one valid children node, convert TREE type to LEAF type.
-            // For example, convert: [["name", "=", "Test"], "OR"]
-            // or: [["name", "=", "Test"], "OR", [], []]
-            // to: ["name", "=", "Test"]
+            // For example, convert: [["title", "=", "PM"], "OR"]
+            // or: [["title", "=", "PM"], "OR", [], []]
+            // to: ["title", "=", "PM"]
             filters.setType(FilterType.LEAF);
             filters.setLogicOperator(null);
             filters = filters.getChildren().getFirst();
@@ -675,6 +947,12 @@ public class Filters {
         return toSemanticStringRecursively(true);
     }
 
+    /**
+     * Semantic String of Filters, for frontend interaction scenarios.
+     *
+     * @param isRoot is root node
+     * @return string
+     */
     private String toSemanticStringRecursively(boolean isRoot) {
         if (FilterType.TREE.equals(this.type)) {
             if (this.children.size() == 1) {

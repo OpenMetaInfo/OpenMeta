@@ -101,11 +101,11 @@ public class VersionControlImpl implements VersionControl {
      */
     private List<Map<String, Object>> getChangedDataFromDB(DesignAppEnv appEnv, String versionedModel, LocalDateTime startTime) {
         // Read unpublished data of the current app, env and model from the database
-        Filters changedDataFilters = Filters.eq(VersionConstant.APP_ID, appEnv.getAppId())
-                .andEq(VersionConstant.ENV_ID, appEnv.getId())
-                .and(Filters.in(ModelConstant.SOFT_DELETED_FIELD, Arrays.asList(false, true, null)));
+        Filters changedDataFilters = new Filters().eq(VersionConstant.APP_ID, appEnv.getAppId())
+                .eq(VersionConstant.ENV_ID, appEnv.getId())
+                .in(ModelConstant.SOFT_DELETED_FIELD, Arrays.asList(false, true, null));
         if (startTime != null) {
-            changedDataFilters.andGe(ModelConstant.UPDATED_TIME, startTime);
+            changedDataFilters.ge(ModelConstant.UPDATED_TIME, startTime);
         }
         // Read current data, excluding custom bound OneToMany, ManyToMany field data
         Set<String> fields = ModelManager.getModelFieldsWithoutXToMany(versionedModel);
@@ -133,10 +133,10 @@ public class VersionControlImpl implements VersionControl {
      */
     private List<ChangeLog> getChangeLogsOfData(String versionedModel, Collection<Serializable> rowIds, LocalDateTime startTime) {
         // Query unpublished data change records, sorted by changedTime in descending order
-        Filters filters = Filters.in(ChangeLog::getModel, versionedModel)
-                .andIn(ChangeLog::getRowId, rowIds);
+        Filters filters = new Filters().eq(ChangeLog::getModel, versionedModel)
+                .in(ChangeLog::getRowId, rowIds);
         if (startTime != null) {
-            filters.andGe(ChangeLog::getChangedTime, startTime.format(TimeConstant.DATETIME_FORMATTER));
+            filters.ge(ChangeLog::getChangedTime, startTime.format(TimeConstant.DATETIME_FORMATTER));
         }
         Orders orders = Orders.ofAsc(ChangeLog::getChangedTime);
         FlexQuery flexQuery = new FlexQuery(filters, orders);

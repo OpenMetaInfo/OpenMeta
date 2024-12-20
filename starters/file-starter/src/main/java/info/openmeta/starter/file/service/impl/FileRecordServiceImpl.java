@@ -59,6 +59,17 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     }
 
     /**
+     * Generate a full filename combining the filename, the current date and the file type extension.
+     *
+     * @param fileName the name of the file
+     * @param fileType the type of the file
+     * @return the full file name
+     */
+    private static String getFullFileName(String fileName, FileType fileType) {
+        return fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+    }
+
+    /**
      * Upload a file to the OSS and create a corresponding FileRecord.
      * The uploadFileDTO contains the file information and input stream.
      *
@@ -67,8 +78,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileRecord uploadFile(UploadFileDTO uploadFileDTO) {
-        String fullFileName = uploadFileDTO.getFileName() + "_"
-                + DateUtils.getCurrentSimpleDateString() + uploadFileDTO.getFileType().name();
+        String fullFileName = getFullFileName(uploadFileDTO.getFileName(), uploadFileDTO.getFileType());
         String ossKey = this.generateOssKey(modelName, fullFileName);
         String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), uploadFileDTO.getFileName());
         // Create file record
@@ -122,7 +132,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     public FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file) {
         String fileName = FileUtils.getShortFileName(file);
         FileType fileType = FileUtils.getActualFileType(file);
-        String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+        String fullFileName = getFullFileName(fileName, fileType);
         String ossKey = this.generateOssKey(modelName, fullFileName);
         String checksum;
         try (InputStream inputStream = file.getInputStream()) {
@@ -219,7 +229,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     @Override
     public List<FileInfo> getFileInfo(String modelName, Serializable rowId) {
         Assert.notNull(rowId, "RowId cannot be null.");
-        Filters filters = Filters.eq("modelName", modelName).andEq("rowId", rowId.toString());
+        Filters filters = new Filters().eq("modelName", modelName).eq("rowId", rowId.toString());
         List<FileRecord> fileRecords = this.searchList(filters);
         return fileRecords.stream().map(this::convertToFileInfo).toList();
     }

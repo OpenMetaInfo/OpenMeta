@@ -20,8 +20,8 @@ public class PostgreSQLDialect implements DialectInterface {
         OPERATOR_MAP.put(Operator.GREATER_THAN_OR_EQUAL, ">=");
         OPERATOR_MAP.put(Operator.LESS_THAN, "<");
         OPERATOR_MAP.put(Operator.LESS_THAN_OR_EQUAL, "<=");
-        OPERATOR_MAP.put(Operator.HAS, "ILIKE");
-        OPERATOR_MAP.put(Operator.NOT_HAS, "NOT ILIKE");
+        OPERATOR_MAP.put(Operator.CONTAINS, "ILIKE");
+        OPERATOR_MAP.put(Operator.NOT_CONTAINS, "NOT ILIKE");
         OPERATOR_MAP.put(Operator.START_WITH, "ILIKE");
         OPERATOR_MAP.put(Operator.NOT_START_WITH, "NOT ILIKE");
         OPERATOR_MAP.put(Operator.IN, "IN");

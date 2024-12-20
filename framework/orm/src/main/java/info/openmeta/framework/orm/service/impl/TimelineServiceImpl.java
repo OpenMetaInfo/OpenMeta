@@ -55,9 +55,9 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
         if (Filters.isEmpty(originalFilters)) {
             return timelineFilters;
         } else {
-            Set<String> filterFields = originalFilters.allFields();
+            Set<String> filterFields = originalFilters.extractFields();
             if (!(filterFields.contains(ModelConstant.EFFECTIVE_START_DATE) || filterFields.contains(ModelConstant.EFFECTIVE_END_DATE))) {
-                return Filters.merge(originalFilters, timelineFilters);
+                return Filters.and(originalFilters, timelineFilters);
             } else {
                 return originalFilters;
             }
@@ -85,7 +85,7 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
         if (Filters.isEmpty(originalFilters)) {
             return timelineFilters;
         } else {
-            return Filters.merge(originalFilters, timelineFilters);
+            return Filters.and(originalFilters, timelineFilters);
         }
     }
 
@@ -102,7 +102,7 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
         if (ModelManager.isSoftDeleted(modelName)) {
             fields.add(ModelConstant.SOFT_DELETED_FIELD);
         }
-        FlexQuery flexQuery = new FlexQuery(fields, Filters.eq(ModelConstant.SLICE_ID, sliceId)).acrossTimelineData();
+        FlexQuery flexQuery = new FlexQuery(fields, new Filters().eq(ModelConstant.SLICE_ID, sliceId)).acrossTimelineData();
         List<Map<String, Object>> rows = jdbcService.selectByFilter(modelName, flexQuery);
         Assert.notEmpty(rows, "Timeline model {0} does not exist data for sliceId={1}.", modelName, sliceId);
         return BeanTool.mapToObject(rows.getFirst(), TimelineSlice.class);
@@ -385,9 +385,9 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
      */
     private Map<String, Object> getOverlappedSlice(String modelName, TimelineSlice currentSlice, Set<String> fields) {
         LocalDate currentStart = currentSlice.getEffectiveStartDate();
-        Filters overlapFilters = Filters.eq(ModelConstant.ID, currentSlice.getId())
-                .andLe(ModelConstant.EFFECTIVE_START_DATE, currentStart)
-                .andGe(ModelConstant.EFFECTIVE_END_DATE, currentStart);
+        Filters overlapFilters = new Filters().eq(ModelConstant.ID, currentSlice.getId())
+                .le(ModelConstant.EFFECTIVE_START_DATE, currentStart)
+                .ge(ModelConstant.EFFECTIVE_END_DATE, currentStart);
         FlexQuery flexQuery = new FlexQuery(fields, overlapFilters).acrossTimelineData();
         List<Map<String, Object>> overlappedRows = jdbcService.selectByFilter(modelName, flexQuery);
         if (CollectionUtils.isEmpty(overlappedRows)) {
@@ -406,9 +406,10 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
      */
     private Map<String, Object> getNextSlice(String modelName, TimelineSlice currentSlice, Set<String> fields) {
         LocalDate currentStart = currentSlice.getEffectiveStartDate();
-        Filters nextFilters = Filters.eq(ModelConstant.ID, currentSlice.getId()).andGt(ModelConstant.EFFECTIVE_START_DATE, currentStart);
+        Filters nextFilters = new Filters().eq(ModelConstant.ID, currentSlice.getId())
+                .gt(ModelConstant.EFFECTIVE_START_DATE, currentStart);
         if (currentSlice.getSliceId() != null) {
-            nextFilters.andNe(ModelConstant.SLICE_ID, currentSlice.getSliceId());
+            nextFilters.ne(ModelConstant.SLICE_ID, currentSlice.getSliceId());
         }
         FlexQuery flexQuery = new FlexQuery(fields, nextFilters).acrossTimelineData();
         flexQuery.setOrders(Orders.ofAsc(ModelConstant.EFFECTIVE_START_DATE));
@@ -445,7 +446,7 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
      * @param newEndDate the new `effectiveEndDate`
      */
     private void correctPreviousEndDate(String modelName, Serializable id, LocalDate oldEndDate, LocalDate newEndDate) {
-        Filters filters = Filters.eq(ModelConstant.ID, id).andEq(ModelConstant.EFFECTIVE_END_DATE, oldEndDate);
+        Filters filters = new Filters().eq(ModelConstant.ID, id).eq(ModelConstant.EFFECTIVE_END_DATE, oldEndDate);
         List<Serializable> pks = jdbcService.getIds(modelName, ModelConstant.SLICE_ID, new FlexQuery(filters));
         if (!pks.isEmpty()) {
             correctSliceEndDate(modelName, pks.getFirst(), newEndDate);

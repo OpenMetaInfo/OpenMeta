@@ -48,7 +48,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
      */
     private FlowConfig getFlowDefinition(Long flowId) {
         FlowConfig flowConfig = this.readOne(flowId);
-        Filters filters = Filters.eq(FlowNode::getFlowId, flowId);
+        Filters filters = new Filters().eq(FlowNode::getFlowId, flowId);
         // Sort FlowNode in ascending order according to the `sequence` of the node.
         Orders orders = Orders.ofAsc(FlowNode::getSequence);
         flowConfig.setNodeList(flowNodeService.searchList(new FlexQuery(filters, orders)));

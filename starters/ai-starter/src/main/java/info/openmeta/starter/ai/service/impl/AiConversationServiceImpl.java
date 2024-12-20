@@ -37,7 +37,7 @@ public class AiConversationServiceImpl extends EntityServiceImpl<AiConversation,
             chatMessage.setConversationId(conversationId);
         } else {
             // Check if the conversation ID exists
-            Filters filters = Filters.eq(ModelConstant.ID, chatMessage.getConversationId());
+            Filters filters = new Filters().eq(ModelConstant.ID, chatMessage.getConversationId());
             AiConversation conversation = this.searchOne(filters);
             Assert.notNull(conversation, "Conversation ID not exists: {0}", chatMessage.getConversationId());
             Assert.isTrue(Objects.equals(chatMessage.getRobotId(), conversation.getRobotId()),

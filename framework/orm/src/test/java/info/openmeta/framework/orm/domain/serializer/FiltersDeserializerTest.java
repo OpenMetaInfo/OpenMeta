@@ -19,10 +19,10 @@ class FiltersDeserializerTest {
 
     @Test
     void testSerializer() {
-        Filters filters = Filters.eq("name", "demo");
-        ModelFilters framework = new ModelFilters();
-        framework.setFilters(filters);
-        String json = JsonMapper.objectToString(framework);
+        Filters filters = new Filters().eq("name", "demo");
+        ModelFilters modelFilters = new ModelFilters();
+        modelFilters.setFilters(filters);
+        String json = JsonMapper.objectToString(modelFilters);
         log.info("json: {}", json);
         assertNotNull(json);
     }
@@ -61,8 +61,8 @@ class FiltersDeserializerTest {
     @Test
     void testDeserializerFiltersNull() {
         String json = "{\"modelName\":null,\"filters\": null}";
-        ModelFilters framework = JsonMapper.stringToObject(json, ModelFilters.class);
-        assertNull(framework.getFilters());
+        ModelFilters filters = JsonMapper.stringToObject(json, ModelFilters.class);
+        assertNull(filters.getFilters());
     }
 
     /**
@@ -72,9 +72,9 @@ class FiltersDeserializerTest {
     @Test
     void testDeserializerFiltersString() {
         String json = "{\"modelName\":null,\"filters\":\"[\\\"name\\\",\\\"=\\\",\\\"demo\\\"]\"}";
-        ModelFilters framework = JsonMapper.stringToObject(json, ModelFilters.class);
-        assertNotNull(framework.getFilters());
-        log.info(framework.getFilters().toString());
+        ModelFilters filters = JsonMapper.stringToObject(json, ModelFilters.class);
+        assertNotNull(filters.getFilters());
+        log.info(filters.getFilters().toString());
     }
 
     /**
@@ -84,8 +84,8 @@ class FiltersDeserializerTest {
     @Test
     void testDeserializerFiltersList() {
         String json = "{\"modelName\":null,\"filters\": [\"name\",\"=\",\"demo\"]}";
-        ModelFilters framework = JsonMapper.stringToObject(json, ModelFilters.class);
-        assertNotNull(framework.getFilters());
-        log.info(framework.getFilters().toString());
+        ModelFilters filters = JsonMapper.stringToObject(json, ModelFilters.class);
+        assertNotNull(filters.getFilters());
+        log.info(filters.getFilters().toString());
     }
 }

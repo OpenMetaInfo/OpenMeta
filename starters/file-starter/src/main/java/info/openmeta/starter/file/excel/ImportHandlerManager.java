@@ -213,9 +213,9 @@ public class ImportHandlerManager {
      * @return The row key map
      */
     private Map<String, Map<String, Object>> getRowKeyMapFromDB(ImportTemplateDTO importTemplateDTO, Map<String, Set<Object>> uniqueValuesMap) {
-        Filters filters = Filters.merge(uniqueValuesMap.entrySet().stream()
-                .map(e -> Filters.in(e.getKey(), e.getValue()))
-                .toArray(Filters[]::new));
+        Filters filters = Filters.and(uniqueValuesMap.entrySet().stream()
+                .map(e -> new Filters().in(e.getKey(), e.getValue()))
+                .toList());
         List<String> fields = new ArrayList<>(List.of(ModelConstant.ID));
         fields.addAll(importTemplateDTO.getUniqueConstraints());
         FlexQuery flexQuery = new FlexQuery(fields, filters);
