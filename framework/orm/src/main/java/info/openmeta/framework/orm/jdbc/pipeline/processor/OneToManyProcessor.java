@@ -141,7 +141,7 @@ public class OneToManyProcessor extends BaseProcessor {
         List<Serializable> ids = rows.stream().map(r -> (Serializable) r.get(ModelConstant.ID)).collect(Collectors.toList());
         Set<String> fields = Sets.newHashSet(ModelConstant.ID, metaField.getRelatedField());
         FlexQuery previousFlexQuery = new FlexQuery(fields, Filters.of(metaField.getRelatedField(), Operator.IN, ids));
-        List<Map<String, Object>> previousOToMRows = ReflectTool.searchMapList(metaField.getRelatedModel(), previousFlexQuery);
+        List<Map<String, Object>> previousOToMRows = ReflectTool.searchList(metaField.getRelatedModel(), previousFlexQuery);
         return previousOToMRows.stream().collect(Collectors.groupingBy(
                 row -> (Serializable) row.get(metaField.getRelatedField()),
                 Collectors.mapping(row -> (Serializable) row.get(ModelConstant.ID), Collectors.toSet())
@@ -270,7 +270,7 @@ public class OneToManyProcessor extends BaseProcessor {
         // When get the related model rows of OneToMany field, the `relatedField` field of the related model is only
         // needed to obtain the ID for GroupBy, which might be a ManyToOne field defined in the related model.
         relatedFlexQuery.setKeepIdField(metaField.getRelatedField());
-        return ReflectTool.searchMapList(metaField.getRelatedModel(), relatedFlexQuery);
+        return ReflectTool.searchList(metaField.getRelatedModel(), relatedFlexQuery);
     }
 
     /**

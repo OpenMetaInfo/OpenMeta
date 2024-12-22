@@ -53,7 +53,7 @@ public class DesignAppEnvServiceImpl extends EntityServiceImpl<DesignAppEnv, Lon
     @Override
     public List<ModelChangesDTO> getNotVersionedChanges(Long envId) {
         List<ModelChangesDTO> modelChangesDTOList = new ArrayList<>();
-        DesignAppEnv appEnv = this.readOne(envId);
+        DesignAppEnv appEnv = this.getById(envId);
         Assert.notNull(appEnv, "The specified envId does not exist! {0}", envId);
         LocalDateTime lastVersionedTime = this.getLastVersionedTime(envId);
         for (String versionedModel : MetadataConstant.BASIC_METADATA_MODELS.keySet()) {
@@ -88,8 +88,8 @@ public class DesignAppEnvServiceImpl extends EntityServiceImpl<DesignAppEnv, Lon
      * @return List of model changes DTO
      */
     public List<ModelChangesDTO> previewBetweenEnv(@RequestParam Long sourceEnvId, @RequestParam Long targetEnvId) {
-        DesignAppEnv sourceEnv = this.readOne(sourceEnvId);
-        DesignAppEnv targetEnv = this.readOne(targetEnvId);
+        DesignAppEnv sourceEnv = this.getById(sourceEnvId);
+        DesignAppEnv targetEnv = this.getById(targetEnvId);
         Assert.notNull(sourceEnv, "The specified sourceEnvId does not exist! {0}", sourceEnvId);
         Assert.notNull(targetEnv, "The specified targetEnvId does not exist! {0}", targetEnvId);
         Assert.isEqual(sourceEnv.getAppId(), targetEnv.getAppId(),
@@ -113,7 +113,7 @@ public class DesignAppEnvServiceImpl extends EntityServiceImpl<DesignAppEnv, Lon
      */
     @Transactional(rollbackFor = Exception.class)
     public void mergeBetweenEnv(@RequestParam Long sourceEnvId, @RequestParam Long targetEnvId) {
-        DesignAppEnv targetEnv = this.readOne(targetEnvId);
+        DesignAppEnv targetEnv = this.getById(targetEnvId);
         List<ModelChangesDTO> modelChanges = this.previewBetweenEnv(sourceEnvId, targetEnvId);
         Assert.notEmpty(modelChanges, "No changes found between the source env {0} and target env {1}!",
                 sourceEnvId, targetEnvId);
@@ -177,7 +177,7 @@ public class DesignAppEnvServiceImpl extends EntityServiceImpl<DesignAppEnv, Lon
                             row.remove(ModelConstant.ID);
                         })
                         .toList();
-                modelService.updateByExternalIds(versionedModel, updatedRows);
+                modelService.updateByExternalId(versionedModel, updatedRows);
             }
             if (!modelChangesDTO.getDeletedRows().isEmpty()) {
                 List<Serializable> deletedIds = modelChangesDTO.getDeletedRows().stream()

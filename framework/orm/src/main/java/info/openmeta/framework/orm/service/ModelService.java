@@ -27,14 +27,14 @@ public interface ModelService<K extends Serializable> {
     K createOne(String modelName, Map<String, Object> row);
 
     /**
-     * Create a single row, return the row map with id and other latest field values.
+     * Create a single row, fetch the row data after creation.
      *
      * @param modelName model name
      * @param row data row to be created
      * @param convertType data convert type of the return value.
-     * @return row data with id and other latest field values
+     * @return row data with latest field values
      */
-    Map<String, Object> createOneAndReturn(String modelName, Map<String, Object> row, ConvertType convertType);
+    Map<String, Object> createOneAndFetch(String modelName, Map<String, Object> row, ConvertType convertType);
 
     /**
      * Create multiple rows and return the id list.
@@ -46,91 +46,160 @@ public interface ModelService<K extends Serializable> {
     List<K> createList(String modelName, List<Map<String, Object>> rows);
 
     /**
-     * Create multiple rows, return the row list with id and other latest field values.
+     * Create multiple rows, fetch the rows after creation.
      *
      * @param modelName model name
      * @param rows data rows to be created
      * @param convertType data convert type of the return value.
      * @return row data list with id and other latest field values
      */
-    List<Map<String, Object>> createListAndReturn(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
+    List<Map<String, Object>> createListAndFetch(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
 
     /**
-     * Read the specified field value based on id.
-     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
-     *
-     * @param id data id
-     * @param field field name to read
-     * @return field value
-     */
-    <V extends Serializable> V readField(String modelName, K id, String field);
-
-    /**
-     * Read one row by id, default to read all fields.
+     * Get one row by id, default to read all fields.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
      * @return data row
      */
-    Map<String, Object> readOne(String modelName, K id);
+    Map<String, Object> getById(String modelName, K id);
 
     /**
-     * Read one row by id, default to read all fields.
+     * Get one row by id, default to read all fields.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
      * @param subQueries subQueries for relational fields
      * @return data row
      */
-    Map<String, Object> readOne(String modelName, K id, SubQueries subQueries);
+    Map<String, Object> getById(String modelName, K id, SubQueries subQueries);
 
     /**
-     * Read one row by id.
+     * Get one row by id.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
-     * @param fields field list to read
+     * @param fields field list to get value
      * @return data row
      */
-    Map<String, Object> readOne(String modelName, K id, Collection<String> fields);
+    Map<String, Object> getById(String modelName, K id, Collection<String> fields);
 
     /**
-     * Read one row by id.
+     * Get one row by id.
      * If the fields is not specified, all accessible fields as the default.
      *
      * @param id data id
-     * @param fields field list to read
+     * @param fields field list to get value
      * @param subQueries subQueries for relational fields
      * @param convertType data convert type of the return value.
      * @return data row
      */
-    Map<String, Object> readOne(String modelName, K id, Collection<String> fields,
+    Map<String, Object> getById(String modelName, K id, Collection<String> fields,
                                 SubQueries subQueries, ConvertType convertType);
 
     /**
-     * Read multiple rows by ids.
+     * Get multiple rows by ids.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param ids List of data ids
-     * @param fields Field list to read
+     * @param fields Field list to get value
      * @return List<Map> of multiple data
      */
-    List<Map<String, Object>> readList(String modelName, List<K> ids, Collection<String> fields);
+    List<Map<String, Object>> getByIds(String modelName, List<K> ids, Collection<String> fields);
 
     /**
-     * Read multiple rows by ids.
+     * Get multiple rows by ids.
      * If the fields is not specified, all accessible fields as the default.
      *
      * @param ids List of data ids
-     * @param fields Field list to read
+     * @param fields Field list to get value
      * @param subQueries subQueries for relational fields
      * @param convertType data convert type of the return value.
      * @return List<Map> of multiple data
      */
-    List<Map<String, Object>> readList(String modelName, @NotNull List<K> ids, Collection<String> fields,
+    List<Map<String, Object>> getByIds(String modelName, @NotNull List<K> ids, Collection<String> fields,
                                        SubQueries subQueries, ConvertType convertType);
+
+    /**
+     * Get the copyable fields value by ID, no data inserted.
+     *
+     * @param modelName model name
+     * @param id source data id
+     * @return map of copyable field values
+     */
+    Map<String, Object> getCopyableFields(String modelName, K id);
+
+    /**
+     * Get the `displayNames` of the specified ids, returning map of {id: displayName}.
+     * If the `displayFields` is not specified, use the `displayName` configuration of the model.
+     *
+     * @param modelName model name
+     * @param ids id list
+     * @param displayFields specified display field list.
+     * @return displayNames Map
+     */
+    Map<K, String> getDisplayNames(String modelName, List<K> ids, List<String> displayFields);
+
+    /**
+     * Get the distinct field value list based on the filters.
+     *
+     * @param modelName model name
+     * @param field field name to read and distinct
+     * @param filters filters
+     * @return distinct field value list
+     */
+    List<Object> getDistinctFieldValue(String modelName, String field, Filters filters);
+
+    /**
+     * Get the specified field value based on id.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param field field name to get value
+     * @return field value
+     */
+    <V extends Serializable> V getFieldValue(String modelName, K id, String field);
+
+    /**
+     * Get the ids based on the filters.
+     *
+     * @param modelName model name
+     * @param filters filter conditions
+     * @return ids list
+     */
+    List<K> getIds(String modelName, Filters filters);
+
+    /**
+     * Get the ids for ManyToOne/OneToOne relational field.
+     *
+     * @param modelName model name
+     * @param filters filters
+     * @param fieldName relational field name
+     * @return distinct ids for relational field
+     */
+    <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName);
+
+    /**
+     * Get the unmasked field value based on the id and field name.
+     *
+     * @param modelName model name
+     * @param id data id
+     * @param fieldName masking field name
+     * @return unmasked field value
+     */
+    String getUnmaskedField(String modelName, K id, String fieldName);
+
+    /**
+     * Get multiple unmasked field values based on the id and field names.
+     *
+     * @param modelName model name
+     * @param id data id
+     * @param fields masking field names
+     * @return unmasked field values map, fieldName -> fieldValue
+     */
+    Map<String, Object> getUnmaskedFields(String modelName, K id, List<String> fields);
 
     /**
      * Update one row by id.
@@ -141,14 +210,14 @@ public interface ModelService<K extends Serializable> {
     boolean updateOne(String modelName, Map<String, Object> row);
 
     /**
-     * Update one row by id, and return the updated row fetched from the database, with the latest field values.
+     * Update one row by id, and fetch the updated row from database.
      *
      * @param modelName model name
      * @param row data row to be updated
      * @param convertType data convert type of the return value.
      * @return map of updated row data with the latest field values
      */
-    Map<String, Object> updateOneAndReturn(String modelName, Map<String, Object> row, ConvertType convertType);
+    Map<String, Object> updateOneAndFetch(String modelName, Map<String, Object> row, ConvertType convertType);
 
     /**
      * Update multiple rows by id. Each row in the list can have different fields.
@@ -160,14 +229,14 @@ public interface ModelService<K extends Serializable> {
 
     /**
      * Update multiple rows by ids. Each row in the list can have different fields.
-     * And return the updated rows fetched from the database, with the latest field values.
+     * And fetch the updated rows fetched from the database, with the latest field values.
      *
      * @param modelName model name
      * @param rows data rows to be updated
      * @param convertType data convert type of the return value.
      * @return updated rows with the latest field values
      */
-    List<Map<String, Object>> updateListAndReturn(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
+    List<Map<String, Object>> updateListAndFetch(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
 
     /**
      * Update multiple rows by externalIds. Each row in the list can have different fields.
@@ -175,7 +244,7 @@ public interface ModelService<K extends Serializable> {
      * @param rows data rows to be updated
      * @return true / Exception
      */
-    boolean updateByExternalIds(String modelName, List<Map<String, Object>> rows);
+    boolean updateByExternalId(String modelName, List<Map<String, Object>> rows);
 
     /**
      * Batch edit data based on the filters, according to the specified field values map.
@@ -193,7 +262,7 @@ public interface ModelService<K extends Serializable> {
      * @param id data id
      * @return true / Exception
      */
-    boolean deleteOne(String modelName, K id);
+    boolean deleteById(String modelName, K id);
 
     /**
      * Delete a slice of timeline model by `sliceId`, the primary key of timeline model.
@@ -202,7 +271,7 @@ public interface ModelService<K extends Serializable> {
      * @param sliceId data id
      * @return true / Exception
      */
-    boolean deleteSlice(String modelName, Long sliceId);
+    boolean deleteBySliceId(String modelName, Long sliceId);
 
     /**
      * Delete multiple rows by ids.
@@ -210,7 +279,7 @@ public interface ModelService<K extends Serializable> {
      * @param ids data ids
      * @return true / Exception
      */
-    boolean deleteList(String modelName, List<K> ids);
+    boolean deleteByIds(String modelName, List<K> ids);
 
     /**
      * Delete multiple rows by externalIds.
@@ -237,10 +306,10 @@ public interface ModelService<K extends Serializable> {
      * @param id source data id
      * @return id of the new data
      */
-    K copyOne(String modelName, K id);
+    K copyById(String modelName, K id);
 
     /**
-     * Copy a single row based on id, and return the new row.
+     * Copy a single row based on id, and fetch the new row.
      * Currently, read and create permissions are checked separately
      *
      * @param modelName model name
@@ -248,7 +317,7 @@ public interface ModelService<K extends Serializable> {
      * @param convertType data convert type of the return value.
      * @return new row data
      */
-    Map<String, Object> copyOneAndReturn(String modelName, K id, ConvertType convertType);
+    Map<String, Object> copyByIdAndFetch(String modelName, K id, ConvertType convertType);
 
     /**
      * Copy multiple rows based on ids, and return the ids of the new rows.
@@ -258,10 +327,10 @@ public interface ModelService<K extends Serializable> {
      * @param ids source data ids
      * @return ids of the new data
      */
-    List<K> copyList(String modelName, List<K> ids);
+    List<K> copyByIds(String modelName, List<K> ids);
 
     /**
-     * Copy multiple rows based on ids, and return the new rows.
+     * Copy multiple rows based on ids, and fetch the new rows.
      * Currently, read and create permissions are checked separately
      *
      * @param modelName model name
@@ -269,16 +338,7 @@ public interface ModelService<K extends Serializable> {
      * @param convertType data convert type of the return value.
      * @return new row data list
      */
-    List<Map<String, Object>> copyListAndReturn(String modelName, List<K> ids, ConvertType convertType);
-
-    /**
-     * Copy a single row based on id, only return the copyable field values, without creating a new row.
-     *
-     * @param modelName model name
-     * @param id source data id
-     * @return map of copyable field values
-     */
-    Map<String, Object> copyWithoutCreate(String modelName, K id);
+    List<Map<String, Object>> copyByIdsAndFetch(String modelName, List<K> ids, ConvertType convertType);
 
     /**
      * Query single row data based on filters. Only for code use.
@@ -370,25 +430,6 @@ public interface ModelService<K extends Serializable> {
     boolean exist(String modelName, K id);
 
     /**
-     * Get the ids based on the filters.
-     *
-     * @param modelName model name
-     * @param filters filter conditions
-     * @return ids list
-     */
-    List<K> getIds(String modelName, Filters filters);
-
-    /**
-     * Get the ids for ManyToOne/OneToOne relational field.
-     *
-     * @param modelName model name
-     * @param filters filters
-     * @param fieldName relational field name
-     * @return distinct ids for relational field
-     */
-    <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName);
-
-    /**
      * Filter the set that exist in the database from ids, without permission check.
      *
      * @param modelName Model name
@@ -396,45 +437,4 @@ public interface ModelService<K extends Serializable> {
      * @return ids that exist in the database
      */
     List<K> filterExistIds(String modelName, Collection<K> ids);
-
-    /**
-     * Get the `displayNames` of the specified ids, returning map of {id: displayName}.
-     * If the `displayFields` is not specified, use the `displayName` configuration of the model.
-     *
-     * @param modelName model name
-     * @param ids id list
-     * @param displayFields specified display field list.
-     * @return displayNames Map
-     */
-    Map<K, String> getDisplayNames(String modelName, List<K> ids, List<String> displayFields);
-
-    /**
-     * Get the distinct field value list based on the filters.
-     *
-     * @param modelName model name
-     * @param field field name to read and distinct
-     * @param filters filters
-     * @return distinct field value list
-     */
-    List<Object> getDistinctFieldValue(String modelName, String field, Filters filters);
-
-    /**
-     * Get the unmasked field value based on the id and field name.
-     *
-     * @param modelName model name
-     * @param id data id
-     * @param fieldName masking field name
-     * @return unmasked field value
-     */
-    String getUnmaskedField(String modelName, K id, String fieldName);
-
-    /**
-     * Get multiple unmasked field values based on the id and field names.
-     *
-     * @param modelName model name
-     * @param id data id
-     * @param fields masking field names
-     * @return unmasked field values map, fieldName -> fieldValue
-     */
-    Map<String, Object> getUnmaskedFields(String modelName, K id, List<String> fields);
 }

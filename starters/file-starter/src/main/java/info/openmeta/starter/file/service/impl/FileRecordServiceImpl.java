@@ -237,7 +237,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public InputStream downloadStream(Long fileId) {
-        FileRecord fileRecord = this.readOne(fileId);
+        FileRecord fileRecord = this.getById(fileId);
         Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
         return ossClientService.downloadStreamFromOSS(fileRecord.getOssKey(), fileRecord.getFileName());
     }
@@ -251,7 +251,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileInfo getFileInfo(Long fileId) {
-        FileRecord fileRecord = this.readOne(fileId);
+        FileRecord fileRecord = this.getById(fileId);
         Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
         return convertToFileInfo(fileRecord);
     }
@@ -279,7 +279,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public String getDownloadUrl(Long fileId) {
-        FileRecord fileRecord = this.readOne(fileId);
+        FileRecord fileRecord = this.getById(fileId);
         Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
         return ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
     }

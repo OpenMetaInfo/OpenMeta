@@ -14,7 +14,7 @@ import java.util.Set;
 @AllArgsConstructor
 public enum ActionGetDataType {
 
-    // Read multiple rows of data, support sorting, but do not allow to exceed the maximum batch limit
+    // Get multiple rows of data, support sorting, but do not allow to exceed the maximum batch limit
     MULTI_ROWS("MultiRows", "Multi Rows"),
     // Read a single row of data, support sorting, but the limit is 1
     SINGLE_ROW("SingleRow", "Single Row"),

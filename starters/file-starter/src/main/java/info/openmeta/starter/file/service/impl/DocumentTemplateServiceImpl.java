@@ -58,9 +58,9 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
      */
     @Override
     public FileInfo generateDocument(Long templateId, Serializable rowId) {
-        DocumentTemplate template = this.readOne(templateId);
+        DocumentTemplate template = this.getById(templateId);
         this.validateTemplate(template);
-        Map<String, Object> data = modelService.readOne(template.getModelName(), rowId);
+        Map<String, Object> data = modelService.getById(template.getModelName(), rowId);
         return generateDocument(templateId, data);
     }
 
@@ -74,7 +74,7 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
      */
     @Override
     public FileInfo generateDocument(Long templateId, Object data) {
-        DocumentTemplate template = this.readOne(templateId);
+        DocumentTemplate template = this.getById(templateId);
         this.validateTemplate(template);
         return generateDocumentByTemplate(template, data);
     }

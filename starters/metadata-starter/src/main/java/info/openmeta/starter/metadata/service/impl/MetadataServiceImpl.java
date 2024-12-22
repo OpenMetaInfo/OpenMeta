@@ -85,7 +85,7 @@ public class MetadataServiceImpl implements MetadataService {
     private void deleteById(String modelName, List<Serializable> ids) {
         if (!CollectionUtils.isEmpty(ids)) {
             this.validateBatchSize(ids.size());
-            modelService.deleteList(modelName, ids);
+            modelService.deleteByIds(modelName, ids);
         }
     }
 
