@@ -23,7 +23,6 @@ public class BaseException extends RuntimeException {
      */
     public BaseException(String message, Object... args) {
         super(message);
-        message = I18n.get(message, args);
         if (args == null || args.length == 0) {
             message = I18n.get(message);
         } else if (args[args.length - 1] instanceof Throwable) {

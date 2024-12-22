@@ -158,7 +158,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     private List<Map<String, Object>> getRowsWithoutPermissionCheck(String modelName, List<K> ids, List<String> fields, ConvertType convertType) {
         if (ModelManager.isTimelineModel(modelName)) {
             // Append timeline filters
-            Filters filters = timelineService.appendTimelineFilters(modelName, Filters.in(ModelConstant.ID, ids));
+            Filters filters = timelineService.appendTimelineFilters(modelName, new Filters().in(ModelConstant.ID, ids));
             FlexQuery flexQuery = new FlexQuery(fields, filters);
             flexQuery.setConvertType(convertType);
             return jdbcService.selectByFilter(modelName, flexQuery);
@@ -341,7 +341,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         List<Serializable> pks = rows.stream().map(row -> (Serializable) row.get(pk)).collect(Collectors.toList());
         Integer updateCount;
         if (ModelManager.isTimelineModel(modelName)) {
-            FlexQuery flexQuery = new FlexQuery(Arrays.asList(ModelConstant.ID, ModelConstant.SLICE_ID), Filters.in(ModelConstant.SLICE_ID, pks));
+            FlexQuery flexQuery = new FlexQuery(Arrays.asList(ModelConstant.ID, ModelConstant.SLICE_ID), new Filters().in(ModelConstant.SLICE_ID, pks));
             List<Map<String, Object>> sliceList = jdbcService.selectByFilter(modelName, flexQuery);
             Map<Serializable, Serializable> sliceMap = sliceList.stream().collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.SLICE_ID), row -> (Serializable) row.get(ModelConstant.ID)));
             // Fill timeline model business primary key `id`. The input id parameter is not reliable.
@@ -786,7 +786,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     private Map<Serializable, K> getIdsByExternalId(String modelName, List<Serializable> externalIds) {
         List<String> fields = Arrays.asList(ModelConstant.ID, ModelConstant.EXTERNAL_ID);
-        Filters filters = Filters.in(ModelConstant.EXTERNAL_ID, externalIds);
+        Filters filters = new Filters().in(ModelConstant.EXTERNAL_ID, externalIds);
         FlexQuery flexQuery = new FlexQuery(fields, filters);
         List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
         return rows.stream().collect(Collectors.toMap(
@@ -825,7 +825,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public List<K> filterExistIds(String modelName, Collection<K> ids) {
-        FlexQuery flexQuery = new FlexQuery(Filters.in(ModelConstant.ID, ids));
+        FlexQuery flexQuery = new FlexQuery(new Filters().in(ModelConstant.ID, ids));
         return jdbcService.getIds(modelName, ModelConstant.ID, flexQuery);
     }
 

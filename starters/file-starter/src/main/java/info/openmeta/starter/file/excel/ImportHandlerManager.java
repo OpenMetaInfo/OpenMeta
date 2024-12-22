@@ -91,13 +91,13 @@ public class ImportHandlerManager {
     private void executeCustomHandler(String handlerName, ImportDataDTO importDataDTO) {
         if (StringUtils.hasText(handlerName)) {
             if (!StringTools.isBeanName(handlerName)) {
-                throw new IllegalArgumentException("The name of custom handler `{0}` is invalid.", handlerName);
+                throw new IllegalArgumentException("The name of custom import handler `{0}` is invalid.", handlerName);
             }
             try {
                 CustomImportHandler handler = SpringContextUtils.getBean(handlerName, CustomImportHandler.class);
                 handler.handleImportData(importDataDTO.getRows(), importDataDTO.getEnv());
             } catch (NoSuchBeanDefinitionException e) {
-                throw new IllegalArgumentException("The custom handler `{0}` is not found.", handlerName);
+                throw new IllegalArgumentException("The custom import handler `{0}` is not found.", handlerName);
             }
         }
     }
@@ -213,9 +213,9 @@ public class ImportHandlerManager {
      * @return The row key map
      */
     private Map<String, Map<String, Object>> getRowKeyMapFromDB(ImportTemplateDTO importTemplateDTO, Map<String, Set<Object>> uniqueValuesMap) {
-        Filters filters = Filters.merge(uniqueValuesMap.entrySet().stream()
-                .map(e -> Filters.in(e.getKey(), e.getValue()))
-                .toArray(Filters[]::new));
+        Filters filters = Filters.and(uniqueValuesMap.entrySet().stream()
+                .map(e -> new Filters().in(e.getKey(), e.getValue()))
+                .toList());
         List<String> fields = new ArrayList<>(List.of(ModelConstant.ID));
         fields.addAll(importTemplateDTO.getUniqueConstraints());
         FlexQuery flexQuery = new FlexQuery(fields, filters);

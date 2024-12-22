@@ -260,9 +260,9 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
                     })
                     .toList();
             // Delete Many side data, but retain those that appear in the predefined data file.
-            Filters deleteFilters = Filters.eq(oneToManyMetaField.getRelatedField(), mainId);
+            Filters deleteFilters = new Filters().eq(oneToManyMetaField.getRelatedField(), mainId);
             if (!manyIds.isEmpty()) {
-                deleteFilters.andNotIn(ID, manyIds);
+                deleteFilters.notIn(ID, manyIds);
             }
             modelService.deleteByFilters(oneToManyMetaField.getRelatedModel(), deleteFilters);
         });
@@ -318,7 +318,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
         Assert.isTrue(row.containsKey(ID), "Predefined data for model {0} must include the preID: {1}", model, row);
         Object preId = row.get(ID);
         Assert.isTrue(preId instanceof String, "Model {0} predefined data's preId must be of type String: {1}", model, preId);
-        Filters filters = Filters.eq(SysPreData::getModel, model).andEq(SysPreData::getPreId, preId);
+        Filters filters = new Filters().eq(SysPreData::getModel, model).eq(SysPreData::getPreId, preId);
         return this.searchOne(new FlexQuery(filters));
     }
 
@@ -361,7 +361,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * @return Model row ID
      */
     private Serializable getOriginalRowIdByPreId(String model, String preId) {
-        Filters filters = Filters.eq(SysPreData::getModel, model).andEq(SysPreData::getPreId, preId);
+        Filters filters = new Filters().eq(SysPreData::getModel, model).eq(SysPreData::getPreId, preId);
         String rowIdField = LambdaUtils.getAttributeName(SysPreData::getRowId);
         List<Serializable> rowIds = this.getRelatedIds(filters, rowIdField);
         Assert.notEmpty(rowIds, "The preID of the predefined data for model {0}: {1} does not exist " +
@@ -376,7 +376,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
      * @return List of model row IDs
      */
     private List<Serializable> getOriginalRowIdsByPreIds(String model, List<String> preIds) {
-        Filters filters = Filters.eq(SysPreData::getModel, model).andIn(SysPreData::getPreId, preIds);
+        Filters filters = new Filters().eq(SysPreData::getModel, model).in(SysPreData::getPreId, preIds);
         String rowIdField = LambdaUtils.getAttributeName(SysPreData::getRowId);
         List<Serializable> rowIds = this.getRelatedIds(filters, rowIdField);
         Assert.notEmpty(rowIds, "The preIDs of the predefined data for model {0}: {1} do not exist " +

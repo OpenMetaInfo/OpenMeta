@@ -77,4 +77,16 @@ public interface ModelConstant {
             .addAll(VIRTUAL_FIELDS)
             .addAll(TIMELINE_FIELDS)
             .build();
+
+    /** System model names */
+    Set<String> SYSTEM_MODEL = ImmutableSet.<String>builder()
+            .add("SysModel")
+            .add("SysModelTrans")
+            .add("SysField")
+            .add("SysFieldTrans")
+            .add("SysOptionSet")
+            .add("SysOptionSetTrans")
+            .add("SysOptionItem")
+            .add("SysOptionItemTrans")
+            .build();
 }

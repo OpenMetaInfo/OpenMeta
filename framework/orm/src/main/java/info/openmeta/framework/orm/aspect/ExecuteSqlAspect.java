@@ -35,6 +35,7 @@ public class ExecuteSqlAspect {
         if (ContextHolder.getContext().isDebug()) {
             // Get method arguments
             Object[] methodArgs = joinPoint.getArgs();
+            Assert.isTrue(methodArgs.length > 1, "Missing JDBC parameters!");
             StringBuilder sb = this.logSql(methodArgs);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -58,14 +59,13 @@ public class ExecuteSqlAspect {
      * @return SQL log string
      */
     private StringBuilder logSql(Object[] methodArgs) {
-        Assert.isTrue(methodArgs.length > 0, "Missing JDBC parameters!");
         StringBuilder sb = new StringBuilder("\n");
         if (enableMultiDataSource) {
             sb.append(DataSourceConfig.getCurrentDataSourceKey()).append(" in multi-datasource. ");
         }
-        if (methodArgs[0] instanceof SqlParams sqlParams) {
+        if (methodArgs[1] instanceof SqlParams sqlParams) {
             sb.append("SQL: \n").append(sqlParams.toLogString());
-            if (methodArgs.length > 1 && methodArgs[1] instanceof List && !((List<?>) methodArgs[1]).isEmpty()) {
+            if (methodArgs.length > 2 && methodArgs[2] instanceof List && !((List<?>) methodArgs[2]).isEmpty()) {
                 appendBatchParams(sb, methodArgs);
             }
         }
@@ -79,7 +79,7 @@ public class ExecuteSqlAspect {
      * @param methodArgs Method arguments
      */
     private void appendBatchParams(StringBuilder sb, Object[] methodArgs) {
-        List<Object[]> batchArgs = Cast.of(methodArgs[1]);
+        List<Object[]> batchArgs = Cast.of(methodArgs[2]);
         sb.append("\nBatch Params: \n");
         if (batchArgs.size() > LOG_BATCH_NUMBER) {
             batchArgs.subList(0, LOG_BATCH_NUMBER).forEach(row -> sb.append(Arrays.toString(row)).append("\n"));

@@ -40,7 +40,6 @@ class CodeGeneratorTest {
     @Test
     void generateService() {
         String code = CodeGenerator.generate("Service.ftl", mockModel());
-        log.info("\n{}", code);
         assertNotNull(code);
     }
 
@@ -50,7 +49,6 @@ class CodeGeneratorTest {
         List<Map<String, Object>> modelFields = IntStream.range(0, 5).mapToObj(i -> mockField()).collect(Collectors.toList());
         modelData.put("modelFields", modelFields);
         String code = CodeGenerator.generate("Entity.ftl", modelData);
-        log.info("\n{}", code);
         assertNotNull(code);
     }
 }

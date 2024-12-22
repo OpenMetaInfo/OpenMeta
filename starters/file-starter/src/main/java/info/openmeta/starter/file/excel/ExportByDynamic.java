@@ -6,22 +6,19 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.starter.file.dto.ExcelDataDTO;
 import info.openmeta.starter.file.dto.SheetInfo;
-import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +53,13 @@ public class ExportByDynamic extends CommonExport {
         String modelLabel = ModelManager.getModel(modelName).getLabelName();
         fileName = StringUtils.hasText(fileName) ? fileName : modelLabel;
         sheetName = StringUtils.hasText(sheetName) ? sheetName : fileName;
-        FileInfo fileInfo = this.generateFileAndUpload(modelName, fileName, sheetName, headers, rowsTable);
+        // Excel data DTO
+        ExcelDataDTO excelDataDTO = new ExcelDataDTO();
+        excelDataDTO.setFileName(fileName);
+        excelDataDTO.setSheetName(sheetName);
+        excelDataDTO.setHeaders(headers);
+        excelDataDTO.setRowsTable(rowsTable);
+        FileInfo fileInfo = this.generateFileAndUpload(modelName, excelDataDTO);
         // Generate an export history record
         this.generateExportHistory(null, fileInfo.getFileId());
         return fileInfo;
@@ -88,16 +91,9 @@ public class ExportByDynamic extends CommonExport {
                 excelWriter.write(rowsTable, writeSheet);
             }
             excelWriter.finish();
-            // Convert ByteArrayOutputStream to InputStream for return and upload
-            InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            // Construct the uploadFileDTO
-            UploadFileDTO uploadFileDTO = new UploadFileDTO();
-            uploadFileDTO.setModelName(StringConstant.EMPTY_STRING);
-            uploadFileDTO.setFileName(fileName);
-            uploadFileDTO.setFileType(FileType.XLSX);
-            uploadFileDTO.setFileSize(outputStream.size());
-            uploadFileDTO.setInputStream(resultStream);
-            fileInfo = fileRecordService.uploadFileToDownload(uploadFileDTO);
+            // upload the Excel bytes to the file storage
+            byte[] excelBytes = outputStream.toByteArray();
+            fileInfo = fileRecordService.uploadExcelBytesToDownload(StringConstant.EMPTY_STRING, fileName, excelBytes);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel {0} with the provided data.", fileName, e);
         }
@@ -116,7 +112,7 @@ public class ExportByDynamic extends CommonExport {
      */
     private List<List<Object>> extractDataTableFromDB(String modelName, FlexQuery flexQuery, List<String> headers) {
         // Get the data to be exported
-        List<Map<String, Object>> rows = this.getExportedData(modelName, flexQuery);
+        List<Map<String, Object>> rows = this.getExportedRows(modelName, null, flexQuery);
         // Construct the headers order by sequence of the fields
         List<String> fieldNames = flexQuery.getFields();
         fieldNames.forEach(fieldName -> {

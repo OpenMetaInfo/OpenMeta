@@ -22,8 +22,8 @@ public class OracleDialect implements DialectInterface {
         OPERATOR_MAP.put(Operator.LESS_THAN, "<");
         OPERATOR_MAP.put(Operator.LESS_THAN_OR_EQUAL, "<=");
         // `LIKE` in Oracle is case-sensitive
-        OPERATOR_MAP.put(Operator.HAS, "LIKE");
-        OPERATOR_MAP.put(Operator.NOT_HAS, "NOT LIKE");
+        OPERATOR_MAP.put(Operator.CONTAINS, "LIKE");
+        OPERATOR_MAP.put(Operator.NOT_CONTAINS, "NOT LIKE");
         OPERATOR_MAP.put(Operator.START_WITH, "LIKE");
         OPERATOR_MAP.put(Operator.NOT_START_WITH, "NOT LIKE");
         OPERATOR_MAP.put(Operator.IN, "IN");

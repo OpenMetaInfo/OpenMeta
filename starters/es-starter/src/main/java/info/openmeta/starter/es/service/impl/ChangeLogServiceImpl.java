@@ -97,7 +97,7 @@ public class ChangeLogServiceImpl extends ESServiceImpl<ChangeLog> implements Ch
      */
     public Page<ChangeLog> searchPageByModel(String model, FlexQuery flexQuery, Page<ChangeLog> page, boolean trackTotal) {
         // TODO: Check if current user has access to the model, and append filters of the permission conditions
-        Filters filters = Filters.merge(flexQuery.getFilters(), Filters.eq(ChangeLog::getModel, model));
+        Filters filters = Filters.and(flexQuery.getFilters(), new Filters().eq(ChangeLog::getModel, model));
         Orders orders = flexQuery.getOrders();
         this.searchPage(filters, orders, page, trackTotal);
         ConvertType convertType = flexQuery.getConvertType();
@@ -122,10 +122,10 @@ public class ChangeLogServiceImpl extends ESServiceImpl<ChangeLog> implements Ch
         // Default sort by changedTime in reverse order
         Orders orders = Orders.DESC.equals(order) ? Orders.ofDesc(ChangeLog::getChangedTime) : Orders.ofAsc(ChangeLog::getChangedTime);
         // Query the change log of the specified filters and rowId
-        Filters filters = Filters.eq(ChangeLog::getModel, model).andEq(ChangeLog::getRowId, pKey);
+        Filters filters = new Filters().eq(ChangeLog::getModel, model).eq(ChangeLog::getRowId, pKey);
         if (!includeCreation) {
             // When not including the initial creation record, only match UPDATE and DELETE records
-            filters.andIn(ChangeLog::getAccessType, Arrays.asList(UPDATE, DELETE));
+            filters.in(ChangeLog::getAccessType, Arrays.asList(UPDATE, DELETE));
         }
         return this.searchPage(filters, orders, page, false);
     }

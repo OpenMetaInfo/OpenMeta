@@ -72,7 +72,7 @@ public class DesignAppEnvServiceImpl extends EntityServiceImpl<DesignAppEnv, Lon
      * @return Last versioned time
      */
     private LocalDateTime getLastVersionedTime(Long envId) {
-        Filters filters = Filters.eq(DesignAppVersion::getEnvId, envId);
+        Filters filters = new Filters().eq(DesignAppVersion::getEnvId, envId);
         Orders orders = Orders.ofDesc(DesignAppVersion::getCreatedTime);
         FlexQuery flexQuery = new FlexQuery(filters, orders);
         flexQuery.setLimitSize(1);
@@ -138,8 +138,8 @@ public class DesignAppEnvServiceImpl extends EntityServiceImpl<DesignAppEnv, Lon
      * @return Last merge time
      */
     private LocalDateTime getLastMergeTime(Long sourceEnvId, Long targetEnvId) {
-        Filters filters = Filters.eq(DesignAppEnvMerge::getSourceEnvId, sourceEnvId)
-                .andEq(DesignAppEnvMerge::getTargetEnvId, targetEnvId);
+        Filters filters = new Filters().eq(DesignAppEnvMerge::getSourceEnvId, sourceEnvId)
+                .eq(DesignAppEnvMerge::getTargetEnvId, targetEnvId);
         Orders orders = Orders.ofDesc(DesignAppEnvMerge::getCreatedTime);
         FlexQuery flexQuery = new FlexQuery(filters, orders);
         flexQuery.setLimitSize(1);

@@ -63,9 +63,6 @@ public class SysModel extends BaseModel {
     @Schema(description = "Enable Multi-tenancy")
     private Boolean multiTenant;
 
-    @Schema(description = "Is System Model")
-    private Boolean systemModel;
-
     @Schema(description = "Data Source")
     private String dataSource;
 

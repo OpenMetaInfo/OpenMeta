@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class TestEntity {
-    private String name;
+public class TestJobEntity {
+    private String title;
     private Integer value;
 }

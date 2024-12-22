@@ -35,7 +35,7 @@ public class ImportTemplateController extends EntityController<ImportTemplateSer
     @Operation(summary="listByModel", description = "List all import templates of the specified model")
     @PostMapping(value = "/listByModel")
     public ApiResponse<List<ImportTemplate>> listByModel(@RequestParam String modelName) {
-        Filters filters = Filters.eq(ExportTemplate::getModelName, modelName);
+        Filters filters = new Filters().eq(ExportTemplate::getModelName, modelName);
         List<ImportTemplate> templates = service.searchList(filters);
         return ApiResponse.success(templates);
     }

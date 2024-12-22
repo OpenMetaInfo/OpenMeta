@@ -283,7 +283,7 @@ public class ModelManager {
      */
     private static void validateModelDataSource(MetaModel metaModel) {
         String dataSource = metaModel.getDataSource();
-        if (metaModel.isSystemModel() && StringUtils.isNotBlank(dataSource)) {
+        if (ModelConstant.SYSTEM_MODEL.contains(metaModel.getModelName()) && StringUtils.isNotBlank(dataSource)) {
             throw new IllegalArgumentException("The system model {0} cannot be configured with a dataSource {1}!",
                     metaModel.getModelName(), dataSource);
         }

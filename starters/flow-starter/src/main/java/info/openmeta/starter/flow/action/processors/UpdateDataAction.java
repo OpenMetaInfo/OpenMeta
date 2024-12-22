@@ -83,21 +83,21 @@ public class UpdateDataAction implements ActionProcessor<UpdateDataParams> {
     @Override
     public void execute(FlowAction flowAction, UpdateDataParams actionParams, ActionContext actionContext) {
         String pkVariable = actionParams.getPkVariable();
-        Filters updateFilters = null;
+        Filters updateFilters = new Filters();
         if (StringTools.isVariable(pkVariable)) {
             // String variable parameter `#{}`: retrieve ids from the actionContext
             Collection<?> ids = FlowUtils.getIdsFromPkVariable(flowAction, pkVariable, actionContext);
             if (CollectionUtils.isEmpty(ids)) {
                 return;
             }
-            updateFilters = Filters.in(ID, ids);
+            updateFilters.in(ID, ids);
         }
         // Merge primary key list with filters to form the final delete conditions
         if (!Filters.isEmpty(actionParams.getFilters())) {
             // Convert variables and calculation formulas in filters
             Filters clonedFilters = actionParams.getFilters().deepCopy();
             FlowUtils.resolveFilterValue(actionParams.getModelName(), clonedFilters, actionContext);
-            updateFilters = Filters.merge(updateFilters, clonedFilters);
+            updateFilters.and(clonedFilters);
         }
         if (Filters.isEmpty(updateFilters)) {
             return;

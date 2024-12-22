@@ -19,6 +19,14 @@ import java.util.stream.Collectors;
 public abstract class ListUtils {
 
     /**
+     * Convert object array to a mutable list.
+     */
+    @SafeVarargs
+    public static <T> List<T> of(T... objects) {
+        return new ArrayList<>(Arrays.asList(objects));
+    }
+
+    /**
      * Get field names list by lambda expression parameters
      *
      * @param lambdaFields field lambda expressions

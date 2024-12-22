@@ -1,7 +1,6 @@
 package info.openmeta.starter.metadata.service.impl;
 
 import info.openmeta.framework.base.context.ContextHolder;
-import info.openmeta.framework.base.enums.Operator;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
@@ -33,7 +32,8 @@ public class SysViewServiceImpl extends EntityServiceImpl<SysView, Long> impleme
     @Override
     public boolean setDefaultView(String modelName, Long viewId) {
         Long currentUserId = ContextHolder.getContext().getUserId();
-        Filters personalFilters = Filters.of(SysViewDefault::getModelName, Operator.EQUAL, modelName).and(SysViewDefault::getCreatedId, Operator.EQUAL, currentUserId);
+        Filters personalFilters = new Filters().eq(SysViewDefault::getModelName, modelName)
+                .eq(SysViewDefault::getCreatedId, currentUserId);
         SysViewDefault defaultView = viewDefaultService.searchOne(new FlexQuery(personalFilters));
         if (defaultView != null) {
             defaultView.setViewId(viewId);
@@ -57,14 +57,14 @@ public class SysViewServiceImpl extends EntityServiceImpl<SysView, Long> impleme
         Long currentUserId = ContextHolder.getContext().getUserId();
         // Public views first, personal views second, and sorted by sequence. Search filters:
         // model_name={modelName} and (public_view=true or created_id={currentUserId}) ORDER BY public_view DESC, sequence
-        Filters viewFilters = Filters.of(SysView::getModelName, Operator.EQUAL, modelName)
-                .and(Filters.of(SysView::getPublicView, Operator.EQUAL, true)
-                        .or(SysView::getCreatedId, Operator.EQUAL, currentUserId));
+        Filters viewFilters = new Filters().eq(SysView::getModelName, modelName)
+                .and(Filters.or().eq(SysView::getPublicView, true)
+                        .eq(SysView::getCreatedId, currentUserId));
         Orders orders = Orders.ofDesc(SysView::getPublicView).addAsc(SysView::getSequence);
         List<SysView> views = this.searchList(new FlexQuery(viewFilters, orders));
         // Get the default views of current user
-        Filters personalFilters = Filters.of(SysViewDefault::getModelName, Operator.EQUAL, modelName)
-                .and(SysViewDefault::getCreatedId, Operator.EQUAL, currentUserId);
+        Filters personalFilters = new Filters().eq(SysViewDefault::getModelName, modelName)
+                .eq(SysViewDefault::getCreatedId, currentUserId);
         SysViewDefault defaultView = viewDefaultService.searchOne(new FlexQuery(personalFilters));
         if (defaultView != null) {
             views.forEach(v -> v.setDefaultView(v.getId().equals(defaultView.getViewId())));

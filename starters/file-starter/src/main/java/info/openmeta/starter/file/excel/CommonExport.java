@@ -7,22 +7,33 @@ import com.alibaba.excel.write.handler.CellWriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.BusinessException;
+import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.utils.SpringContextUtils;
+import info.openmeta.framework.base.utils.StringTools;
+import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
+import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.domain.Page;
-import info.openmeta.framework.orm.enums.FileType;
+import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
+import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
-import info.openmeta.starter.file.dto.UploadFileDTO;
+import info.openmeta.starter.file.dto.ExcelDataDTO;
 import info.openmeta.starter.file.entity.ExportHistory;
+import info.openmeta.starter.file.entity.ExportTemplate;
+import info.openmeta.starter.file.entity.ExportTemplateField;
+import info.openmeta.starter.file.excel.handler.CustomExportHandler;
 import info.openmeta.starter.file.service.ExportHistoryService;
+import info.openmeta.starter.file.service.ExportTemplateFieldService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +55,59 @@ public class CommonExport {
     @Autowired
     private ExportHistoryService exportHistoryService;
 
+    @Autowired
+    private ExportTemplateFieldService exportTemplateFieldService;
+
+    /**
+     * Fill in the headers by the export template.
+     *
+     * @param exportTemplate the export template
+     * @param excelDataDTO the Excel data DTO
+     */
+    protected void fillHeadersByTemplate(ExportTemplate exportTemplate, ExcelDataDTO excelDataDTO) {
+        List<String> headers = new ArrayList<>();
+        List<String> fieldNames = new ArrayList<>();
+        List<String> ignoreFields = new ArrayList<>();
+        Filters filters = new Filters().eq(ExportTemplateField::getTemplateId, exportTemplate.getId());
+        Orders orders = Orders.ofAsc(ExportTemplateField::getSequence);
+        List<ExportTemplateField> exportFields = exportTemplateFieldService.searchList(new FlexQuery(filters, orders));
+        exportFields.forEach(exportField -> {
+            fieldNames.add(exportField.getFieldName());
+            if (StringUtils.hasText(exportField.getCustomHeader())) {
+                headers.add(exportField.getCustomHeader());
+            } else {
+                MetaField lastField = ModelManager.getLastFieldOfCascaded(exportTemplate.getModelName(), exportField.getFieldName());
+                headers.add(lastField.getLabelName());
+            }
+            if (Boolean.TRUE.equals(exportField.getIgnore())) {
+                ignoreFields.add(exportField.getFieldName());
+            }
+        });
+        excelDataDTO.setHeaders(headers);
+        excelDataDTO.setFetchFields(fieldNames);
+        excelDataDTO.setIgnoreFields(ignoreFields);
+    }
+
+    /**
+     * Fill in the rows by the export template.
+     *
+     * @param exportTemplate the export template
+     * @param flexQuery the flex query
+     * @param excelDataDTO the Excel data DTO
+     */
+    protected void fillRowsByTemplate(ExportTemplate exportTemplate, FlexQuery flexQuery, ExcelDataDTO excelDataDTO) {
+        // Get the data to be exported
+        List<String> fieldNames = excelDataDTO.getFetchFields();
+        flexQuery.setFields(fieldNames);
+        List<Map<String, Object>> rows = this.getExportedRows(exportTemplate.getModelName(),
+                exportTemplate.getCustomHandler(), flexQuery);
+        // Remove the ignored fields when exporting
+        List<String> exportFields = new ArrayList<>(fieldNames);
+        exportFields.removeAll(excelDataDTO.getIgnoreFields());
+        List<List<Object>> rowsTable = ListUtils.convertToTableData(exportFields, rows);
+        excelDataDTO.setRowsTable(rowsTable);
+    }
+
     /**
      * Get the data to be exported.
      * Set the convertType to DISPLAY to get the display values of the fields.
@@ -52,7 +116,7 @@ public class CommonExport {
      * @param modelName the model name
      * @return the data to be exported
      */
-    protected List<Map<String, Object>> getExportedData(String modelName, FlexQuery flexQuery) {
+    protected List<Map<String, Object>> getExportedRows(String modelName, String handlerName, FlexQuery flexQuery) {
         Page<Map<String, Object>> page = Page.ofCursorPage(BaseConstant.MAX_BATCH_SIZE);
         List<Map<String, Object>> exportedRows = new ArrayList<>();
         do {
@@ -61,59 +125,65 @@ public class CommonExport {
                 exportedRows.addAll(page.getRows());
             }
         } while (page.toNext());
+        executeCustomHandler(handlerName, exportedRows);
         return exportedRows;
     }
 
     /**
-     * Generate the Excel file and upload it to the file storage.
-     *
-     * @param modelName the model name
-     * @param fileName the name of the file
-     * @param sheetName the name of the sheet
-     * @param headers the list of header label
-     * @param rowsTable the data table of the rows
-     * @return the file info object with download URL
+     * Execute the custom export handler.
+     * @param handlerName the name of the custom export handler
+     * @param rows the data to be exported
      */
-    public FileInfo generateFileAndUpload(String modelName, String fileName, String sheetName,
-                                          List<String> headers, List<List<Object>> rowsTable) {
-        return this.generateFileAndUpload(modelName, fileName, sheetName, headers, rowsTable, null);
+    private void executeCustomHandler(String handlerName, List<Map<String, Object>> rows) {
+        if (StringUtils.hasText(handlerName)) {
+            if (!StringTools.isBeanName(handlerName)) {
+                throw new IllegalArgumentException("The name of custom export handler `{0}` is invalid.", handlerName);
+            }
+            try {
+                CustomExportHandler handler = SpringContextUtils.getBean(handlerName, CustomExportHandler.class);
+                handler.handleExportData(rows);
+            } catch (NoSuchBeanDefinitionException e) {
+                throw new IllegalArgumentException("The custom export handler `{0}` is not found.", handlerName);
+            }
+        }
     }
 
     /**
      * Generate the Excel file and upload it to the file storage.
      *
      * @param modelName the model name
-     * @param fileName the name of the file
-     * @param sheetName the name of the sheet
-     * @param headers the list of header label
-     * @param rowsTable the data table of the rows
+     * @param excelDataDTO the Excel data DTO
+     * @return the file info object with download URL
+     */
+    public FileInfo generateFileAndUpload(String modelName, ExcelDataDTO excelDataDTO) {
+        return this.generateFileAndUpload(modelName, excelDataDTO, null);
+    }
+
+    /**
+     * Generate the Excel file and upload it to the file storage.
+     *
+     * @param modelName the model name
+     * @param excelDataDTO the Excel data DTO
      * @param handler the cell handler
      * @return the file info object with download URL
      */
-    public FileInfo generateFileAndUpload(String modelName, String fileName, String sheetName,
-                                          List<String> headers, List<List<Object>> rowsTable, CellWriteHandler handler) {
+    public FileInfo generateFileAndUpload(String modelName, ExcelDataDTO excelDataDTO, CellWriteHandler handler) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
              ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
             // Write the header and data, EasyExcel requires the header to be a list of lists
-            List<List<String>> headersList = headers.stream().map(Collections::singletonList).toList();
-            ExcelWriterSheetBuilder builder = EasyExcel.writerSheet(sheetName).head(headersList);
+            List<List<String>> headersList = excelDataDTO.getHeaders().stream().map(Collections::singletonList).toList();
+            ExcelWriterSheetBuilder builder = EasyExcel.writerSheet(excelDataDTO.getSheetName()).head(headersList);
             WriteSheet writeSheet = handler == null ? builder.build() : builder.registerWriteHandler(handler).build();
-            excelWriter.write(rowsTable, writeSheet);
+            excelWriter.write(excelDataDTO.getRowsTable(), writeSheet);
             excelWriter.finish();
-            // Convert ByteArrayOutputStream to InputStream for return and upload
-            InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            // Construct the uploadFileDTO
-            UploadFileDTO uploadFileDTO = new UploadFileDTO();
-            uploadFileDTO.setModelName(modelName);
-            uploadFileDTO.setFileName(fileName);
-            uploadFileDTO.setFileType(FileType.XLSX);
-            uploadFileDTO.setFileSize(outputStream.size());
-            uploadFileDTO.setInputStream(resultStream);
-            return fileRecordService.uploadFileToDownload(uploadFileDTO);
+            // Upload the Excel bytes to the file storage
+            byte[] excelBytes = outputStream.toByteArray();
+            return fileRecordService.uploadExcelBytesToDownload(modelName, excelDataDTO.getFileName(), excelBytes);
         } catch (Exception e) {
-            throw new BusinessException("Error generating Excel from template {0} with the provided data.", fileName, e);
+            throw new BusinessException("Error generating Excel from template {0} with the provided data.",
+                    excelDataDTO.getFileName(), e);
         }
     }
 
