@@ -99,7 +99,7 @@ public class ExportServiceImpl implements ExportService {
     public FileInfo exportByTemplate(Long exportTemplateId, FlexQuery flexQuery) {
         ExportTemplate exportTemplate = exportTemplateService.readOne(exportTemplateId);
         this.validateExportTemplate(exportTemplate);
-        return exportByTemplate.export(flexQuery, exportTemplate);
+        return exportByTemplate.export(exportTemplate, flexQuery);
     }
 
     /**
@@ -147,6 +147,6 @@ public class ExportServiceImpl implements ExportService {
         ExportTemplate exportTemplate = exportTemplateService.readOne(exportTemplateId);
         this.validateExportTemplate(exportTemplate);
         Assert.isTrue(exportTemplate.getFileId() != null, "The export template does not have a file template.");
-        return exportByFileTemplate.export(flexQuery, exportTemplate);
+        return exportByFileTemplate.export(exportTemplate, flexQuery);
     }
 }

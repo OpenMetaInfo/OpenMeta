@@ -17,6 +17,24 @@ import java.util.List;
 public interface FileRecordService extends EntityService<FileRecord, Long> {
 
     /**
+     * Upload the Excel bytes to the file storage.
+     * @param modelName the model name
+     * @param fileName the file name
+     * @param excelBytes the byte array of the Excel file
+     * @return the file record object
+     */
+    FileRecord uploadExcelBytes(String modelName, String fileName, byte[] excelBytes);
+
+    /**
+     * Upload the Excel bytes to the file storage, and return the file info object with download URL.
+     * @param modelName the model name
+     * @param fileName the file name
+     * @param excelBytes the byte array of the Excel file
+     * @return the file info object with download URL
+     */
+    FileInfo uploadExcelBytesToDownload(String modelName, String fileName, byte[] excelBytes);
+
+    /**
      * Upload a file to the OSS and create a corresponding FileRecord.
      * The uploadFileDTO contains the file information and input stream.
      *

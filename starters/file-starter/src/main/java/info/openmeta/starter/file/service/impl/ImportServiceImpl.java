@@ -17,6 +17,7 @@ import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.file.constant.FileConstant;
+import info.openmeta.starter.file.dto.ExcelDataDTO;
 import info.openmeta.starter.file.dto.ImportDataDTO;
 import info.openmeta.starter.file.dto.ImportFieldDTO;
 import info.openmeta.starter.file.dto.ImportTemplateDTO;
@@ -96,10 +97,13 @@ public class ImportServiceImpl implements ImportService {
         List<String> requiredHeaderList = importTemplateDTO.getImportFields().stream()
                 .filter(ImportFieldDTO::getRequired).map(ImportFieldDTO::getHeader).toList();
         // Generate the Excel file
-        String fileName = importTemplate.getName();
-        String sheetName = importTemplate.getName();
-        return commonExport.generateFileAndUpload(importTemplate.getModelName(), fileName, sheetName,
-                headers, Collections.emptyList(), new CustomHeadStyleHandler(requiredHeaderList));
+        ExcelDataDTO excelDataDTO = new ExcelDataDTO();
+        excelDataDTO.setFileName(importTemplate.getName());
+        excelDataDTO.setSheetName(importTemplate.getName());
+        excelDataDTO.setHeaders(headers);
+        excelDataDTO.setRowsTable(Collections.emptyList());
+        CustomHeadStyleHandler headStyleHandler = new CustomHeadStyleHandler(requiredHeaderList);
+        return commonExport.generateFileAndUpload(importTemplate.getModelName(), excelDataDTO, headStyleHandler);
     }
 
     /**
@@ -394,7 +398,13 @@ public class ImportServiceImpl implements ImportService {
         headers.add(I18n.get(FileConstant.FAILED_REASON));
         // Get the data to be exported
         List<List<Object>> rowsTable = ListUtils.convertToTableData(fields, importDataDTO.getFailedRows());
-        FileInfo fileInfo = commonExport.generateFileAndUpload(importTemplateDTO.getModelName(), fileName, FileConstant.FAILED_DATA, headers, rowsTable);
+        // Excel data DTO
+        ExcelDataDTO excelDataDTO = new ExcelDataDTO();
+        excelDataDTO.setFileName(fileName);
+        excelDataDTO.setSheetName(FileConstant.FAILED_DATA);
+        excelDataDTO.setHeaders(headers);
+        excelDataDTO.setRowsTable(rowsTable);
+        FileInfo fileInfo = commonExport.generateFileAndUpload(importTemplateDTO.getModelName(), excelDataDTO);
         return fileInfo.getFileId();
     }
 

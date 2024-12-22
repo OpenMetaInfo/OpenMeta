@@ -44,6 +44,9 @@ public class ExportTemplate extends BaseModel {
     @Schema(description = "Orders")
     private Orders orders;
 
+    @Schema(description = "Custom Export Handler")
+    private String customHandler;
+
     @Schema(description = "Enable Transpose")
     private Boolean enableTranspose;
 

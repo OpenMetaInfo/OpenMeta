@@ -4,6 +4,7 @@ import com.github.f4b6a3.tsid.TsidCreator;
 import com.google.common.collect.Lists;
 import info.openmeta.framework.base.config.TenantConfig;
 import info.openmeta.framework.base.context.ContextHolder;
+import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
@@ -22,9 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -59,6 +58,42 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     }
 
     /**
+     * Upload the Excel byte to the file storage.
+     * @param modelName the model name
+     * @param fileName the file name
+     * @param excelBytes the byte array of the Excel file
+     * @return the file record object
+     */
+    @Override
+    public FileRecord uploadExcelBytes(String modelName, String fileName, byte[] excelBytes) {
+        try (InputStream resultStream = new ByteArrayInputStream(excelBytes)) {
+            UploadFileDTO uploadFileDTO = new UploadFileDTO();
+            uploadFileDTO.setModelName(modelName);
+            uploadFileDTO.setFileName(fileName);
+            uploadFileDTO.setFileType(FileType.XLSX);
+            uploadFileDTO.setFileSize(excelBytes.length);
+            uploadFileDTO.setFileSource(FileSource.DOWNLOAD);
+            uploadFileDTO.setInputStream(resultStream);
+            return this.uploadFile(uploadFileDTO);
+        } catch (IOException e) {
+            throw new BusinessException("Error uploading Excel stream", e);
+        }
+    }
+
+    /**
+     * Upload the Excel byte to the file storage, and return the file info object with download URL.
+     * @param modelName the model name
+     * @param fileName the file name
+     * @param excelBytes the byte array of the Excel file
+     * @return the file info object with download URL
+     */
+    @Override
+    public FileInfo uploadExcelBytesToDownload(String modelName, String fileName, byte[] excelBytes) {
+        FileRecord fileRecord = this.uploadExcelBytes(modelName, fileName, excelBytes);
+        return convertToFileInfo(fileRecord);
+    }
+
+    /**
      * Generate a full filename combining the filename, the current date and the file type extension.
      *
      * @param fileName the name of the file
@@ -78,9 +113,11 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileRecord uploadFile(UploadFileDTO uploadFileDTO) {
-        String fullFileName = getFullFileName(uploadFileDTO.getFileName(), uploadFileDTO.getFileType());
+        String fileName = uploadFileDTO.getFileName();
+        FileType fileType = uploadFileDTO.getFileType();
+        String fullFileName = getFullFileName(fileName, fileType);
         String ossKey = this.generateOssKey(modelName, fullFileName);
-        String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), uploadFileDTO.getFileName());
+        String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), fileName);
         // Create file record
         FileRecord fileRecord = new FileRecord();
         fileRecord.setFileName(fullFileName);

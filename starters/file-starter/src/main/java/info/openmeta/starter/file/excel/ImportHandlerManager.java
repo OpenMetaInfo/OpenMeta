@@ -91,13 +91,13 @@ public class ImportHandlerManager {
     private void executeCustomHandler(String handlerName, ImportDataDTO importDataDTO) {
         if (StringUtils.hasText(handlerName)) {
             if (!StringTools.isBeanName(handlerName)) {
-                throw new IllegalArgumentException("The name of custom handler `{0}` is invalid.", handlerName);
+                throw new IllegalArgumentException("The name of custom import handler `{0}` is invalid.", handlerName);
             }
             try {
                 CustomImportHandler handler = SpringContextUtils.getBean(handlerName, CustomImportHandler.class);
                 handler.handleImportData(importDataDTO.getRows(), importDataDTO.getEnv());
             } catch (NoSuchBeanDefinitionException e) {
-                throw new IllegalArgumentException("The custom handler `{0}` is not found.", handlerName);
+                throw new IllegalArgumentException("The custom import handler `{0}` is not found.", handlerName);
             }
         }
     }

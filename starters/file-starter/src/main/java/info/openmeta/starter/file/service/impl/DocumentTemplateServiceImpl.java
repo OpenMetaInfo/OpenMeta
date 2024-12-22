@@ -103,18 +103,19 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
         ) {
             // render the document from the template
             renderDocument(templateInputStream, data, docOutputStream);
-            byte[] docxContent = docOutputStream.toByteArray();
+            FileType fileType = FileType.DOCX;
+            byte[] docBytes = docOutputStream.toByteArray();
             if (Boolean.TRUE.equals(template.getConvertToPdf())) {
-                docxContent = convertDocxToPdf(docxContent);
+                fileType = FileType.PDF;
+                docBytes = convertDocxToPdf(docBytes);
             }
             // save the generated document to the file record
-            try (InputStream docxInputStream = new ByteArrayInputStream(docxContent)) {
-                // Construct the uploadFileDTO
+            try (InputStream docxInputStream = new ByteArrayInputStream(docBytes)) {
                 UploadFileDTO uploadFileDTO = new UploadFileDTO();
                 uploadFileDTO.setModelName(template.getModelName());
                 uploadFileDTO.setFileName(template.getFileName());
-                uploadFileDTO.setFileType(FileType.XLSX);
-                uploadFileDTO.setFileSize(docxContent.length);
+                uploadFileDTO.setFileType(fileType);
+                uploadFileDTO.setFileSize(docBytes.length);
                 uploadFileDTO.setInputStream(docxInputStream);
                 return fileRecordService.uploadFileToDownload(uploadFileDTO);
             }

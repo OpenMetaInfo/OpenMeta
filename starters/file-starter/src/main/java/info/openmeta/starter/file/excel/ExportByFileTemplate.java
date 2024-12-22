@@ -5,9 +5,7 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.web.dto.FileInfo;
-import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,15 +40,16 @@ public class ExportByFileTemplate extends CommonExport {
      * Export data rows by file template.
      * The file template is a template file that contains the variables to be filled in.
      *
-     * @param flexQuery the flexQuery of the exported conditions
      * @param exportTemplate exportTemplate object
+     * @param flexQuery the flexQuery of the exported conditions
      * @return fileInfo object with download URL
      */
-    public FileInfo export(FlexQuery flexQuery, ExportTemplate exportTemplate) {
+    public FileInfo export(ExportTemplate exportTemplate, FlexQuery flexQuery) {
         // TODO: cache the extracted fields in the exportTemplate
         Set<String> fields = extractVariablesOfFileTemplate(exportTemplate.getFileId());
         flexQuery.setFields(fields);
-        List<Map<String, Object>> rows = this.getExportedData(exportTemplate.getModelName(), flexQuery);
+        List<Map<String, Object>> rows = this.getExportedRows(exportTemplate.getModelName(),
+                exportTemplate.getCustomHandler(), flexQuery);
         // Fill in the data into the file template
         FileInfo fileInfo = this.generateByFileTemplateAndUpload(exportTemplate, rows);
         // Generate export history
@@ -63,10 +61,10 @@ public class ExportByFileTemplate extends CommonExport {
      * Renders data into a file template and uploads the generated file to OSS.
      *
      * @param exportTemplate the export template object
-     * @param data the data to be filled into the file template
+     * @param rows the data to be filled into the file template
      * @return fileInfo object with download URL
      */
-    private FileInfo generateByFileTemplateAndUpload(ExportTemplate exportTemplate, Object data) {
+    private FileInfo generateByFileTemplateAndUpload(ExportTemplate exportTemplate, List<Map<String, Object>> rows) {
         String fileName = exportTemplate.getFileName();
         String sheetName = StringUtils.hasText(exportTemplate.getSheetName()) ? exportTemplate.getSheetName() : fileName;
         try (InputStream inputStream = fileRecordService.downloadStream(exportTemplate.getFileId());
@@ -75,19 +73,12 @@ public class ExportByFileTemplate extends CommonExport {
              ExcelWriter excelWriter = EasyExcel.write(outputStream).withTemplate(inputStream).build()) {
             // Create a write sheet and fill in the data
             WriteSheet writeSheet = EasyExcel.writerSheet(sheetName).build();
-            excelWriter.fill(data, writeSheet);
+            excelWriter.fill(rows, writeSheet);
             // TODO: fill in the ENV related to current user
             excelWriter.finish();
-            // Convert ByteArrayOutputStream to InputStream for return and upload
-            InputStream resultStream = new ByteArrayInputStream(outputStream.toByteArray());
-            // Construct the uploadFileDTO
-            UploadFileDTO uploadFileDTO = new UploadFileDTO();
-            uploadFileDTO.setModelName(exportTemplate.getModelName());
-            uploadFileDTO.setFileName(fileName);
-            uploadFileDTO.setFileType(FileType.XLSX);
-            uploadFileDTO.setFileSize(outputStream.size());
-            uploadFileDTO.setInputStream(resultStream);
-            return fileRecordService.uploadFileToDownload(uploadFileDTO);
+            // Upload the Excel stream to OSS
+            byte[] excelBytes = outputStream.toByteArray();
+            return fileRecordService.uploadExcelBytesToDownload(exportTemplate.getModelName(), fileName, excelBytes);
         } catch (Exception e) {
             throw new BusinessException("Failed to fill data into the file template {}.", fileName, e);
         }
