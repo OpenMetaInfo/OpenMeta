@@ -361,6 +361,26 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Get ID by businessKey.
+     * @param modelName model name
+     * @param row data row
+     * @return id
+     */
+    private K getIdByBusinessKey(String modelName, Map<String, Object> row) {
+        List<String> businessKey = ModelManager.getModel(modelName).getBusinessKey();
+        Assert.notEmpty(businessKey, "Model {0} does not have a business key, cannot get id by business key!", modelName);
+        Filters filters = new Filters();
+        businessKey.forEach(key -> filters.and(key, Operator.EQUAL, row.get(key)));
+        List<K> ids = this.getIds(modelName, filters);
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new IllegalArgumentException("Model {0} does not have data with the business key {1}!", modelName, row);
+        } else if (ids.size() > 1) {
+            throw new IllegalArgumentException("Model {0} has multiple data with the same business key {1}!", modelName, row);
+        }
+        return ids.getFirst();
+    }
+
+    /**
      * Get the externalId-id mapping based on the externalIds.
      *
      * @param modelName model name
@@ -531,6 +551,21 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Update one row by businessKey.
+     *
+     * @param row row data to be updated
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateByBusinessKey(String modelName, Map<String, Object> row) {
+        Assert.notEmpty(row, "The update data for model {0} cannot be empty!", modelName);
+        K id = this.getIdByBusinessKey(modelName, row);
+        row.put(ModelConstant.ID, id);
+        return this.updateOne(modelName, row);
+    }
+
+    /**
      * Update multiple rows by externalId. Each row in the list can have different fields.
      *
      * @param rows data rows to be updated
@@ -633,6 +668,33 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             return false;
         }
         return jdbcService.deleteByIds(modelName, Cast.of(deletableIds), deletableRows);
+    }
+
+    /**
+     * Delete one row by business key.
+     *
+     * @param modelName model name
+     * @param row row data with businessKey fields
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByBusinessKey(String modelName, Map<String, Object> row) {
+        Assert.notEmpty(row, "The deletion data for model {0} cannot be empty!", modelName);
+        K id = this.getIdByBusinessKey(modelName, row);
+        return this.deleteById(modelName, id);
+    }
+
+    /**
+     * Delete one row by externalId.
+     *
+     * @param externalId externalId
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByExternalId(String modelName, Serializable externalId) {
+        return this.deleteByExternalIds(modelName, Collections.singletonList(externalId));
     }
 
     /**

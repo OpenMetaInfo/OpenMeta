@@ -338,7 +338,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return true / Exception
      */
     @Override
-    public boolean deleteOne(K id) {
+    public boolean deleteById(K id) {
         return modelService.deleteById(modelName, id);
     }
 
@@ -349,7 +349,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return true / Exception
      */
     @Override
-    public boolean deleteList(List<K> ids) {
+    public boolean deleteByIds(List<K> ids) {
         return modelService.deleteByIds(modelName, ids);
     }
 

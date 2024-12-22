@@ -52,6 +52,8 @@ public class MetaModel implements Serializable {
 
     private String dataSource;
 
+    private List<String> businessKey;
+
     private List<MetaField> modelFields;
 
     private String partitionField;

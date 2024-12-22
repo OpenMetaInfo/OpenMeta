@@ -239,6 +239,14 @@ public interface ModelService<K extends Serializable> {
     List<Map<String, Object>> updateListAndFetch(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
 
     /**
+     * Update one row by businessKey.
+     *
+     * @param row row data to be updated
+     * @return true / Exception
+     */
+    boolean updateByBusinessKey(String modelName, Map<String, Object> row);
+
+    /**
      * Update multiple rows by externalIds. Each row in the list can have different fields.
      *
      * @param rows data rows to be updated
@@ -280,6 +288,23 @@ public interface ModelService<K extends Serializable> {
      * @return true / Exception
      */
     boolean deleteByIds(String modelName, List<K> ids);
+
+    /**
+     * Delete one row by business key.
+     *
+     * @param modelName model name
+     * @param row row data with businessKey fields
+     * @return true / Exception
+     */
+    boolean deleteByBusinessKey(String modelName, Map<String, Object> row);
+
+    /**
+     * Delete one row by externalId.
+     *
+     * @param externalId externalId
+     * @return true / Exception
+     */
+    boolean deleteByExternalId(String modelName, Serializable externalId);
 
     /**
      * Delete multiple rows by externalIds.

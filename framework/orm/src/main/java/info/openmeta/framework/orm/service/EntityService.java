@@ -218,7 +218,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param id data id
      * @return true / Exception
      */
-    boolean deleteOne(K id);
+    boolean deleteById(K id);
 
     /**
      * Delete multiple data objects by IDs.
@@ -226,7 +226,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param ids data ids
      * @return true / Exception
      */
-    boolean deleteList(List<K> ids);
+    boolean deleteByIds(List<K> ids);
 
     /**
      * Delete data objects by specified filters.
