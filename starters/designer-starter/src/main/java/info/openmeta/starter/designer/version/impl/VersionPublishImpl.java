@@ -125,7 +125,7 @@ public class VersionPublishImpl implements VersionPublish {
         publishRecord.setVersionId(appVersion.getId());
         publishRecord.setPublishStatus(PublishStatus.PUBLISHING);
         publishRecord.setPublishContent(appVersion.getVersionedContent());
-        return designAppVersionPublishedService.createOneAndReturn(publishRecord);
+        return designAppVersionPublishedService.createOneAndFetch(publishRecord);
     }
 
     /**

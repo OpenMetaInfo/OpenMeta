@@ -97,7 +97,7 @@ public class ExportServiceImpl implements ExportService {
      * @return fileInfo object with download URL
      */
     public FileInfo exportByTemplate(Long exportTemplateId, FlexQuery flexQuery) {
-        ExportTemplate exportTemplate = exportTemplateService.readOne(exportTemplateId);
+        ExportTemplate exportTemplate = exportTemplateService.getById(exportTemplateId);
         this.validateExportTemplate(exportTemplate);
         return exportByTemplate.export(exportTemplate, flexQuery);
     }
@@ -123,7 +123,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     private List<ExportTemplate> getExportTemplates(List<Long> ids) {
-        List<ExportTemplate> exportTemplates = exportTemplateService.readList(ids);
+        List<ExportTemplate> exportTemplates = exportTemplateService.getByIds(ids);
         List<String> sheetNames = new ArrayList<>();
         exportTemplates.forEach(template -> {
             String sheetName = StringUtils.hasText(template.getSheetName()) ? template.getSheetName() : template.getFileName();
@@ -144,7 +144,7 @@ public class ExportServiceImpl implements ExportService {
      * @return fileInfo object with download URL
      */
     public FileInfo exportByFileTemplate(Long exportTemplateId, FlexQuery flexQuery) {
-        ExportTemplate exportTemplate = exportTemplateService.readOne(exportTemplateId);
+        ExportTemplate exportTemplate = exportTemplateService.getById(exportTemplateId);
         this.validateExportTemplate(exportTemplate);
         Assert.isTrue(exportTemplate.getFileId() != null, "The export template does not have a file template.");
         return exportByFileTemplate.export(exportTemplate, flexQuery);

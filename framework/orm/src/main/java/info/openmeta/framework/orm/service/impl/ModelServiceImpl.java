@@ -86,7 +86,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Create a single row and return the row map with id.
+     * Create a single row, fetch the row data after creation.
      *
      * @param modelName model name
      * @param row data row to be created
@@ -95,8 +95,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> createOneAndReturn(String modelName, Map<String, Object> row, ConvertType convertType) {
-        return this.createListAndReturn(modelName, Collections.singletonList(row), convertType).getFirst();
+    public Map<String, Object> createOneAndFetch(String modelName, Map<String, Object> row, ConvertType convertType) {
+        return this.createListAndFetch(modelName, Collections.singletonList(row), convertType).getFirst();
     }
 
     /**
@@ -132,7 +132,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Create multiple rows and return the row list with id.
+     * Create multiple rows, fetch the rows after creation.
      *
      * @param modelName model name
      * @param rows data rows to be created
@@ -141,13 +141,13 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<Map<String, Object>> createListAndReturn(String modelName, List<Map<String, Object>> rows, ConvertType convertType) {
+    public List<Map<String, Object>> createListAndFetch(String modelName, List<Map<String, Object>> rows, ConvertType convertType) {
         List<K> ids = this.createList(modelName, rows);
         return this.getRowsWithoutPermissionCheck(modelName, ids, Collections.emptyList(), convertType);
     }
 
     /**
-     * Read multiple rows by ids, without permission check, only for code use.
+     * Get multiple rows by ids, without permission check, only for code use.
      *
      * @param modelName model name
      * @param ids List of data ids
@@ -167,33 +167,19 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Read the specified field value based on id.
-     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
-     *
-     * @param id data id
-     * @param field field name to read
-     * @return field value
-     */
-    @Override
-    public <V extends Serializable> V readField(String modelName, K id, String field) {
-        Map<String, Object> row = this.readOne(modelName, id, Collections.singletonList(field), null, ConvertType.TYPE_CAST);
-        return Cast.of(row.get(field));
-    }
-
-    /**
-     * Read one row by id, default to read all fields.
+     * Get one row by id, default to read all fields.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
      * @return data row
      */
     @Override
-    public Map<String, Object> readOne(String modelName, K id) {
-        return this.readOne(modelName, id, Collections.emptyList(), null, ConvertType.TYPE_CAST);
+    public Map<String, Object> getById(String modelName, K id) {
+        return this.getById(modelName, id, Collections.emptyList(), null, ConvertType.TYPE_CAST);
     }
 
     /**
-     * Read one row by id, default to read all fields.
+     * Get one row by id, default to read all fields.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
@@ -201,68 +187,68 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * @return data row
      */
     @Override
-    public Map<String, Object> readOne(String modelName, K id, SubQueries subQueries) {
-        return this.readOne(modelName, id, Collections.emptyList(), subQueries, ConvertType.TYPE_CAST);
+    public Map<String, Object> getById(String modelName, K id, SubQueries subQueries) {
+        return this.getById(modelName, id, Collections.emptyList(), subQueries, ConvertType.TYPE_CAST);
     }
 
     /**
-     * Read one row by id.
+     * Get one row by id.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
-     * @param fields field list to read
+     * @param fields field list to get value
      * @return data row
      */
     @Override
-    public Map<String, Object> readOne(String modelName, K id, Collection<String> fields) {
-        return this.readOne(modelName, id, fields, null, ConvertType.TYPE_CAST);
+    public Map<String, Object> getById(String modelName, K id, Collection<String> fields) {
+        return this.getById(modelName, id, fields, null, ConvertType.TYPE_CAST);
     }
 
     /**
-     * Read one row by id.
+     * Get one row by id.
      * If the fields is not specified, all accessible fields as the default.
      *
      * @param id data id
-     * @param fields field list to read
+     * @param fields field list to get value
      * @param subQueries SubQueries object, used to specify the subQuery for different relational fields.
      * @param convertType data convert type of the return value.
      * @return data row
      */
     @Override
-    public Map<String, Object> readOne(String modelName, K id, Collection<String> fields,
+    public Map<String, Object> getById(String modelName, K id, Collection<String> fields,
                                        SubQueries subQueries, ConvertType convertType) {
-        List<Map<String, Object>> rows = this.readList(modelName, Collections.singletonList(id), fields, subQueries, convertType);
+        List<Map<String, Object>> rows = this.getByIds(modelName, Collections.singletonList(id), fields, subQueries, convertType);
         Assert.notEmpty(rows, "Model {0} does not have data with id {1}!", modelName, id);
         return rows.getFirst();
     }
 
     /**
-     * Read multiple rows by ids.
+     * Get multiple rows by ids.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param ids List of data ids
-     * @param fields Field list to read
+     * @param fields Field list to get value
      * @return List<Map> of multiple data
      */
     @Override
-    public List<Map<String, Object>> readList(String modelName, List<K> ids, Collection<String> fields) {
-        return this.readList(modelName, ids, fields, null, ConvertType.TYPE_CAST);
+    public List<Map<String, Object>> getByIds(String modelName, List<K> ids, Collection<String> fields) {
+        return this.getByIds(modelName, ids, fields, null, ConvertType.TYPE_CAST);
     }
 
     /**
-     * Read multiple rows by ids.
+     * Get multiple rows by ids.
      * If the fields is not specified, all accessible fields as the default.
      *
      * @param ids List of data ids
-     * @param fields Field list to read
+     * @param fields Field list to get value
      * @param subQueries SubQueries object, used to specify the subQuery for different relational fields.
      * @param convertType data convert type of the return value.
      * @return List<Map> of multiple data
      */
     @Override
-    public List<Map<String, Object>> readList(String modelName, @NotNull List<K> ids, Collection<String> fields,
+    public List<Map<String, Object>> getByIds(String modelName, @NotNull List<K> ids, Collection<String> fields,
                                               SubQueries subQueries, ConvertType convertType) {
         ids = ids.stream().filter(IdUtils::validId).collect(Collectors.toList());
         if (ids.isEmpty()) {
@@ -279,6 +265,193 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Get the copyable fields value by ID, no data inserted.
+     *
+     * @param modelName model name
+     * @param id source data id
+     * @return map of copyable field values
+     */
+    @Override
+    public Map<String, Object> getCopyableFields(String modelName, K id) {
+        Map<String, Object> value = this.getById(modelName, id, Collections.emptyList());
+        List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
+        copyableFields.forEach(value::remove);
+        return value;
+    }
+
+    /**
+     * Get the `displayNames` of the specified ids, returning map of {id: displayName}.
+     * If the `displayFields` is not specified, use the `displayName` configuration of the model.
+     *
+     * @param modelName model name
+     * @param ids id list
+     * @param displayFields specified display field list.
+     * @return displayNames Map
+     */
+    @Override
+    public Map<K, String> getDisplayNames(String modelName, List<K> ids, List<String> displayFields) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return new HashMap<>(0);
+        }
+        if (CollectionUtils.isEmpty(displayFields)) {
+            displayFields = ModelManager.getModel(modelName).getDisplayName();
+        }
+        Set<String> getFields = new HashSet<>(displayFields);
+        getFields.add(ModelConstant.ID);
+        Filters filters = Filters.of(ModelConstant.ID, Operator.IN, ids);
+        FlexQuery flexQuery = new FlexQuery(getFields, filters);
+        // If the `displayName` config consists of an Option field or a ManyToOne/OneToOne field,
+        // get the optionItemName or cascaded displayName value as its field value.
+        flexQuery.setConvertType(ConvertType.DISPLAY);
+        List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
+        Map<K, String> displayNames = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            // Filter out field values for null or empty strings
+            List<Object> displayValues = displayFields.stream().map(row::get).filter(v -> v != null && v != "").collect(Collectors.toList());
+            String name = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
+            displayNames.put(Cast.of(row.get(ModelConstant.ID)), name);
+        }
+        return displayNames;
+    }
+
+    /**
+     * Get the distinct field value list based on the filters.
+     *
+     * @param modelName model name
+     * @param field field name to read and distinct
+     * @param filters filters
+     * @return distinct field value list
+     */
+    @Override
+    public List<Object> getDistinctFieldValue(String modelName, String field, Filters filters) {
+        FlexQuery flexQuery = new FlexQuery(Sets.newHashSet(field), filters);
+        List<Map<String, Object>> rows = searchList(modelName, flexQuery);
+        return rows.stream().map(r -> r.get(field)).distinct().collect(Collectors.toList());
+    }
+
+    /**
+     * Get the specified field value based on id.
+     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     *
+     * @param id data id
+     * @param field field name to get value
+     * @return field value
+     */
+    @Override
+    public <V extends Serializable> V getFieldValue(String modelName, K id, String field) {
+        Map<String, Object> row = this.getById(modelName, id, Collections.singletonList(field), null, ConvertType.TYPE_CAST);
+        return Cast.of(row.get(field));
+    }
+
+    /**
+     * Get the ids based on the filters.
+     *
+     * @param modelName model name
+     * @param filters filter conditions
+     * @return ids list
+     */
+    @Override
+    public List<K> getIds(String modelName, Filters filters) {
+        // Append timeline filtersAppend timeline filters
+        filters = timelineService.appendTimelineFilters(modelName, filters);
+        // Append permission data range filters
+        filters = permissionService.appendScopeAccessFilters(modelName, filters);
+        FlexQuery flexQuery = new FlexQuery(filters);
+        return jdbcService.getIds(modelName, ModelConstant.ID, flexQuery);
+    }
+
+    /**
+     * Get ID by businessKey.
+     * @param modelName model name
+     * @param row data row
+     * @return id
+     */
+    private K getIdByBusinessKey(String modelName, Map<String, Object> row) {
+        List<String> businessKey = ModelManager.getModel(modelName).getBusinessKey();
+        Assert.notEmpty(businessKey, "Model {0} does not have a business key, cannot get id by business key!", modelName);
+        Filters filters = new Filters();
+        businessKey.forEach(key -> filters.and(key, Operator.EQUAL, row.get(key)));
+        List<K> ids = this.getIds(modelName, filters);
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new IllegalArgumentException("Model {0} does not have data with the business key {1}!", modelName, row);
+        } else if (ids.size() > 1) {
+            throw new IllegalArgumentException("Model {0} has multiple data with the same business key {1}!", modelName, row);
+        }
+        return ids.getFirst();
+    }
+
+    /**
+     * Get the externalId-id mapping based on the externalIds.
+     *
+     * @param modelName model name
+     * @param externalIds externalId list
+     * @return externalId-id mapping
+     */
+    private Map<Serializable, K> getExternalIdMapping(String modelName, List<Serializable> externalIds) {
+        List<String> fields = Arrays.asList(ModelConstant.ID, ModelConstant.EXTERNAL_ID);
+        Filters filters = new Filters().in(ModelConstant.EXTERNAL_ID, externalIds);
+        FlexQuery flexQuery = new FlexQuery(fields, filters);
+        List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
+        return rows.stream().collect(Collectors.toMap(
+                row -> (Serializable) row.get(ModelConstant.EXTERNAL_ID),
+                row -> Cast.of(row.get(ModelConstant.ID))));
+    }
+
+    /**
+     * Get the ids for ManyToOne/OneToOne relational field.
+     *
+     * @param modelName model name
+     * @param filters filters
+     * @param fieldName relational field name
+     * @return distinct ids for relational field
+     */
+    @Override
+    public <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName) {
+        // Append timeline filtersAppend timeline filters
+        filters = timelineService.appendTimelineFilters(modelName, filters);
+        // Append permission data range filters
+        filters = permissionService.appendScopeAccessFilters(modelName, filters);
+        FlexQuery flexQuery = new FlexQuery(filters);
+        // Automatic distinct when querying relational field ids
+        flexQuery.setDistinct(true);
+        List<EK> relatedIds = jdbcService.getIds(modelName, fieldName, flexQuery);
+        // Filter out null value
+        return relatedIds.stream().filter(IdUtils::validId).collect(Collectors.toList());
+    }
+
+    /**
+     * Get the unmasked field value based on the id and field name.
+     *
+     * @param modelName model name
+     * @param id data id
+     * @param fieldName masking field name
+     * @return unmasked field value
+     */
+    @Override
+    public String getUnmaskedField(String modelName, K id, String fieldName) {
+        return (String) this.getUnmaskedFields(modelName, id, Collections.singletonList(fieldName)).get(fieldName);
+    }
+
+    /**
+     * Get multiple unmasked field values based on the id and field names.
+     *
+     * @param modelName model name
+     * @param id data id
+     * @param fields masking field names
+     * @return unmasked field values map, {fieldName: fieldValue}
+     */
+    @Override
+    public Map<String, Object> getUnmaskedFields(String modelName, K id, List<String> fields) {
+        fields.forEach(field -> {
+            MetaField metaField = ModelManager.getModelField(modelName, field);
+            Assert.notNull(metaField.getMaskingType(),
+                    "The `maskingType` of model {0} field {1} is null, cannot invoke unmask!",
+                    modelName, field);
+        });
+        return getById(modelName, id, fields);
+    }
+
+    /**
      * Update one row by id.
      *
      * @param value data row to be updated
@@ -291,7 +464,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Update one row by id. And return the updated row fetched from the database, with the latest field values.
+     * Update one row by id, and fetch the updated row from database.
      *
      * @param modelName model name
      * @param value data row to be updated
@@ -300,8 +473,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> updateOneAndReturn(String modelName, Map<String, Object> value, ConvertType convertType) {
-        return this.updateListAndReturn(modelName, Collections.singletonList(value), convertType).getFirst();
+    public Map<String, Object> updateOneAndFetch(String modelName, Map<String, Object> value, ConvertType convertType) {
+        return this.updateListAndFetch(modelName, Collections.singletonList(value), convertType).getFirst();
     }
 
     /**
@@ -361,8 +534,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Update multiple rows by ids.
-     * And return the updated rows fetched from the database, with the latest field values.
+     * Update multiple rows by ids, and fetch the updated rows from database.
      * Each row in the list can have different fields.
      *
      * @param modelName model name
@@ -372,10 +544,25 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<Map<String, Object>> updateListAndReturn(String modelName, List<Map<String, Object>> rows, ConvertType convertType) {
+    public List<Map<String, Object>> updateListAndFetch(String modelName, List<Map<String, Object>> rows, ConvertType convertType) {
         this.updateList(modelName, rows);
         List<K> ids = Cast.of(rows.stream().map(r -> r.get(ModelConstant.ID)).collect(Collectors.toList()));
         return this.getRowsWithoutPermissionCheck(modelName, ids, Collections.emptyList(), convertType);
+    }
+
+    /**
+     * Update one row by businessKey.
+     *
+     * @param row row data to be updated
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateByBusinessKey(String modelName, Map<String, Object> row) {
+        Assert.notEmpty(row, "The update data for model {0} cannot be empty!", modelName);
+        K id = this.getIdByBusinessKey(modelName, row);
+        row.put(ModelConstant.ID, id);
+        return this.updateOne(modelName, row);
     }
 
     /**
@@ -386,18 +573,18 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean updateByExternalIds(String modelName, List<Map<String, Object>> rows) {
+    public boolean updateByExternalId(String modelName, List<Map<String, Object>> rows) {
         List<Serializable> externalIds = rows.stream()
                 .map(row -> {
                     Serializable externalId = (Serializable) row.get(ModelConstant.EXTERNAL_ID);
                     Assert.notNull(externalId, "The externalId field must be included in the update data! {0}", row);
                     return externalId;
                 }).toList();
-        Map<Serializable, K> idMap = this.getIdsByExternalId(modelName, externalIds);
-        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !idMap.containsKey(externalId)).toList();
+        Map<Serializable, K> eIdMap = this.getExternalIdMapping(modelName, externalIds);
+        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !eIdMap.containsKey(externalId)).toList();
         Assert.isEmpty(differenceIds, "The externalId {0} does not exist in model {1}!", differenceIds, modelName);
         // Fill the id field with the value obtained by externalId
-        rows.forEach(row -> row.put(ModelConstant.ID, idMap.get((Serializable) row.get(ModelConstant.EXTERNAL_ID))));
+        rows.forEach(row -> row.put(ModelConstant.ID, eIdMap.get((Serializable) row.get(ModelConstant.EXTERNAL_ID))));
         return this.updateList(modelName, rows);
     }
 
@@ -435,8 +622,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteOne(String modelName, K id) {
-        return this.deleteList(modelName, Collections.singletonList(id));
+    public boolean deleteById(String modelName, K id) {
+        return this.deleteByIds(modelName, Collections.singletonList(id));
     }
 
     /**
@@ -448,7 +635,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteSlice(String modelName, Long sliceId) {
+    public boolean deleteBySliceId(String modelName, Long sliceId) {
         Assert.isTrue(ModelManager.isTimelineModel(modelName),
                 "Model {0} is not a timeline model, and cannot delete slice.", modelName);
         TimelineSlice timelineSlice = timelineService.getTimelineSlice(modelName, sliceId);
@@ -464,7 +651,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteList(String modelName, List<K> ids) {
+    public boolean deleteByIds(String modelName, List<K> ids) {
         Assert.allNotNull(ids, "The ids to be deleted cannot be empty! {0}", ids);
         permissionService.checkIdsAccess(modelName, ids, AccessType.DELETE);
         // Get the pre-delete data, to check whether the ids data have been deleted and collect changeLogs.
@@ -484,6 +671,33 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
+     * Delete one row by business key.
+     *
+     * @param modelName model name
+     * @param row row data with businessKey fields
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByBusinessKey(String modelName, Map<String, Object> row) {
+        Assert.notEmpty(row, "The deletion data for model {0} cannot be empty!", modelName);
+        K id = this.getIdByBusinessKey(modelName, row);
+        return this.deleteById(modelName, id);
+    }
+
+    /**
+     * Delete one row by externalId.
+     *
+     * @param externalId externalId
+     * @return true / Exception
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByExternalId(String modelName, Serializable externalId) {
+        return this.deleteByExternalIds(modelName, Collections.singletonList(externalId));
+    }
+
+    /**
      * Delete multiple rows by externalIds.
      *
      * @param externalIds externalId List
@@ -493,10 +707,10 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByExternalIds(String modelName, List<Serializable> externalIds) {
         Assert.allNotNull(externalIds, "The externalIds to be deleted cannot be empty! {0}", externalIds);
-        Map<Serializable, K> idMap = this.getIdsByExternalId(modelName, externalIds);
-        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !idMap.containsKey(externalId)).toList();
+        Map<Serializable, K> eIdMap = this.getExternalIdMapping(modelName, externalIds);
+        List<Serializable> differenceIds = externalIds.stream().filter(externalId -> !eIdMap.containsKey(externalId)).toList();
         Assert.isEmpty(differenceIds, "The externalId {0} does not exist in model {1}!", differenceIds, modelName);
-        return this.deleteList(modelName, new ArrayList<>(idMap.values()));
+        return this.deleteByIds(modelName, new ArrayList<>(eIdMap.values()));
     }
 
     /**
@@ -513,7 +727,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (CollectionUtils.isEmpty(ids)) {
             return false;
         }
-        return this.deleteList(modelName, ids);
+        return this.deleteByIds(modelName, ids);
     }
 
     /**
@@ -526,12 +740,12 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public K copyOne(String modelName, K id) {
-        return this.copyList(modelName, Collections.singletonList(id)).getFirst();
+    public K copyById(String modelName, K id) {
+        return this.copyByIds(modelName, Collections.singletonList(id)).getFirst();
     }
 
     /**
-     * Copy a single row based on id, and return the new row.
+     * Copy a single row based on id, and fetch the new row.
      * Currently, read and create permissions are checked separately
      *
      * @param modelName model name
@@ -541,8 +755,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> copyOneAndReturn(String modelName, K id, ConvertType convertType) {
-        return this.copyListAndReturn(modelName, Collections.singletonList(id), convertType).getFirst();
+    public Map<String, Object> copyByIdAndFetch(String modelName, K id, ConvertType convertType) {
+        return this.copyByIdsAndFetch(modelName, Collections.singletonList(id), convertType).getFirst();
     }
 
     /**
@@ -555,8 +769,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<K> copyList(String modelName, List<K> ids) {
-        List<Map<String, Object>> rows = this.readList(modelName, ids, null);
+    public List<K> copyByIds(String modelName, List<K> ids) {
+        List<Map<String, Object>> rows = this.getByIds(modelName, ids, null);
         List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
         rows.forEach(row -> copyableFields.forEach(row::remove));
         this.createList(modelName, rows);
@@ -564,7 +778,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Copy multiple rows based on ids, and return the new rows.
+     * Copy multiple rows based on ids, and fetch the new rows.
      * Currently, read and create permissions are checked separately
      *
      * @param modelName model name
@@ -574,24 +788,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<Map<String, Object>> copyListAndReturn(String modelName, List<K> ids, ConvertType convertType) {
-        List<K> newIds = this.copyList(modelName, ids);
+    public List<Map<String, Object>> copyByIdsAndFetch(String modelName, List<K> ids, ConvertType convertType) {
+        List<K> newIds = this.copyByIds(modelName, ids);
         return this.getRowsWithoutPermissionCheck(modelName, newIds, Collections.emptyList(), convertType);
-    }
-
-    /**
-     * Copy a single row based on id, only return the copyable field values, without creating a new row.
-     *
-     * @param modelName model name
-     * @param id source data id
-     * @return map of copyable field values
-     */
-    @Override
-    public Map<String, Object> copyWithoutCreate(String modelName, K id) {
-        Map<String, Object> value = this.readOne(modelName, id, Collections.emptyList());
-        List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
-        copyableFields.forEach(value::remove);
-        return value;
     }
 
     /**
@@ -761,62 +960,6 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     }
 
     /**
-     * Get the ids based on the filters.
-     *
-     * @param modelName model name
-     * @param filters filter conditions
-     * @return ids list
-     */
-    @Override
-    public List<K> getIds(String modelName, Filters filters) {
-        // Append timeline filtersAppend timeline filters
-        filters = timelineService.appendTimelineFilters(modelName, filters);
-        // Append permission data range filters
-        filters = permissionService.appendScopeAccessFilters(modelName, filters);
-        FlexQuery flexQuery = new FlexQuery(filters);
-        return jdbcService.getIds(modelName, ModelConstant.ID, flexQuery);
-    }
-
-    /**
-     * Get the externalId-id mapping based on the externalIds.
-     *
-     * @param modelName model name
-     * @param externalIds externalId list
-     * @return externalId-id mapping
-     */
-    private Map<Serializable, K> getIdsByExternalId(String modelName, List<Serializable> externalIds) {
-        List<String> fields = Arrays.asList(ModelConstant.ID, ModelConstant.EXTERNAL_ID);
-        Filters filters = new Filters().in(ModelConstant.EXTERNAL_ID, externalIds);
-        FlexQuery flexQuery = new FlexQuery(fields, filters);
-        List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
-        return rows.stream().collect(Collectors.toMap(
-                row -> (Serializable) row.get(ModelConstant.EXTERNAL_ID),
-                row -> Cast.of(row.get(ModelConstant.ID))));
-    }
-
-    /**
-     * Get the ids for ManyToOne/OneToOne relational field.
-     *
-     * @param modelName model name
-     * @param filters filters
-     * @param fieldName relational field name
-     * @return distinct ids for relational field
-     */
-    @Override
-    public <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName) {
-        // Append timeline filtersAppend timeline filters
-        filters = timelineService.appendTimelineFilters(modelName, filters);
-        // Append permission data range filters
-        filters = permissionService.appendScopeAccessFilters(modelName, filters);
-        FlexQuery flexQuery = new FlexQuery(filters);
-        // Automatic distinct when querying relational field ids
-        flexQuery.setDistinct(true);
-        List<EK> relatedIds = jdbcService.getIds(modelName, fieldName, flexQuery);
-        // Filter out null value
-        return relatedIds.stream().filter(IdUtils::validId).collect(Collectors.toList());
-    }
-
-    /**
      * Filter the set that exist in the database from ids, without permission check.
      *
      * @param modelName Model name
@@ -827,88 +970,6 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     public List<K> filterExistIds(String modelName, Collection<K> ids) {
         FlexQuery flexQuery = new FlexQuery(new Filters().in(ModelConstant.ID, ids));
         return jdbcService.getIds(modelName, ModelConstant.ID, flexQuery);
-    }
-
-    /**
-     * Get the `displayNames` of the specified ids, returning map of {id: displayName}.
-     * If the `displayFields` is not specified, use the `displayName` configuration of the model.
-     *
-     * @param modelName model name
-     * @param ids id list
-     * @param displayFields specified display field list.
-     * @return displayNames Map
-     */
-    @Override
-    public Map<K, String> getDisplayNames(String modelName, List<K> ids, List<String> displayFields) {
-        if (CollectionUtils.isEmpty(ids)) {
-            return new HashMap<>(0);
-        }
-        if (CollectionUtils.isEmpty(displayFields)) {
-            displayFields = ModelManager.getModel(modelName).getDisplayName();
-        }
-        Set<String> getFields = new HashSet<>(displayFields);
-        getFields.add(ModelConstant.ID);
-        Filters filters = Filters.of(ModelConstant.ID, Operator.IN, ids);
-        FlexQuery flexQuery = new FlexQuery(getFields, filters);
-        // If the `displayName` config consists of an Option field or a ManyToOne/OneToOne field,
-        // get the optionItemName or cascaded displayName value as its field value.
-        flexQuery.setConvertType(ConvertType.DISPLAY);
-        List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
-        Map<K, String> displayNames = new HashMap<>();
-        for (Map<String, Object> row : rows) {
-            // Filter out field values for null or empty strings
-            List<Object> displayValues = displayFields.stream().map(row::get).filter(v -> v != null && v != "").collect(Collectors.toList());
-            String name = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
-            displayNames.put(Cast.of(row.get(ModelConstant.ID)), name);
-        }
-        return displayNames;
-    }
-
-    /**
-     * Get the distinct field value list based on the filters.
-     *
-     * @param modelName model name
-     * @param field field name to read and distinct
-     * @param filters filters
-     * @return distinct field value list
-     */
-    @Override
-    public List<Object> getDistinctFieldValue(String modelName, String field, Filters filters) {
-        FlexQuery flexQuery = new FlexQuery(Sets.newHashSet(field), filters);
-        List<Map<String, Object>> rows = searchList(modelName, flexQuery);
-        return rows.stream().map(r -> r.get(field)).distinct().collect(Collectors.toList());
-    }
-
-    /**
-     * Get the unmasked field value based on the id and field name.
-     *
-     * @param modelName model name
-     * @param id data id
-     * @param fieldName masking field name
-     * @return unmasked field value
-     */
-    @Override
-    public String getUnmaskedField(String modelName, K id, String fieldName) {
-        return (String) this.getUnmaskedFields(modelName, id, Collections.singletonList(fieldName)).get(fieldName);
-    }
-
-    /**
-     * Get multiple unmasked field values based on the id and field names.
-     *
-     * @param modelName model name
-     * @param id data id
-     * @param fields masking field names
-     * @return unmasked field values map, {fieldName: fieldValue}
-     */
-    @Override
-    public Map<String, Object> getUnmaskedFields(String modelName, K id, List<String> fields) {
-        fields.forEach(field -> {
-            MetaField metaField = ModelManager.getModelField(modelName, field);
-            Assert.notNull(metaField.getMaskingType(),
-                    "The `maskingType` of model {0} field {1} is null, cannot invoke unmask!",
-                    modelName, field);
-        });
-        return readOne(modelName, id, fields);
     }
 
 }

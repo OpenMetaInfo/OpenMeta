@@ -32,7 +32,7 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
         // Cancel the existing cron job with the same ID first (if any).
         cronScheduler.cancelTask(cronId);
         // Schedule the new cron job.
-        SysCron sysCron = this.readOne(cronId);
+        SysCron sysCron = this.getById(cronId);
         cronScheduler.registerCron(sysCron);
     }
 
@@ -46,7 +46,7 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
         // Cancel the existing cron jobs with the same IDs first (if any).
         cronScheduler.cancelTaskList(cronIds);
         // Schedule the new cron jobs.
-        List<SysCron> sysCronList = this.readList(cronIds);
+        List<SysCron> sysCronList = this.getByIds(cronIds);
         for (SysCron sysCron : sysCronList) {
             cronScheduler.registerCron(sysCron);
         }
@@ -60,7 +60,7 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void executeNow(Long cronId) {
-        SysCron sysCron = this.readOne(cronId);
+        SysCron sysCron = this.getById(cronId);
         CronUtils.getCron(sysCron.getName(), sysCron.getCronExpression());
         cronScheduler.sendToMessageQueue(sysCron);
     }
@@ -73,7 +73,7 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void executeMultipleNow(List<Long> cronIds) {
-        List<SysCron> sysCronList = this.readList(cronIds);
+        List<SysCron> sysCronList = this.getByIds(cronIds);
         for (SysCron sysCron : sysCronList) {
             this.executeNow(sysCron.getId());
         }

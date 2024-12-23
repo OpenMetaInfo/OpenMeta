@@ -32,7 +32,7 @@ public class AsyncImportConsumer implements RocketMQListener<ImportTemplateDTO> 
 
     @Override
     public void onMessage(ImportTemplateDTO importTemplateDTO) {
-        ImportHistory importHistory = importHistoryService.readOne(importTemplateDTO.getHistoryId());
+        ImportHistory importHistory = importHistoryService.getById(importTemplateDTO.getHistoryId());
         InputStream inputStream = fileRecordService.downloadStream(importTemplateDTO.getFileId());
         importService.syncImport(importTemplateDTO, inputStream, importHistory);
     }

@@ -105,7 +105,7 @@ public abstract class ReflectTool {
     }
 
     /**
-     * Call the read method of the specified model
+     * Call the getByIds method of the specified model
      *
      * @param modelName model name
      * @param ids id list
@@ -114,22 +114,22 @@ public abstract class ReflectTool {
      * @param convertType format type
      * @return List<Map> data list
      */
-    public static List<Map<String, Object>> readList(String modelName, List<Serializable> ids, Set<String> fields,
+    public static List<Map<String, Object>> getByIds(String modelName, List<Serializable> ids, Set<String> fields,
                                                      SubQueries subQueries, ConvertType convertType) {
         if (CollectionUtils.isEmpty(ids)) {
             return new ArrayList<>();
         }
-        return getModelService().readList(modelName, ids, fields, subQueries, convertType);
+        return getModelService().getByIds(modelName, ids, fields, subQueries, convertType);
     }
 
     /**
-     * Call the searchMapList method of the specified model
+     * Call the searchList method of the specified model
      *
      * @param modelName model name
      * @param flexQuery flexQuery
      * @return Search result
      */
-    public static List<Map<String, Object>> searchMapList(String modelName, FlexQuery flexQuery) {
+    public static List<Map<String, Object>> searchList(String modelName, FlexQuery flexQuery) {
         return getModelService().searchList(modelName, flexQuery);
     }
 
@@ -156,7 +156,7 @@ public abstract class ReflectTool {
         if (CollectionUtils.isEmpty(ids)) {
             return false;
         }
-        return getModelService().deleteList(modelName, ids);
+        return getModelService().deleteByIds(modelName, ids);
     }
 
     /**

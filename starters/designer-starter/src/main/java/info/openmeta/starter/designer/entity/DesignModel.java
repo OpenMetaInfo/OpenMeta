@@ -72,6 +72,9 @@ public class DesignModel extends BaseModel {
     @Schema(description = "Data Source")
     private String dataSource;
 
+    @Schema(description = "Business Primary Key")
+    private List<String> businessKey;
+
     @Schema(description = "Partition Field")
     private String partitionField;
 

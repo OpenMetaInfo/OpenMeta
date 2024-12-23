@@ -131,7 +131,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
             if (flexQuery != null) {
                 relatedFlexQuery.setConvertType(flexQuery.getConvertType());
             }
-            List<Map<String, Object>> relatedRows= ReflectTool.searchMapList(metaField.getRelatedModel(), relatedFlexQuery);
+            List<Map<String, Object>> relatedRows= ReflectTool.searchList(metaField.getRelatedModel(), relatedFlexQuery);
             relatedRows.forEach(row -> relatedValueMap.put((Serializable) row.get(ModelConstant.ID), row));
         }
         return relatedValueMap;

@@ -107,7 +107,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Read multiple rows by ids.
+     * Get multiple rows by ids.
      * If the fields is not specified, all accessible fields as the default.
      *
      * @param modelName Model name
@@ -137,7 +137,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Read multiple rows by flexQuery object.
+     * Get multiple rows by flexQuery object.
      *
      * @param modelName Model name
      * @param flexQuery flexQuery

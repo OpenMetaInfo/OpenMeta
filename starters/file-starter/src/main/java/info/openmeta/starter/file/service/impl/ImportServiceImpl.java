@@ -88,7 +88,7 @@ public class ImportServiceImpl implements ImportService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FileInfo getTemplateFile(Long templateId) {
-        ImportTemplate importTemplate = importTemplateService.readOne(templateId);
+        ImportTemplate importTemplate = importTemplateService.getById(templateId);
         validateImportTemplate(importTemplate);
         // Construct the importTemplateDTO object
         ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, null);
@@ -116,7 +116,7 @@ public class ImportServiceImpl implements ImportService {
      */
     @Override
     public ImportHistory importByTemplate(Long templateId, MultipartFile file, Map<String, Object> env) {
-        ImportTemplate importTemplate = importTemplateService.readOne(templateId);
+        ImportTemplate importTemplate = importTemplateService.getById(templateId);
         this.validateImportTemplate(importTemplate);
         String fileName = FileUtils.getShortFileName(file);
         FileRecord fileRecord = fileRecordService.uploadFile(importTemplate.getModelName(), file);

@@ -67,15 +67,15 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Create a single data object, return the object with id and other latest field values
+     * Create a single data object, fetch and return the object after creation.
      *
      * @param object data object to be created
-     * @return object with id and other latest field values.
+     * @return object with the latest field values.
      */
     @Override
-    public T createOneAndReturn(T object) {
+    public T createOneAndFetch(T object) {
         Map<String, Object> rowMap = BeanTool.objectToMap(object);
-        Map<String, Object> result = modelService.createOneAndReturn(modelName, rowMap, ConvertType.TYPE_CAST);
+        Map<String, Object> result = modelService.createOneAndFetch(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
@@ -92,32 +92,32 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Create multiple data objects, return the object list with id and other latest field values.
+     * Create multiple data objects, fetch and return the objects after creation.
      *
      * @param objects data object list to be created
-     * @return object list, each object with id and other latest field values.
+     * @return object list with the latest field values.
      */
     @Override
-    public List<T> createListAndReturn(List<T> objects) {
+    public List<T> createListAndFetch(List<T> objects) {
         List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects);
-        List<Map<String, Object>> results = modelService.createListAndReturn(modelName, rows, ConvertType.TYPE_CAST);
+        List<Map<String, Object>> results = modelService.createListAndFetch(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
     /**
-     * Read one data object by id.
+     * Get one data object by id.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
      * @return data object
      */
     @Override
-    public T readOne(K id) {
-        return this.readOne(id, Collections.emptyList());
+    public T getById(K id) {
+        return this.getById(id, Collections.emptyList());
     }
 
     /**
-     * Read one data object by id.
+     * Get one data object by id.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
@@ -125,13 +125,13 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object
      */
     @Override
-    public T readOne(K id, SubQueries subQueries) {
-        Map<String, Object> row = modelService.readOne(modelName, id, subQueries);
+    public T getById(K id, SubQueries subQueries) {
+        Map<String, Object> row = modelService.getById(modelName, id, subQueries);
         return CollectionUtils.isEmpty(row) ? null : BeanTool.mapToObject(row, entityClass);
     }
 
     /**
-     * Read one data object by id.
+     * Get one data object by id.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
@@ -140,8 +140,8 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object
      */
     @Override
-    public T readOne(K id, Collection<String> fields) {
-        Map<String, Object> row = modelService.readOne(modelName, id, fields);
+    public T getById(K id, Collection<String> fields) {
+        Map<String, Object> row = modelService.getById(modelName, id, fields);
         return CollectionUtils.isEmpty(row) ? null : BeanTool.mapToObject(row, entityClass);
     }
 
@@ -153,8 +153,8 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object list
      */
     @Override
-    public List<T> readList(List<K> ids) {
-        return this.readList(ids, Collections.emptyList());
+    public List<T> getByIds(List<K> ids) {
+        return this.getByIds(ids, Collections.emptyList());
     }
 
     /**
@@ -166,8 +166,8 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object list
      */
     @Override
-    public List<T> readList(List<K> ids, SubQueries subQueries) {
-        List<Map<String, Object>> rows = modelService.readList(modelName, ids, Collections.emptyList(), subQueries, ConvertType.TYPE_CAST);
+    public List<T> getByIds(List<K> ids, SubQueries subQueries) {
+        List<Map<String, Object>> rows = modelService.getByIds(modelName, ids, Collections.emptyList(), subQueries, ConvertType.TYPE_CAST);
         return CollectionUtils.isEmpty(rows) ? Collections.emptyList() : BeanTool.mapListToObjects(rows, entityClass);
     }
 
@@ -181,13 +181,13 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object list
      */
     @Override
-    public List<T> readList(List<K> ids, Collection<String> fields) {
-        List<Map<String, Object>> rows = modelService.readList(modelName, ids, fields);
+    public List<T> getByIds(List<K> ids, Collection<String> fields) {
+        List<Map<String, Object>> rows = modelService.getByIds(modelName, ids, fields);
         return CollectionUtils.isEmpty(rows) ? Collections.emptyList() : BeanTool.mapListToObjects(rows, entityClass);
     }
 
     /**
-     * Read the specified field value based on id.
+     * Get the specified field value based on id.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
@@ -195,9 +195,32 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return field value
      */
     @Override
-    public <V extends Serializable, R> V readField(K id, SFunction<T, R> method) {
+    public <V extends Serializable, R> V getFieldValue(K id, SFunction<T, R> method) {
         String fieldName = LambdaUtils.getAttributeName(method);
-        return modelService.readField(modelName, id, fieldName);
+        return modelService.getFieldValue(modelName, id, fieldName);
+    }
+
+    /**
+     * Get the ids based on the filters.
+     *
+     * @param filters filters
+     * @return ids list
+     */
+    @Override
+    public List<K> getIds(Filters filters) {
+        return modelService.getIds(modelName, filters);
+    }
+
+    /**
+     * Get the ids for ManyToOne/OneToOne relational field.
+     *
+     * @param filters filters
+     * @param fieldName relational field name
+     * @return distinct ids for relational field
+     */
+    @Override
+    public <EK extends Serializable> List<EK> getRelatedIds(Filters filters, String fieldName) {
+        return modelService.getRelatedIds(modelName, filters, fieldName);
     }
 
     /**
@@ -227,30 +250,30 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
 
     /**
      * Update one data object by its ID. Null values are not ignored.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the object with the latest field values.
      *
      * @param object the data object to update
      * @return the updated object fetched from the database with the latest field values.
      */
     @Override
-    public T updateOneAndReturn(T object) {
+    public T updateOneAndFetch(T object) {
         Map<String, Object> rowMap = BeanTool.objectToMap(object, false);
-        Map<String, Object> result = modelService.updateOneAndReturn(modelName, rowMap, ConvertType.TYPE_CAST);
+        Map<String, Object> result = modelService.updateOneAndFetch(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
     /**
      * Update one data object by its ID.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the object with the latest field values.
      *
      * @param object the data object to update
      * @param ignoreNull whether to ignore null values during the update
      * @return the updated object fetched from the database, with the latest field values.
      */
     @Override
-    public T updateOneAndReturn(T object, boolean ignoreNull) {
+    public T updateOneAndFetch(T object, boolean ignoreNull) {
         Map<String, Object> rowMap = BeanTool.objectToMap(object, ignoreNull);
-        Map<String, Object> result = modelService.updateOneAndReturn(modelName, rowMap, ConvertType.TYPE_CAST);
+        Map<String, Object> result = modelService.updateOneAndFetch(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
@@ -281,30 +304,30 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
 
     /**
      * Update multiple data objects by their IDs. Null values are not ignored.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the objects with the latest field values.
      *
      * @param objects the list of data objects to update
      * @return the updated objects fetched from the database with the latest field values.
      */
     @Override
-    public List<T> updateListAndReturn(List<T> objects) {
+    public List<T> updateListAndFetch(List<T> objects) {
         List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, false);
-        List<Map<String, Object>> results = modelService.updateListAndReturn(modelName, rows, ConvertType.TYPE_CAST);
+        List<Map<String, Object>> results = modelService.updateListAndFetch(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
     /**
      * Update multiple data objects by their IDs.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the objects with the latest field values.
      *
      * @param objects the list of data objects to update
      * @param ignoreNull whether to ignore null values during the update
      * @return the updated objects fetched from the database with the latest field values.
      */
     @Override
-    public List<T> updateListAndReturn(List<T> objects, boolean ignoreNull) {
+    public List<T> updateListAndFetch(List<T> objects, boolean ignoreNull) {
         List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, ignoreNull);
-        List<Map<String, Object>> results = modelService.updateListAndReturn(modelName, rows, ConvertType.TYPE_CAST);
+        List<Map<String, Object>> results = modelService.updateListAndFetch(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
@@ -315,8 +338,8 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return true / Exception
      */
     @Override
-    public boolean deleteOne(K id) {
-        return modelService.deleteOne(modelName, id);
+    public boolean deleteById(K id) {
+        return modelService.deleteById(modelName, id);
     }
 
     /**
@@ -326,8 +349,8 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return true / Exception
      */
     @Override
-    public boolean deleteList(List<K> ids) {
-        return modelService.deleteList(modelName, ids);
+    public boolean deleteByIds(List<K> ids) {
+        return modelService.deleteByIds(modelName, ids);
     }
 
     /**
@@ -339,29 +362,6 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public boolean deleteByFilters(Filters filters) {
         return modelService.deleteByFilters(modelName, filters);
-    }
-
-    /**
-     * Get the ids based on the filters.
-     *
-     * @param filters filters
-     * @return ids list
-     */
-    @Override
-    public List<K> getIds(Filters filters) {
-        return modelService.getIds(modelName, filters);
-    }
-
-    /**
-     * Get the ids for ManyToOne/OneToOne relational field.
-     *
-     * @param filters filters
-     * @param fieldName relational field name
-     * @return distinct ids for relational field
-     */
-    @Override
-    public <EK extends Serializable> List<EK> getRelatedIds(Filters filters, String fieldName) {
-        return modelService.getRelatedIds(modelName, filters, fieldName);
     }
 
     /**

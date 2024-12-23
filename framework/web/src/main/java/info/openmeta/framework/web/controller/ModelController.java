@@ -76,19 +76,19 @@ public class ModelController<K extends Serializable> {
     }
 
     /**
-     * Create a single row, return the row map with id and other latest field values.
+     * Create a single row, fetch the row data after creation.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param row       data row to be created
      * @return row data with id and other latest field values
      */
-    @PostMapping(value = "/createOneAndReturn")
-    @Operation(description = "Create one row and return the latest values from database.")
+    @PostMapping(value = "/createOneAndFetch")
+    @Operation(description = "Create one row and fetch the latest values from database.")
     @DataMask
-    public ApiResponse<Map<String, Object>> createOneAndReturn(@PathVariable String modelName,
-                                                               @RequestBody Map<String, Object> row) {
-        return ApiResponse.success(modelService.createOneAndReturn(modelName, row, ConvertType.REFERENCE));
+    public ApiResponse<Map<String, Object>> createOneAndFetch(@PathVariable String modelName,
+                                                              @RequestBody Map<String, Object> row) {
+        return ApiResponse.success(modelService.createOneAndFetch(modelName, row, ConvertType.REFERENCE));
     }
 
     /**
@@ -108,24 +108,24 @@ public class ModelController<K extends Serializable> {
     }
 
     /**
-     * Create multiple rows, return the row list with id and other latest field values.
+     * Create multiple rows, fetch the rows after creation.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param rows      data rows to be created
      * @return row data list with id and other latest field values
      */
-    @PostMapping("/createListAndReturn")
-    @Operation(description = "Create multiple rows and return the latest values from database.")
+    @PostMapping("/createListAndFetch")
+    @Operation(description = "Create multiple rows and fetch the latest values from database.")
     @DataMask
-    public ApiResponse<List<Map<String, Object>>> createListAndReturn(@PathVariable String modelName,
-                                                                      @RequestBody List<Map<String, Object>> rows) {
+    public ApiResponse<List<Map<String, Object>>> createListAndFetch(@PathVariable String modelName,
+                                                                     @RequestBody List<Map<String, Object>> rows) {
         this.validateBatchSize(rows.size());
-        return ApiResponse.success(modelService.createListAndReturn(modelName, rows, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.createListAndFetch(modelName, rows, ConvertType.REFERENCE));
     }
 
     /**
-     * Read one row by id.
+     * Get one row by id.
      * If the fields is not specified, all accessible fields as the default.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
@@ -136,8 +136,8 @@ public class ModelController<K extends Serializable> {
      * @param effectiveDate effective date of timeline data
      * @return data row
      */
-    @GetMapping(value = "/readOne", params = { "id", "fields" })
-    @Operation(description = "Read one row by ID.")
+    @GetMapping(value = "/getById", params = { "id", "fields" })
+    @Operation(description = "Get one row by ID.")
     @Parameters({
             @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
@@ -145,18 +145,18 @@ public class ModelController<K extends Serializable> {
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
     @DataMask
-    public ApiResponse<Map<String, Object>> readOne(@PathVariable String modelName,
+    public ApiResponse<Map<String, Object>> getById(@PathVariable String modelName,
                                                     @RequestParam K id,
                                                     @RequestParam(required = false) List<String> fields,
                                                     @RequestParam(required = false) SubQueries subQueries,
                                                     @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.readOne(modelName, id, fields, subQueries, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.getById(modelName, id, fields, subQueries, ConvertType.REFERENCE));
     }
 
     /**
-     * Read multiple rows by ids.
+     * Get multiple rows by ids.
      * If the fields is not specified, all accessible fields as the default.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
@@ -167,8 +167,8 @@ public class ModelController<K extends Serializable> {
      * @param effectiveDate effective date of timeline data
      * @return List<Map> of multiple data
      */
-    @GetMapping(value = "/readList", params = { "ids", "fields" })
-    @Operation(description = "Read multiple rows by IDs.")
+    @GetMapping(value = "/getByIds", params = { "ids", "fields" })
+    @Operation(description = "Get multiple rows by IDs.")
     @Parameters({
             @Parameter(name = "ids", description = "Data IDs to be read."),
             @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
@@ -176,7 +176,7 @@ public class ModelController<K extends Serializable> {
             @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
     })
     @DataMask
-    public ApiResponse<List<Map<String, Object>>> readList(@PathVariable String modelName,
+    public ApiResponse<List<Map<String, Object>>> getByIds(@PathVariable String modelName,
                                                            @RequestParam List<K> ids,
                                                            @RequestParam(required = false) List<String> fields,
                                                            @RequestParam(required = false) SubQueries subQueries,
@@ -184,7 +184,71 @@ public class ModelController<K extends Serializable> {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.readList(modelName, ids, fields, subQueries, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.getByIds(modelName, ids, fields, subQueries, ConvertType.REFERENCE));
+    }
+
+    /**
+     * Get the copyable fields value by ID, no data inserted.
+     *
+     * @param modelName model name
+     * @param id        source data id
+     * @return map of copyable field values
+     */
+    @GetMapping("/getCopyableFields")
+    @Operation(description = "Get the copyable fields value by ID, no data inserted.")
+    @Parameter(name = "id", description = "Data ID to be copied.", schema = @Schema(type = "number"))
+    @DataMask
+    public ApiResponse<Map<String, Object>> getCopyableFields(@PathVariable String modelName, @RequestParam K id) {
+        id = IdUtils.formatId(modelName, id);
+        return ApiResponse.success(modelService.getCopyableFields(modelName, id));
+    }
+
+    /**
+     * Get the original value for masking field based on the id and field name.
+     *
+     * @param modelName model name
+     * @param id        data id
+     * @param field     masking field name
+     * @return unmasked field value
+     */
+    @GetMapping("/getUnmaskedField")
+    @Operation(description = "Get the original value for masking field.")
+    @Parameters({
+            @Parameter(name = "id", description = "Data ID to be read", schema = @Schema(type = "number")),
+            @Parameter(name = "field", description = "The masking field name to get the original value"),
+            @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
+    })
+    public ApiResponse<String> getUnmaskedField(@PathVariable String modelName,
+                                                @RequestParam K id,
+                                                @RequestParam String field,
+                                                @RequestParam(required = false) LocalDate effectiveDate) {
+        ContextHolder.getContext().setEffectiveDate(effectiveDate);
+        id = IdUtils.formatId(modelName, id);
+        return ApiResponse.success(modelService.getUnmaskedField(modelName, id, field));
+    }
+
+    /**
+     * Get the original values for masking fields based on the id and field names.
+     *
+     * @param modelName model name
+     * @param id        data id
+     * @param fields    masking field names
+     * @return unmasked field values map, {fieldName: fieldValue}
+     */
+    @GetMapping("/getUnmaskedFields")
+    @Operation(description = "Get the original values for multiple masking fields.")
+    @Parameters({
+            @Parameter(name = "id", description = "Data ID to be read", schema = @Schema(type = "number")),
+            @Parameter(name = "fields", description = "The masking field list to get the original values"),
+            @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
+    })
+    public ApiResponse<Map<String, Object>> getUnmaskedFields(@PathVariable String modelName,
+                                                              @RequestParam K id,
+                                                              @RequestParam List<String> fields,
+                                                              @RequestParam(required = false) LocalDate effectiveDate) {
+        ContextHolder.getContext().setEffectiveDate(effectiveDate);
+        id = IdUtils.formatId(modelName, id);
+        return ApiResponse.success(modelService.getUnmaskedFields(modelName, id, fields));
     }
 
     /**
@@ -205,22 +269,22 @@ public class ModelController<K extends Serializable> {
     }
 
     /**
-     * Update one row by id, and return the updated row fetched from the database, with the latest field values.
+     * Update one row by id, and fetch the latest field values.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param row       data row to be updated
-     * @return map of updated row data with the latest field values
+     * @return row map fetched from the database after updating
      */
-    @PostMapping(value = "/updateOneAndReturn")
-    @Operation(description = "Update one row by ID, and return the latest values from database.")
+    @PostMapping(value = "/updateOneAndFetch")
+    @Operation(description = "Update one row by ID, and fetch the latest values from database.")
     @DataMask
-    public ApiResponse<Map<String, Object>> updateOneAndReturn(@PathVariable String modelName,
+    public ApiResponse<Map<String, Object>> updateOneAndFetch(@PathVariable String modelName,
                                                                @RequestBody Map<String, Object> row) {
         Assert.notEmpty(row, "The data to be updated cannot be empty!");
         Assert.notNull(row.get("id"), "`id` cannot be null or missing when updating data!");
         IdUtils.formatMapId(modelName, row);
-        return ApiResponse.success(modelService.updateOneAndReturn(modelName, row, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.updateOneAndFetch(modelName, row, ConvertType.REFERENCE));
     }
 
     /**
@@ -241,23 +305,23 @@ public class ModelController<K extends Serializable> {
     }
 
     /**
-     * Update multiple rows by ids.Each row in the list can have different fields.
-     * And return the updated rows fetched from the database, with the latest field values.
+     * Update multiple rows by ids. Each row in the list can have different fields.
+     * And fetch the latest field values.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param rows      data rows to be updated
-     * @return updated rows with the latest field values
+     * @return rows fetched from the database after updating
      */
-    @PostMapping(value = "/updateListAndReturn")
-    @Operation(description = "Update multiple rows by ID, and return the latest values from database.")
+    @PostMapping(value = "/updateListAndFetch")
+    @Operation(description = "Update multiple rows by ID, and fetch the latest values from database.")
     @DataMask
-    public ApiResponse<List<Map<String, Object>>> updateListAndReturn(@PathVariable String modelName,
+    public ApiResponse<List<Map<String, Object>>> updateListAndFetch(@PathVariable String modelName,
                                                                       @RequestBody List<Map<String, Object>> rows) {
         Assert.notEmpty(rows, "The data to be updated cannot be empty!");
         this.validateBatchSize(rows.size());
         IdUtils.formatMapIds(modelName, rows);
-        return ApiResponse.success(modelService.updateListAndReturn(modelName, rows, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.updateListAndFetch(modelName, rows, ConvertType.REFERENCE));
     }
 
     /**
@@ -289,26 +353,26 @@ public class ModelController<K extends Serializable> {
      * @param id        data id
      * @return true / Exception
      */
-    @PostMapping(value = "/deleteOne")
+    @PostMapping(value = "/deleteById")
     @Operation(description = "Delete one row by ID. All slices related to this `ID` will be deleted for timeline model.")
-    @Parameter(name = "id", description = "Data ID to be deleted", schema = @Schema(type = "number"))
-    public ApiResponse<Boolean> deleteOne(@PathVariable String modelName, @RequestParam K id) {
+    @Parameter(name = "id", description = "ID of the data to be deleted.", schema = @Schema(type = "number"))
+    public ApiResponse<Boolean> deleteById(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.deleteOne(modelName, id));
+        return ApiResponse.success(modelService.deleteById(modelName, id));
     }
 
     /**
-     * Delete a slice of timeline model by `sliceId`, the primary key of timeline model.
+     * Delete one slice of timeline model by `sliceId`, the primary key of timeline model.
      *
      * @param modelName model name
      * @param sliceId   data id
      * @return True / Exception
      */
-    @PostMapping(value = "/deleteSlice")
+    @PostMapping(value = "/deleteBySliceId")
     @Operation(description = "Delete one slice of the timeline model by `sliceId`.")
     @Parameter(name = "sliceId", description = "`sliceId` of the timeline slice data to delete.", schema = @Schema(type = "number"))
-    public ApiResponse<Boolean> deleteSlice(@PathVariable String modelName, @RequestParam Long sliceId) {
-        return ApiResponse.success(modelService.deleteSlice(modelName, sliceId));
+    public ApiResponse<Boolean> deleteBySliceId(@PathVariable String modelName, @RequestParam Long sliceId) {
+        return ApiResponse.success(modelService.deleteBySliceId(modelName, sliceId));
     }
 
     /**
@@ -318,14 +382,14 @@ public class ModelController<K extends Serializable> {
      * @param ids       data ids
      * @return True / Exception
      */
-    @PostMapping(value = "/deleteList")
+    @PostMapping(value = "/deleteByIds")
     @Operation(description = "Delete multiple rows by IDs.")
-    @Parameter(name = "ids", description = "Data IDs to be deleted.")
-    public ApiResponse<Boolean> deleteList(@PathVariable String modelName,
-                                           @RequestParam List<K> ids) {
+    @Parameter(name = "ids", description = "IDs of the data to be deleted.")
+    public ApiResponse<Boolean> deleteByIds(@PathVariable String modelName,
+                                            @RequestParam List<K> ids) {
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.deleteList(modelName, ids));
+        return ApiResponse.success(modelService.deleteByIds(modelName, ids));
     }
 
     /**
@@ -335,30 +399,30 @@ public class ModelController<K extends Serializable> {
      * @param id        data source ID to be copied.
      * @return id of the new data
      */
-    @PostMapping(value = "/copyOne")
+    @PostMapping(value = "/copyById")
     @Operation(description = "Copy one row based on ID, and return the ID of the new row.")
-    @Parameter(name = "id", description = "Data source ID to be copied.", schema = @Schema(type = "number"))
+    @Parameter(name = "id", description = "Data ID to be copied.", schema = @Schema(type = "number"))
     @DataMask
-    public ApiResponse<K> copyOne(@PathVariable String modelName, @RequestParam K id) {
+    public ApiResponse<K> copyById(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.copyOne(modelName, id));
+        return ApiResponse.success(modelService.copyById(modelName, id));
     }
 
     /**
-     * Copy a single row based on id, and return the new row.
+     * Copy a single row based on id, and fetch the new row.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param id        data source id
      * @return new row data
      */
-    @PostMapping(value = "/copyOneAndReturn")
-    @Operation(description = "Copy one row based on ID, and return the new row.")
-    @Parameter(name = "id", description = "Data source ID to be copied.", schema = @Schema(type = "number"))
+    @PostMapping(value = "/copyByIdAndFetch")
+    @Operation(description = "Copy one row based on ID, and fetch the new row.")
+    @Parameter(name = "id", description = "Data ID to be copied.", schema = @Schema(type = "number"))
     @DataMask
-    public ApiResponse<Map<String, Object>> copyOneAndReturn(@PathVariable String modelName, @RequestParam K id) {
+    public ApiResponse<Map<String, Object>> copyByIdAndFetch(@PathVariable String modelName, @RequestParam K id) {
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.copyOneAndReturn(modelName, id, ConvertType.REFERENCE));
+        return ApiResponse.success(modelService.copyByIdAndFetch(modelName, id, ConvertType.REFERENCE));
     }
 
     /**
@@ -368,49 +432,33 @@ public class ModelController<K extends Serializable> {
      * @param ids       data source ids
      * @return ids of the new data
      */
-    @PostMapping(value = "/copyList")
+    @PostMapping(value = "/copyByIds")
     @Operation(description = "Copy multiple rows based on IDs, and return the new data IDs.")
-    @Parameter(name = "ids", description = "Data source IDs to be copied.")
+    @Parameter(name = "ids", description = "Data IDs to be copied.")
     @DataMask
-    public ApiResponse<List<K>> copyList(@PathVariable String modelName, @RequestParam List<K> ids) {
+    public ApiResponse<List<K>> copyByIds(@PathVariable String modelName, @RequestParam List<K> ids) {
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.copyList(modelName, ids));
+        return ApiResponse.success(modelService.copyByIds(modelName, ids));
     }
 
     /**
-     * Copy multiple rows based on ids, and return the new rows.
+     * Copy multiple rows based on ids, and fetch the new rows.
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName model name
      * @param ids       source data ids
      * @return new rows data
      */
-    @PostMapping(value = "/copyListAndReturn")
-    @Operation(description = "Copy multiple rows based on ids, and return the new rows.")
-    @Parameter(name = "ids", description = "Data source IDs to be copied.")
+    @PostMapping(value = "/copyByIdsAndFetch")
+    @Operation(description = "Copy multiple rows based on ids, and fetch the new rows.")
+    @Parameter(name = "ids", description = "Data IDs to be copied.")
     @DataMask
-    public ApiResponse<List<Map<String, Object>>> copyListAndReturn(@PathVariable String modelName,
+    public ApiResponse<List<Map<String, Object>>> copyByIdsAndFetch(@PathVariable String modelName,
                                                                     @RequestParam List<K> ids) {
         this.validateIds(ids);
         ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.copyListAndReturn(modelName, ids, ConvertType.REFERENCE));
-    }
-
-    /**
-     * Copy a single row based on id, only return the copyable field values, without creating a new row.
-     *
-     * @param modelName model name
-     * @param id        source data id
-     * @return map of copyable field values
-     */
-    @GetMapping("/copyWithoutCreate")
-    @Operation(description = "Copy one row by ID, only return the copyable field values, without inserting into database.")
-    @Parameter(name = "id", description = "Data source ID to be copied.", schema = @Schema(type = "number"))
-    @DataMask
-    public ApiResponse<Map<String, Object>> copyWithoutCreate(@PathVariable String modelName, @RequestParam K id) {
-        id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.copyWithoutCreate(modelName, id));
+        return ApiResponse.success(modelService.copyByIdsAndFetch(modelName, ids, ConvertType.REFERENCE));
     }
 
     /**
@@ -541,51 +589,4 @@ public class ModelController<K extends Serializable> {
         }
     }
 
-    /**
-     * Get the original value for masking field based on the id and field name.
-     *
-     * @param modelName model name
-     * @param id        data id
-     * @param field     masking field name
-     * @return unmasked field value
-     */
-    @GetMapping("/getUnmaskedField")
-    @Operation(description = "Get the original value for masking field.")
-    @Parameters({
-            @Parameter(name = "id", description = "Data ID to be read", schema = @Schema(type = "number")),
-            @Parameter(name = "field", description = "The masking field name to get the original value"),
-            @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
-    })
-    public ApiResponse<String> getUnmaskedField(@PathVariable String modelName,
-                                                 @RequestParam K id,
-                                                 @RequestParam String field,
-                                                 @RequestParam(required = false) LocalDate effectiveDate) {
-        ContextHolder.getContext().setEffectiveDate(effectiveDate);
-        id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.getUnmaskedField(modelName, id, field));
-    }
-
-    /**
-     * Get the original values for masking fields based on the id and field names.
-     *
-     * @param modelName model name
-     * @param id        data id
-     * @param fields    masking field names
-     * @return unmasked field values map, {fieldName: fieldValue}
-     */
-    @GetMapping("/getUnmaskedFields")
-    @Operation(description = "Get the original values for multiple masking fields.")
-    @Parameters({
-            @Parameter(name = "id", description = "Data ID to be read", schema = @Schema(type = "number")),
-            @Parameter(name = "fields", description = "The masking field list to get the original values"),
-            @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
-    })
-    public ApiResponse<Map<String, Object>> getUnmaskedFields(@PathVariable String modelName,
-                                                              @RequestParam K id,
-                                                              @RequestParam List<String> fields,
-                                                              @RequestParam(required = false) LocalDate effectiveDate) {
-        ContextHolder.getContext().setEffectiveDate(effectiveDate);
-        id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.getUnmaskedFields(modelName, id, fields));
-    }
 }
