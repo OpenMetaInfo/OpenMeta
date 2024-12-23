@@ -129,6 +129,8 @@ public class ModelManager {
             validateVersionField(metaModel);
             // Check if the model dataSource attribute is valid
             validateModelDataSource(metaModel);
+            // Check if the model businessKey attribute is valid
+            validateBusinessKey(metaModel);
         }
     }
 
@@ -283,10 +285,26 @@ public class ModelManager {
      */
     private static void validateModelDataSource(MetaModel metaModel) {
         String dataSource = metaModel.getDataSource();
-        if (metaModel.isSystemModel() && StringUtils.isNotBlank(dataSource)) {
+        if (ModelConstant.SYSTEM_MODEL.contains(metaModel.getModelName()) && StringUtils.isNotBlank(dataSource)) {
             throw new IllegalArgumentException("The system model {0} cannot be configured with a dataSource {1}!",
                     metaModel.getModelName(), dataSource);
         }
+    }
+
+    /**
+     * Check if the fields exists in the model
+     * @param metaModel model metadata object
+     */
+    private static void validateBusinessKey(MetaModel metaModel) {
+        List<String> businessKey = metaModel.getBusinessKey();
+        if (CollectionUtils.isEmpty(businessKey)) {
+            return;
+        }
+        validateStoredFields(metaModel.getModelName(), businessKey);
+        Set<String> businessKeySet = new HashSet<>(businessKey);
+        Assert.isTrue(businessKeySet.size() == businessKey.size(),
+                "The businessKey of model {0} contains duplicate fields, {1}.",
+                metaModel.getModelName(), businessKey);
     }
 
     /**
@@ -444,6 +462,9 @@ public class ModelManager {
      */
     public static void validateModelFields(String modelName, Collection<String> fields){
         validateModel(modelName);
+        if (CollectionUtils.isEmpty(fields)) {
+            return;
+        }
         Set<String> accessFields = new HashSet<>(fields);
         accessFields.removeAll(MODEL_FIELDS.get(modelName).keySet());
         Assert.isTrue(accessFields.isEmpty(), "Model {0} does not exist fields {1}!", modelName, accessFields);

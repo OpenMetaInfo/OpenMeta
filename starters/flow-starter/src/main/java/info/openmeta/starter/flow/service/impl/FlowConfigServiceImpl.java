@@ -47,8 +47,8 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
      * @return flow configuration
      */
     private FlowConfig getFlowDefinition(Long flowId) {
-        FlowConfig flowConfig = this.readOne(flowId);
-        Filters filters = Filters.eq(FlowNode::getFlowId, flowId);
+        FlowConfig flowConfig = this.getById(flowId);
+        Filters filters = new Filters().eq(FlowNode::getFlowId, flowId);
         // Sort FlowNode in ascending order according to the `sequence` of the node.
         Orders orders = Orders.ofAsc(FlowNode::getSequence);
         flowConfig.setNodeList(flowNodeService.searchList(new FlexQuery(filters, orders)));
@@ -128,7 +128,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
         flowEvent.setRowId(rowId);
         flowEvent.setTriggerId(eventMessage.getTriggerId());
         flowEvent.setTriggeredModel(eventMessage.getTriggeredModel());
-        return flowEventService.createOneAndReturn(flowEvent);
+        return flowEventService.createOneAndFetch(flowEvent);
     }
 
     /**
@@ -144,7 +144,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
         flowInstance.setFlowId(flowEvent.getFlowId());
         flowInstance.setTriggerId(flowEvent.getTriggerId());
         flowInstance.setCurrentStatus(FlowStatus.INITIAL);
-        return flowInstanceService.createOneAndReturn(flowInstance);
+        return flowInstanceService.createOneAndFetch(flowInstance);
     }
 
 }

@@ -150,7 +150,7 @@ public class ManyToManyProcessor extends BaseProcessor {
         List<Serializable> ids = rows.stream().map(r -> (Serializable) r.get(ModelConstant.ID)).collect(Collectors.toList());
         Set<String> fields = Sets.newHashSet(ModelConstant.ID, metaField.getRelatedField(), metaField.getInverseLinkField());
         FlexQuery previousFlexQuery = new FlexQuery(fields, Filters.of(metaField.getRelatedField(), Operator.IN, ids));
-        List<Map<String, Object>> previousMToMRows = ReflectTool.searchMapList(metaField.getRelatedModel(), previousFlexQuery);
+        List<Map<String, Object>> previousMToMRows = ReflectTool.searchList(metaField.getRelatedModel(), previousFlexQuery);
         previousMToMRows.forEach(row -> {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Serializable relatedId = (Serializable) row.get(metaField.getRelatedField());
@@ -221,7 +221,7 @@ public class ManyToManyProcessor extends BaseProcessor {
         Filters middleFilters = Filters.of(relatedField, Operator.IN, mainModelIds);
         Set<String> middleFields = Sets.newHashSet(relatedField, inverseLinkField);
         FlexQuery middleFlexQuery = new FlexQuery(middleFields, middleFilters);
-        return ReflectTool.searchMapList(metaField.getRelatedModel(), middleFlexQuery);
+        return ReflectTool.searchList(metaField.getRelatedModel(), middleFlexQuery);
     }
 
     /**
@@ -271,7 +271,7 @@ public class ManyToManyProcessor extends BaseProcessor {
      * @return Middle model count: [{relatedField, count}, ...]
      */
     private List<Map<String, Object>> getMiddleCount(List<Serializable> mainModelIds) {
-        Filters filters = Filters.in(ModelConstant.ID, mainModelIds);
+        Filters filters = new Filters().in(ModelConstant.ID, mainModelIds);
         // When there is a subQuery filters, merge them with `AND` logic
         filters.and(subQuery.getFilters());
         // count subQuery on the middle model
@@ -279,7 +279,7 @@ public class ManyToManyProcessor extends BaseProcessor {
         FlexQuery relatedFlexQuery = new FlexQuery(fields, filters);
         // Count is automatically added during the groupBy operation
         relatedFlexQuery.setGroupBy(metaField.getRelatedField());
-        return ReflectTool.searchMapList(metaField.getRelatedModel(), relatedFlexQuery);
+        return ReflectTool.searchList(metaField.getRelatedModel(), relatedFlexQuery);
     }
 
     /**
@@ -290,7 +290,7 @@ public class ManyToManyProcessor extends BaseProcessor {
      * @return Associated model rows
      */
     private List<Map<String, Object>> getAssociatedRows(String associatedModel, List<Serializable> ids) {
-        Filters filters = Filters.in(ModelConstant.ID, ids);
+        Filters filters = new Filters().in(ModelConstant.ID, ids);
         FlexQuery relatedFlexQuery;
         if (subQuery == null) {
             relatedFlexQuery = new FlexQuery(Collections.emptyList(), filters);
@@ -303,7 +303,7 @@ public class ManyToManyProcessor extends BaseProcessor {
             }
         }
         relatedFlexQuery.setConvertType(flexQuery.getConvertType());
-        return ReflectTool.searchMapList(associatedModel, relatedFlexQuery);
+        return ReflectTool.searchList(associatedModel, relatedFlexQuery);
     }
 
     /**

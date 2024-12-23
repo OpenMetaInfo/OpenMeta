@@ -73,7 +73,8 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
                 DesignAppVersion::getAppId,
                 DesignAppVersion::getLocked,
                 DesignAppVersion::getPublished);
-        Filters filters = Filters.eq(DesignAppVersion::getEnvId, envId).andEq(DesignAppVersion::getLocked, false);
+        Filters filters = new Filters().eq(DesignAppVersion::getEnvId, envId)
+                .eq(DesignAppVersion::getLocked, false);
         FlexQuery flexQuery = new FlexQuery().select(fields).where(filters);
         List<DesignAppVersion> appVersions = this.searchList(flexQuery);
         if (appVersions.isEmpty()) {
@@ -100,7 +101,7 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
     @Transactional(rollbackFor = Exception.class)
     public boolean reloadAppVersion(Long id) {
         List<String> fields = ListUtils.getLambdaFields(DesignAppVersion::getAppId, DesignAppVersion::getLocked);
-        DesignAppVersion appVersion = this.readOne(id, fields);
+        DesignAppVersion appVersion = this.getById(id, fields);
         if (Boolean.TRUE.equals(appVersion.getLocked())) {
             throw new BusinessException("""
                     The version is locked and historical version published content cannot be modified.
@@ -123,7 +124,7 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
         ModelChangesDTO modelChanges = null;
         ModelChangesDTO fieldChanges = null;
         ModelChangesDTO indexChanges = null;
-        DesignAppEnv appEnv = appEnvService.readOne(appVersion.getEnvId());
+        DesignAppEnv appEnv = appEnvService.getById(appVersion.getEnvId());
         Assert.notNull(appEnv, "The envId {0} of app version {1} does not exist!",
                 appVersion.getEnvId(), appVersion.getName());
         for (String versionedModel : MetadataConstant.BASIC_METADATA_MODELS.keySet()) {
@@ -155,9 +156,9 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void publish(Long id) {
-        DesignAppVersion appVersion = this.readOne(id);
+        DesignAppVersion appVersion = this.getById(id);
         Assert.notNull(appVersion, "The specified version does not exist! {0}", id);
-        DesignAppEnv appEnv = appEnvService.readOne(appVersion.getEnvId());
+        DesignAppEnv appEnv = appEnvService.getById(appVersion.getEnvId());
         Assert.notNull(appEnv, "The specified environment does not exist! {0}", appVersion.getEnvId());
         Assert.notBlank(appEnv.getUpgradeEndpoint(),
                 "The interface address of the App-Env {0}: {1} cannot be empty!", appEnv.getAppCode(), appEnv.getName());

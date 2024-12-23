@@ -12,21 +12,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 /**
- * Exception message handler
+ * Request info handler
  */
 @Component
-public class ExceptionMessageHandler {
+public class RequestInfoHandler {
 
     @Autowired
     private HttpServletRequest request;
-
-    /**
-     * Get the current request URI
-     * @return URI as a string
-     */
-    public String getRequestURI() {
-        return request != null ? request.getRequestURI() : StringUtils.EMPTY;
-    }
 
     /**
      * Get the current request info, including the URI, request parameters, request body, and traceId.

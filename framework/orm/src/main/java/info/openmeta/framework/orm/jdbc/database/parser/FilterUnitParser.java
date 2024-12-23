@@ -38,7 +38,7 @@ public class FilterUnitParser {
             case LESS_THAN:
             case LESS_THAN_OR_EQUAL:
                 condition.append(" ").append(DBUtil.getPredicate(operator));
-                if (value instanceof String expression && StringTools.isReservedField((String) value)) {
+                if (value instanceof String expression && StringTools.isReservedField(expression)) {
                     // Handle field comparison, value is @{fieldName}, which is a reserved field name,
                     // embed it into SQL after checking the field name is legal
                     String fieldName = expression.substring(2, expression.length() - 1).trim();
@@ -49,8 +49,8 @@ public class FilterUnitParser {
                     sqlWrapper.addArgValue(value);
                 }
                 break;
-            case HAS:
-            case NOT_HAS:
+            case CONTAINS:
+            case NOT_CONTAINS:
                 condition.append(" ").append(DBUtil.getPredicate(operator)).append(" ?");
                 value = "%" + value + "%";
                 sqlWrapper.addArgValue("%" + value + "%");
@@ -85,10 +85,10 @@ public class FilterUnitParser {
                 condition.append(" ").append(DBUtil.getPredicate(operator));
                 break;
             case PARENT_OF:
-                condition = parseParentOf(sqlWrapper, tableAlias, operator, value);
+                condition = parseParentOf(sqlWrapper, tableAlias, operator, (Collection<?>) value);
                 break;
             case CHILD_OF:
-                condition = parseChildOf(sqlWrapper, fieldAlias, operator, value);
+                condition = parseChildOf(sqlWrapper, fieldAlias, operator, (Collection<?>) value);
                 break;
             default:
                 throw new IllegalArgumentException("FilterUnitParser currently does not support the operator {0}! ", operator.getName());
@@ -107,15 +107,15 @@ public class FilterUnitParser {
      * @param sqlWrapper SQL wrapper
      * @param tableAlias table alias
      * @param operator operator
-     * @param value value
+     * @param idPaths idPaths
      * @return SQL condition
      */
-    private static StringBuilder parseParentOf(SqlWrapper sqlWrapper, String tableAlias, Operator operator, Object value) {
+    private static StringBuilder parseParentOf(SqlWrapper sqlWrapper, String tableAlias, Operator operator, Collection<?> idPaths) {
         StringBuilder condition = new StringBuilder(tableAlias).append(".").append(ModelConstant.ID).append(" ").append(DBUtil.getPredicate(operator)).append(" (");
         // Extract the id set from the idPath separated by "/"
         Set<Long> parentIds = new HashSet<>();
-        for (Object path : (Collection<?>) value) {
-            parentIds.addAll(StringTools.splitIdPath((String) path));
+        for (Object idPath : idPaths) {
+            parentIds.addAll(StringTools.splitIdPath((String) idPath));
         }
         // Build the IN condition
         StringBuilder inSql = new StringBuilder();
@@ -139,39 +139,42 @@ public class FilterUnitParser {
      * @param sqlWrapper SQL wrapper
      * @param fieldAlias field alias
      * @param operator operator
-     * @param value value
+     * @param idPaths idPaths
      * @return SQL condition
      */
-    private static StringBuilder parseChildOf(SqlWrapper sqlWrapper, StringBuilder fieldAlias, Operator operator, Object value) {
+    private static StringBuilder parseChildOf(SqlWrapper sqlWrapper, StringBuilder fieldAlias, Operator operator, Collection<?> idPaths) {
         StringBuilder condition;
-        Collection<?> paths = (Collection<?>) value;
-        int size = paths.size();
+        int size = idPaths.size();
         if (size == 1) {
-            return buildStartWithCondition(sqlWrapper, fieldAlias, operator, paths.iterator().next());
+            return buildStartWithCondition(sqlWrapper, fieldAlias, operator, (String) idPaths.iterator().next());
         } else if (size > 1) {
             condition = new StringBuilder(" (");
-            Iterator<?> iterator = paths.iterator();
+            Iterator<?> iterator = idPaths.iterator();
             for (int i = 0; i < size; i++) {
                 if (i > 0) {
                     condition.append(" OR ");
                 }
-                condition.append(buildStartWithCondition(sqlWrapper, fieldAlias, operator, iterator.next()));
+                condition.append(buildStartWithCondition(sqlWrapper, fieldAlias, operator, (String) iterator.next()));
             }
             condition.append(")");
         } else {
-            throw new IllegalArgumentException("The value of [{0}, {1}, {2}] cannot be empty!", fieldAlias, operator, value);
+            throw new IllegalArgumentException("The idPaths of [{0}, {1}, {2}] cannot be empty!", fieldAlias, operator, idPaths);
         }
         return condition;
     }
 
     /**
-     * When the value is a single value, use StartWith to construct a simple query condition,
-     * which can use the prefix index: `t.f LIKE ?, value%`
+     * Use StartWith to construct a simple query condition,
+     * which can use the prefix index: `t.f LIKE ?, idPath%`
+     * @param sqlWrapper SQL wrapper
+     * @param fieldAlias field alias
+     * @param operator operator
+     * @param idPath idPath
      */
-    private static StringBuilder buildStartWithCondition(SqlWrapper sqlWrapper, StringBuilder fieldAlias, Operator operator, Object value) {
+    private static StringBuilder buildStartWithCondition(SqlWrapper sqlWrapper, StringBuilder fieldAlias, Operator operator, String idPath) {
         StringBuilder condition = new StringBuilder(fieldAlias).append(" ").append(DBUtil.getPredicate(operator)).append(" ?");
-        value = value + "%";
-        sqlWrapper.addArgValue(value);
+        idPath = idPath + "%";
+        sqlWrapper.addArgValue(idPath);
         return condition;
     }
 }

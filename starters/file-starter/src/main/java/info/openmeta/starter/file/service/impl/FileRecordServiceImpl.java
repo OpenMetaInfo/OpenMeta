@@ -4,6 +4,7 @@ import com.github.f4b6a3.tsid.TsidCreator;
 import com.google.common.collect.Lists;
 import info.openmeta.framework.base.config.TenantConfig;
 import info.openmeta.framework.base.context.ContextHolder;
+import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
@@ -22,9 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -59,6 +58,53 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     }
 
     /**
+     * Upload the Excel byte to the file storage.
+     * @param modelName the model name
+     * @param fileName the file name
+     * @param excelBytes the byte array of the Excel file
+     * @return the file record object
+     */
+    @Override
+    public FileRecord uploadExcelBytes(String modelName, String fileName, byte[] excelBytes) {
+        try (InputStream resultStream = new ByteArrayInputStream(excelBytes)) {
+            UploadFileDTO uploadFileDTO = new UploadFileDTO();
+            uploadFileDTO.setModelName(modelName);
+            uploadFileDTO.setFileName(fileName);
+            uploadFileDTO.setFileType(FileType.XLSX);
+            uploadFileDTO.setFileSize(excelBytes.length);
+            uploadFileDTO.setFileSource(FileSource.DOWNLOAD);
+            uploadFileDTO.setInputStream(resultStream);
+            return this.uploadFile(uploadFileDTO);
+        } catch (IOException e) {
+            throw new BusinessException("Error uploading Excel stream", e);
+        }
+    }
+
+    /**
+     * Upload the Excel byte to the file storage, and return the file info object with download URL.
+     * @param modelName the model name
+     * @param fileName the file name
+     * @param excelBytes the byte array of the Excel file
+     * @return the file info object with download URL
+     */
+    @Override
+    public FileInfo uploadExcelBytesToDownload(String modelName, String fileName, byte[] excelBytes) {
+        FileRecord fileRecord = this.uploadExcelBytes(modelName, fileName, excelBytes);
+        return convertToFileInfo(fileRecord);
+    }
+
+    /**
+     * Generate a full filename combining the filename, the current date and the file type extension.
+     *
+     * @param fileName the name of the file
+     * @param fileType the type of the file
+     * @return the full file name
+     */
+    private static String getFullFileName(String fileName, FileType fileType) {
+        return fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+    }
+
+    /**
      * Upload a file to the OSS and create a corresponding FileRecord.
      * The uploadFileDTO contains the file information and input stream.
      *
@@ -67,10 +113,11 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileRecord uploadFile(UploadFileDTO uploadFileDTO) {
-        String fullFileName = uploadFileDTO.getFileName() + "_"
-                + DateUtils.getCurrentSimpleDateString() + uploadFileDTO.getFileType().name();
+        String fileName = uploadFileDTO.getFileName();
+        FileType fileType = uploadFileDTO.getFileType();
+        String fullFileName = getFullFileName(fileName, fileType);
         String ossKey = this.generateOssKey(modelName, fullFileName);
-        String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), uploadFileDTO.getFileName());
+        String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), fileName);
         // Create file record
         FileRecord fileRecord = new FileRecord();
         fileRecord.setFileName(fullFileName);
@@ -122,7 +169,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     public FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file) {
         String fileName = FileUtils.getShortFileName(file);
         FileType fileType = FileUtils.getActualFileType(file);
-        String fullFileName = fileName + "_" + DateUtils.getCurrentSimpleDateString() + fileType.getExtension();
+        String fullFileName = getFullFileName(fileName, fileType);
         String ossKey = this.generateOssKey(modelName, fullFileName);
         String checksum;
         try (InputStream inputStream = file.getInputStream()) {
@@ -190,7 +237,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public InputStream downloadStream(Long fileId) {
-        FileRecord fileRecord = this.readOne(fileId);
+        FileRecord fileRecord = this.getById(fileId);
         Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
         return ossClientService.downloadStreamFromOSS(fileRecord.getOssKey(), fileRecord.getFileName());
     }
@@ -204,7 +251,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileInfo getFileInfo(Long fileId) {
-        FileRecord fileRecord = this.readOne(fileId);
+        FileRecord fileRecord = this.getById(fileId);
         Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
         return convertToFileInfo(fileRecord);
     }
@@ -219,7 +266,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     @Override
     public List<FileInfo> getFileInfo(String modelName, Serializable rowId) {
         Assert.notNull(rowId, "RowId cannot be null.");
-        Filters filters = Filters.eq("modelName", modelName).andEq("rowId", rowId.toString());
+        Filters filters = new Filters().eq("modelName", modelName).eq("rowId", rowId.toString());
         List<FileRecord> fileRecords = this.searchList(filters);
         return fileRecords.stream().map(this::convertToFileInfo).toList();
     }
@@ -232,7 +279,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public String getDownloadUrl(Long fileId) {
-        FileRecord fileRecord = this.readOne(fileId);
+        FileRecord fileRecord = this.getById(fileId);
         Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
         return ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
     }

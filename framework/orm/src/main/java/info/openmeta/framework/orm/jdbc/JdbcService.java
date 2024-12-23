@@ -24,7 +24,7 @@ public interface JdbcService<K extends Serializable> {
     List<Map<String, Object>> insertList(String modelName, List<Map<String, Object>> rows);
 
     /**
-     * Read multiple rows by ids.
+     * Get multiple rows by ids.
      * If the fields are not specified, all accessible fields as the default.
      *
      * @param modelName Model name
@@ -36,7 +36,7 @@ public interface JdbcService<K extends Serializable> {
     List<Map<String, Object>> selectByIds(String modelName, List<K> ids, List<String> fields, ConvertType convertType);
 
     /**
-     * Read multiple rows by flexQuery object.
+     * Get multiple rows by flexQuery object.
      *
      * @param modelName Model name
      * @param flexQuery flexQuery

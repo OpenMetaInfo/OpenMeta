@@ -52,7 +52,7 @@ public class AiRobotServiceImpl extends EntityServiceImpl<AiRobot, Long> impleme
      * @return Robot object
      */
     private AiRobot getAiRobot(ChatMessage chatMessage) {
-        Filters robotFilters = Filters.eq(ModelConstant.ID, chatMessage.getRobotId());
+        Filters robotFilters = new Filters().eq(ModelConstant.ID, chatMessage.getRobotId());
         AiRobot aiRobot = this.searchOne(robotFilters);
         Assert.notNull(aiRobot, "Robot ID not exist: {0}", chatMessage.getRobotId());
         return aiRobot;

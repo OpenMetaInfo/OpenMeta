@@ -50,9 +50,9 @@ public class MetaModel implements Serializable {
 
     private boolean multiTenant;
 
-    private boolean systemModel;
-
     private String dataSource;
+
+    private List<String> businessKey;
 
     private List<MetaField> modelFields;
 

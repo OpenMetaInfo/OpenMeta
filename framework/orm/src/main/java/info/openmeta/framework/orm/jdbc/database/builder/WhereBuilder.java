@@ -54,9 +54,9 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
      */
     private Filters handleSoftDeleted(Filters filters) {
         if (ModelManager.isSoftDeleted(mainModelName) && !Filters.containsField(filters, ModelConstant.SOFT_DELETED_FIELD)) {
-            Filters deletedFilters = Filters.eq(ModelConstant.SOFT_DELETED_FIELD, false);
+            Filters deletedFilters = new Filters().eq(ModelConstant.SOFT_DELETED_FIELD, false);
             // Merge the original filters and the softDelete filters ["disable", "=", true]
-            return Filters.merge(filters, deletedFilters);
+            return Filters.and(filters, deletedFilters);
         }
         return filters;
     }
@@ -74,8 +74,8 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
         }
         // Add tenant filtering conditions
         Long tenantId = ContextHolder.getContext().getTenantId();
-        Filters tenantFilter = Filters.eq(ModelConstant.TENANT_ID, tenantId);
-        return Filters.merge(filters, tenantFilter);
+        Filters tenantFilter = new Filters().eq(ModelConstant.TENANT_ID, tenantId);
+        return Filters.and(filters, tenantFilter);
     }
 
     /**
@@ -301,9 +301,9 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
             // and reset the operator to "=" or "!=", for accurate search.
             Operator operator = filterUnit.getOperator();
             Object value = filterUnit.getValue();
-            if (Operator.NOT_HAS.equals(operator) || Operator.NOT_START_WITH.equals(operator)) {
+            if (Operator.NOT_CONTAINS.equals(operator) || Operator.NOT_START_WITH.equals(operator)) {
                 operator = Operator.NOT_EQUAL;
-            } else if (Operator.HAS.equals(operator) || Operator.START_WITH.equals(operator)) {
+            } else if (Operator.CONTAINS.equals(operator) || Operator.START_WITH.equals(operator)) {
                 operator = Operator.EQUAL;
             }
             if (value instanceof String) {

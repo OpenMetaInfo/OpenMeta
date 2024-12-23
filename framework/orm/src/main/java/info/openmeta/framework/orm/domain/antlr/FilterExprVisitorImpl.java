@@ -20,10 +20,10 @@ public class FilterExprVisitorImpl extends FilterExprBaseVisitor<Filters> {
         Filters left = visit(ctx.expr(0));
         Filters right = visit(ctx.expr(1));
         if (LogicOperator.AND.equals(left.getLogicOperator())) {
-            left.addChild(right);
+            left.and(right);
             return left;
         } else {
-            return Filters.merge(LogicOperator.AND, left, right);
+            return Filters.and(left, right);
         }
     }
 
@@ -32,10 +32,10 @@ public class FilterExprVisitorImpl extends FilterExprBaseVisitor<Filters> {
         Filters left = visit(ctx.expr(0));
         Filters right = visit(ctx.expr(1));
         if (LogicOperator.OR.equals(left.getLogicOperator())) {
-            left.addChild(right);
+            left.or(right);
             return left;
         } else {
-            return Filters.merge(LogicOperator.OR, left, right);
+            return Filters.or(left, right);
         }
     }
 

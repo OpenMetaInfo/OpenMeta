@@ -1,6 +1,5 @@
 package info.openmeta.starter.metadata.service.impl;
 
-import info.openmeta.framework.base.enums.Operator;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
@@ -21,7 +20,7 @@ public class SysConfigServiceImpl extends EntityServiceImpl<SysConfig, Long> imp
      */
     @Override
     public SysConfig getConfigByCode(String code) {
-        return this.searchOne(new FlexQuery(Filters.of(SysConfig::getCode, Operator.EQUAL, code)));
+        return this.searchOne(new FlexQuery(new Filters().eq(SysConfig::getCode, code)));
     }
 
 }

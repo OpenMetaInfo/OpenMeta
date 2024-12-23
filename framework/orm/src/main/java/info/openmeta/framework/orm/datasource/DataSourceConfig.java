@@ -102,7 +102,7 @@ public class DataSourceConfig {
                 defaultDataSource = dataSource;
                 defaultDataSourceKey = dsKey;
             } else if (DynamicDataSourceMode.READ_WRITE_SEPARATION.equals(dynamicDataSourceMode)) {
-                // If read-write-separation is enabled, the first dataSource is the primary dataSource
+                // If read-write-separation is configured, the first dataSource is the primary dataSource
                 // The other dataSource is the readonly dataSource
                 ReadonlyDataSourceHolder.addReadonlyDataSourceKey(dsKey);
             }

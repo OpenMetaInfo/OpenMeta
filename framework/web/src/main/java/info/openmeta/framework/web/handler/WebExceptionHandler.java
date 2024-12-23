@@ -3,6 +3,7 @@ package info.openmeta.framework.web.handler;
 import info.openmeta.framework.base.enums.ResponseCode;
 import info.openmeta.framework.base.exception.BaseException;
 import info.openmeta.framework.base.exception.BusinessException;
+import info.openmeta.framework.base.i18n.I18n;
 import info.openmeta.framework.web.response.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
@@ -38,7 +39,7 @@ import java.util.List;
 public class WebExceptionHandler {
 
     @Autowired
-    private ExceptionMessageHandler messageHandler;
+    private RequestInfoHandler messageHandler;
 
     /**
      * Handling exception and logging errors.
@@ -65,6 +66,7 @@ public class WebExceptionHandler {
     }
 
     /**
+     * Support i18n of Java exception messages and third-party exception messages.
      * Logs exception messages, including API request info.
      *
      * @param responseCode the response code associated with the exception
@@ -73,6 +75,11 @@ public class WebExceptionHandler {
      * @return a ResponseEntity wrapping the ApiResponse with the specified message
      */
     private ResponseEntity<ApiResponse<String>> handler(ResponseCode responseCode, Exception e, String exceptionMessage) {
+        if (!(e instanceof BaseException)) {
+            // If the exception is not an instance of BaseException, translate the exception message.
+            // Support i18n of Java exception messages and third-party exception messages.
+            exceptionMessage = I18n.get(exceptionMessage);
+        }
         String logMessage = exceptionMessage + messageHandler.getRequestInfo();
         if (e instanceof BaseException && ((BaseException) e).getLogLevel().equals(Level.WARN)) {
             // If the logLevel of Exception is WARN, log as a warning without triggering error alerts.

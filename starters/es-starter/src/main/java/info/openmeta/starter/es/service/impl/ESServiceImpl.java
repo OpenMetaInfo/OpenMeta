@@ -130,8 +130,8 @@ public abstract class ESServiceImpl<T> implements ESService<T> {
             case GREATER_THAN_OR_EQUAL -> criteria.greaterThanEqual(value);
             case LESS_THAN -> criteria.lessThan(value);
             case LESS_THAN_OR_EQUAL -> criteria.lessThanEqual(value);
-            case HAS -> criteria.contains(value.toString());
-            case NOT_HAS -> criteria.not().contains(value.toString());
+            case CONTAINS -> criteria.contains(value.toString());
+            case NOT_CONTAINS -> criteria.not().contains(value.toString());
             case START_WITH -> criteria.startsWith(value.toString());
             case NOT_START_WITH -> criteria.not().startsWith(value.toString());
             case IN -> criteria.in((Collection<?>) value);

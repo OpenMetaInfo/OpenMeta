@@ -51,7 +51,7 @@ class FiltersTest {
      */
     @Test
     void parseFilterUnit() {
-        String source = "[\"name\",\"=\",\"Test\"]";
+        String source = "[\"title\",\"=\",\"PM\"]";
         Filters filters = Filters.of(source);
         Assertions.assertEquals(source, filters.toString());
     }
@@ -61,8 +61,8 @@ class FiltersTest {
      */
     @Test
     void parseUnitFilters() {
-        String source = "[[\"name\",\"=\",\"Test\"]]";
-        String expected = "[\"name\",\"=\",\"Test\"]";
+        String source = "[[\"title\",\"=\",\"PM\"]]";
+        String expected = "[\"title\",\"=\",\"PM\"]";
         Filters filters = Filters.of(source);
         Assertions.assertEquals(expected, filters.toString());
     }
@@ -72,8 +72,8 @@ class FiltersTest {
      */
     @Test
     void parseUnitFilters2() {
-        String source = "[[\"name\",\"=\",\"Test\"],[]]";
-        String expected = "[\"name\",\"=\",\"Test\"]";
+        String source = "[[\"title\",\"=\",\"PM\"],[]]";
+        String expected = "[\"title\",\"=\",\"PM\"]";
         Filters filters = Filters.of(source);
         Assertions.assertEquals(expected, filters.toString());
     }
@@ -83,8 +83,8 @@ class FiltersTest {
      */
     @Test
     void parseDefaultLogicOperator() {
-        String source = "[[\"name\",\"=\",\"Test\"],[\"active\",\"=\",false],[\"version\",\"=\",1]]";
-        String expected = "[[\"name\",\"=\",\"Test\"],\"AND\",[\"active\",\"=\",false],\"AND\",[\"version\",\"=\",1]]";
+        String source = "[[\"title\",\"=\",\"PM\"],[\"active\",\"=\",false],[\"version\",\"=\",1]]";
+        String expected = "[[\"title\",\"=\",\"PM\"],\"AND\",[\"active\",\"=\",false],\"AND\",[\"version\",\"=\",1]]";
         Filters filters = Filters.of(source);
         Assertions.assertEquals(expected, filters.toString());
     }
@@ -94,8 +94,8 @@ class FiltersTest {
      */
     @Test
     void parseLogicOperatorInsensitive() {
-        String source = "[[\"name\",\"=\",\"Tom\"],\"and\",[\"active\",\"=\",false]]";
-        String expected = "[[\"name\",\"=\",\"Tom\"],\"AND\",[\"active\",\"=\",false]]";
+        String source = "[[\"title\",\"=\",\"PM\"],\"and\",[\"active\",\"=\",false]]";
+        String expected = "[[\"title\",\"=\",\"PM\"],\"AND\",[\"active\",\"=\",false]]";
         Filters filters = Filters.of(source);
         Assertions.assertEquals(expected, filters.toString());
     }
@@ -105,7 +105,7 @@ class FiltersTest {
      */
     @Test
     void parseLogicOperatorException() {
-        String source = "[[\"name\",\"=\",\"Test\"],\"&&\",[\"active\",\"=\",false]]";
+        String source = "[[\"title\",\"=\",\"PM\"],\"&&\",[\"active\",\"=\",false]]";
         Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> Filters.of(source));
     }
 
@@ -114,7 +114,7 @@ class FiltersTest {
      */
     @Test
     void parseNestedFilters() {
-        String source = "[[[\"name\",\"=\",\"Tome\"],\"OR\",[\"name\",\"!=\",\"Demo\"]],\"AND\",[\"active\",\"=\",false]]";
+        String source = "[[[\"title\",\"=\",\"PM\"],\"OR\",[\"title\",\"!=\",\"Demo\"]],\"AND\",[\"active\",\"=\",false]]";
         Filters filters = Filters.of(source);
         Assertions.assertEquals(source, filters.toString());
     }
@@ -124,8 +124,8 @@ class FiltersTest {
      */
     @Test
     void parseNestedFiltersWithDefaultLogicOperator() {
-        String source = "[[[[\"name\",\"!=\",\"A\"],[\"name\",\"!=\",\"B\"]],\"OR\",[\"code\",\"=\",\"Demo\"]],[\"active\",\"=\",false]]";
-        String expected = "[[[[\"name\",\"!=\",\"A\"],\"AND\",[\"name\",\"!=\",\"B\"]],\"OR\",[\"code\",\"=\",\"Demo\"]],\"AND\",[\"active\",\"=\",false]]";
+        String source = "[[[[\"title\",\"!=\",\"A\"],[\"title\",\"!=\",\"B\"]],\"OR\",[\"code\",\"=\",\"Demo\"]],[\"active\",\"=\",false]]";
+        String expected = "[[[[\"title\",\"!=\",\"A\"],\"AND\",[\"title\",\"!=\",\"B\"]],\"OR\",[\"code\",\"=\",\"Demo\"]],\"AND\",[\"active\",\"=\",false]]";
         Filters filters = Filters.of(source);
         Assertions.assertEquals(expected, filters.toString());
     }
@@ -135,8 +135,8 @@ class FiltersTest {
      */
     @Test
     void parseWithConstructionMethod() {
-        String source = "[[\"name\",\"=\",\"Test\"],\"AND\",[\"active\",\"=\",false]]";
-        Filters filters = Filters.of("name", Operator.EQUAL, "Test")
+        String source = "[[\"title\",\"=\",\"PM\"],\"AND\",[\"active\",\"=\",false]]";
+        Filters filters = Filters.of("title", Operator.EQUAL, "PM")
                 .and(Filters.of("active", Operator.EQUAL, false));
         Assertions.assertEquals(source, filters.toString());
     }
@@ -148,7 +148,7 @@ class FiltersTest {
         assert filters != null;
         Assertions.assertEquals(filterString, filters.toSemanticString());
 
-        filterString = "name = \"Test\" OR code = \"A01\"";
+        filterString = "title = \"PM\" OR code = \"A01\"";
         filters =  Filters.ofSemantic(filterString);
         assert filters != null;
         Assertions.assertEquals(filterString, filters.toSemanticString());
@@ -156,7 +156,7 @@ class FiltersTest {
 
     @Test
     void parseSemanticFormatAnd() {
-        String filterString = "name = \"Test\" AND code = \"A01\" AND version = 1";
+        String filterString = "title = \"PM\" AND code = \"A01\" AND version = 1";
         Filters filters =  Filters.ofSemantic(filterString);
         assert filters != null;
         Assertions.assertEquals(filterString, filters.toSemanticString());
@@ -164,7 +164,7 @@ class FiltersTest {
 
     @Test
     void parseSemanticFormatCombinedAnd() {
-        String filterString = "(name = \"Test\" OR code = \"A01\") AND version = 1";
+        String filterString = "(title = \"PM\" OR code = \"A01\") AND version = 1";
         Filters filters =  Filters.ofSemantic(filterString);
         assert filters != null;
         Assertions.assertEquals(filterString, filters.toSemanticString());
@@ -172,7 +172,7 @@ class FiltersTest {
 
     @Test
     void parseSemanticFormatCombinedOr() {
-        String filterString = "name = \"Test\" OR (code = \"A01\" AND version = 1)";
+        String filterString = "title = \"PM\" OR (code = \"A01\" AND version = 1)";
         Filters filters =  Filters.ofSemantic(filterString);
         assert filters != null;
         Assertions.assertEquals(filterString, filters.toSemanticString());
@@ -180,7 +180,7 @@ class FiltersTest {
 
     @Test
     void parseSemanticFormatComplex() {
-        String filterString = "((name = \"Tom\" AND code IN [\"A01\"]) OR version NOT IN [1]) AND version2 != 21";
+        String filterString = "((title = \"PM\" AND code IN [\"A01\"]) OR version NOT IN [1]) AND version2 != 21";
         Filters filters =  Filters.ofSemantic(filterString);
         assert filters != null;
         log.info(filters.toString());
@@ -193,9 +193,9 @@ class FiltersTest {
      */
     @Test
     void ofEntityWithNonNullValues() {
-        TestEntity entity = new TestEntity("Test", 1);
+        TestJobEntity entity = new TestJobEntity("PM", 1);
         Filters filters = Filters.ofEntity(entity, false);
-        String expected = "[[\"name\",\"=\",\"Test\"],\"AND\",[\"value\",\"=\",1]]";
+        String expected = "[[\"title\",\"=\",\"PM\"],\"AND\",[\"value\",\"=\",1]]";
         Assertions.assertEquals(expected, filters.toString());
     }
 
@@ -204,7 +204,7 @@ class FiltersTest {
      */
     @Test
     void ofEntityWithNullValuesIgnored() {
-        TestEntity entity = new TestEntity(null, 1);
+        TestJobEntity entity = new TestJobEntity(null, 1);
         Filters filters = Filters.ofEntity(entity, true);
         String expected = "[\"value\",\"=\",1]";
         Assertions.assertEquals(expected, filters.toString());
@@ -215,9 +215,9 @@ class FiltersTest {
      */
     @Test
     void ofEntityWithNullValuesNotIgnored() {
-        TestEntity entity = new TestEntity(null, 1);
+        TestJobEntity entity = new TestJobEntity(null, 1);
         Filters filters = Filters.ofEntity(entity, false);
-        String expected = "[[\"name\",\"IS NOT SET\",null],\"AND\",[\"value\",\"=\",1]]";
+        String expected = "[[\"title\",\"IS NOT SET\",null],\"AND\",[\"value\",\"=\",1]]";
         Assertions.assertEquals(expected, filters.toString());
     }
 
@@ -226,7 +226,7 @@ class FiltersTest {
      */
     @Test
     void ofEntityWithEmptyEntity() {
-        TestEntity entity = new TestEntity(null, null);
+        TestJobEntity entity = new TestJobEntity(null, null);
         Filters filters = Filters.ofEntity(entity, true);
         String expected = "[]";
         Assertions.assertEquals(expected, filters.toString());
@@ -237,9 +237,39 @@ class FiltersTest {
      */
     @Test
     void ofEntityWithAllNullValues() {
-        TestEntity entity = new TestEntity(null, null);
+        TestJobEntity entity = new TestJobEntity(null, null);
         Filters filters = Filters.ofEntity(entity, false);
-        String expected = "[[\"name\",\"IS NOT SET\",null],\"AND\",[\"value\",\"IS NOT SET\",null]]";
+        String expected = "[[\"title\",\"IS NOT SET\",null],\"AND\",[\"value\",\"IS NOT SET\",null]]";
+        Assertions.assertEquals(expected, filters.toString());
+    }
+
+    @Test
+    void and1() {
+        Filters filters1 = Filters.of("title", Operator.EQUAL, "PM")
+                .or(Filters.of("active", Operator.EQUAL, false));
+        Filters filters2 = Filters.of("version", Operator.EQUAL, 1);
+        Filters filters = filters1.and(filters2);
+        String expected = "[[[\"title\",\"=\",\"PM\"],\"OR\",[\"active\",\"=\",false]],\"AND\",[\"version\",\"=\",1]]";
+        Assertions.assertEquals(expected, filters.toString());
+    }
+
+    @Test
+    void and2() {
+        Filters filters1 = new Filters().eq("title", "PM")
+                .or(new Filters().eq("active", false));
+        Filters filters2 = new Filters().eq("version", 1);
+        Filters filters = filters1.and(filters2);
+        String expected = "[[[\"title\",\"=\",\"PM\"],\"OR\",[\"active\",\"=\",false]],\"AND\",[\"version\",\"=\",1]]";
+        Assertions.assertEquals(expected, filters.toString());
+    }
+
+    @Test
+    void and3() {
+        Filters filters1 = Filters.and().eq("title", "PM")
+                .or("active", Operator.EQUAL, Boolean.FALSE);
+        Filters filters2 = Filters.of("version", Operator.EQUAL, 1);
+        Filters filters = filters1.and(filters2);
+        String expected = "[[[\"title\",\"=\",\"PM\"],\"OR\",[\"active\",\"=\",false]],\"AND\",[\"version\",\"=\",1]]";
         Assertions.assertEquals(expected, filters.toString());
     }
 }

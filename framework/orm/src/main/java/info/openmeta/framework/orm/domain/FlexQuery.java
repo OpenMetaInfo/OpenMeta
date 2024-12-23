@@ -184,7 +184,7 @@ public class FlexQuery {
         if (acrossTimeline) {
             return true;
         } else if (!Filters.isEmpty(filters)) {
-            Set<String> filterFields = filters.allFields();
+            Set<String> filterFields = filters.extractFields();
             return filterFields.contains(ModelConstant.EFFECTIVE_START_DATE) || filterFields.contains(ModelConstant.EFFECTIVE_END_DATE);
         }
         return false;

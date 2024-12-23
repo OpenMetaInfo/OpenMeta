@@ -30,12 +30,12 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
     K createOne(T object);
 
     /**
-     * Create a single data object, return the object with id and other latest field values
+     * Create a single data object, fetch the object after creation.
      *
      * @param object data object to be created
-     * @return object with id and other latest field values.
+     * @return object with the latest field values.
      */
-    T createOneAndReturn(T object);
+    T createOneAndFetch(T object);
 
     /**
      * Create multiple data objects and return the id list.
@@ -46,34 +46,34 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
     List<K> createList(List<T> objects);
 
     /**
-     * Create multiple data objects, return the object list with id and other latest field values.
+     * Create multiple data objects, fetch the object list after creation.
      *
      * @param objects data object list to be created
-     * @return object list, each object with id and other latest field values.
+     * @return object list with the latest field values.
      */
-    List<T> createListAndReturn(List<T> objects);
+    List<T> createListAndFetch(List<T> objects);
 
     /**
-     * Read one data object by id.
+     * Get one data object by id.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
      * @return data object
      */
-    T readOne(K id);
+    T getById(K id);
 
     /**
-     * Read one data object by id.
+     * Get one data object by id.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
      * @param subQueries subQueries object, can expand relational fields
      * @return data object
      */
-    T readOne(K id, SubQueries subQueries);
+    T getById(K id, SubQueries subQueries);
 
     /**
-     * Read one data object by id.
+     * Get one data object by id.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
@@ -81,29 +81,29 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param fields field list to read
      * @return data object
      */
-    T readOne(K id, Collection<String> fields);
+    T getById(K id, Collection<String> fields);
 
     /**
-     * Read multiple data objects by ids.
+     * Get multiple data objects by ids.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param ids data ids list
      * @return data object list
      */
-    List<T> readList(List<K> ids);
+    List<T> getByIds(List<K> ids);
 
     /**
-     * Read multiple data objects by ids.
+     * Get multiple data objects by ids.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param ids data ids list
      * @param subQueries subQueries object, can expand relational fields
      * @return data object list
      */
-    List<T> readList(List<K> ids, SubQueries subQueries);
+    List<T> getByIds(List<K> ids, SubQueries subQueries);
 
     /**
-     * Read multiple data objects by ids.
+     * Get multiple data objects by ids.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
@@ -111,17 +111,34 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param fields field list to read
      * @return data object list
      */
-    List<T> readList(List<K> ids, Collection<String> fields);
+    List<T> getByIds(List<K> ids, Collection<String> fields);
 
     /**
-     * Read the specified field value based on id.
+     * Get the specified field value based on id.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
      * @param method field method, Lambda expression, method reference passing parameters
      * @return field value
      */
-    <V extends Serializable, R> V readField(K id, SFunction<T, R> method);
+    <V extends Serializable, R> V getFieldValue(K id, SFunction<T, R> method);
+
+    /**
+     * Get the ids based on the filters.
+     *
+     * @param filters filters
+     * @return ids list
+     */
+    List<K> getIds(Filters filters);
+
+    /**
+     * Get the ids for ManyToOne/OneToOne relational field.
+     *
+     * @param filters filters
+     * @param fieldName relational field name
+     * @return distinct ids for relational field
+     */
+    <EK extends Serializable> List<EK> getRelatedIds(Filters filters, String fieldName);
 
     /**
      * Update one data object by its ID. Null values are not ignored.
@@ -142,22 +159,22 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
 
     /**
      * Update one data object by its ID. Null values are not ignored.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the object with the latest field values.
      *
      * @param object the data object to update
      * @return the updated object fetched from the database with the latest field values.
      */
-    T updateOneAndReturn(T object);
+    T updateOneAndFetch(T object);
 
     /**
      * Update one data object by its ID.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the object with the latest field values.
      *
      * @param object the data object to update
      * @param ignoreNull whether to ignore null values during the update
      * @return the updated object fetched from the database, with the latest field values.
      */
-    T updateOneAndReturn(T object, boolean ignoreNull);
+    T updateOneAndFetch(T object, boolean ignoreNull);
 
     /**
      * Update multiple data objects by their IDs. Null values are not ignored.
@@ -178,22 +195,22 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
 
     /**
      * Update multiple data objects by their IDs. Null values are not ignored.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the objects with the latest field values.
      *
      * @param objects the list of data objects to update
      * @return the updated objects fetched from the database with the latest field values.
      */
-    List<T> updateListAndReturn(List<T> objects);
+    List<T> updateListAndFetch(List<T> objects);
 
     /**
      * Update multiple data objects by their IDs.
-     * Return the updated object fetched from the database with the latest field values.
+     * Fetch and return the objects with the latest field values.
      *
      * @param objects the list of data objects to update
      * @param ignoreNull whether to ignore null values during the update
      * @return the updated objects fetched from the database with the latest field values.
      */
-    List<T> updateListAndReturn(List<T> objects, boolean ignoreNull);
+    List<T> updateListAndFetch(List<T> objects, boolean ignoreNull);
 
     /**
      * Delete one data object by ID.
@@ -201,7 +218,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param id data id
      * @return true / Exception
      */
-    boolean deleteOne(K id);
+    boolean deleteById(K id);
 
     /**
      * Delete multiple data objects by IDs.
@@ -209,7 +226,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param ids data ids
      * @return true / Exception
      */
-    boolean deleteList(List<K> ids);
+    boolean deleteByIds(List<K> ids);
 
     /**
      * Delete data objects by specified filters.
@@ -218,23 +235,6 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @return true / Exception
      */
     boolean deleteByFilters(Filters filters);
-
-    /**
-     * Get the ids based on the filters.
-     *
-     * @param filters filters
-     * @return ids list
-     */
-    List<K> getIds(Filters filters);
-
-    /**
-     * Get the ids for ManyToOne/OneToOne relational field.
-     *
-     * @param filters filters
-     * @param fieldName relational field name
-     * @return distinct ids for relational field
-     */
-    <EK extends Serializable> List<EK> getRelatedIds(Filters filters, String fieldName);
 
     /**
      * Query a single object based on filters. Only for code use.
