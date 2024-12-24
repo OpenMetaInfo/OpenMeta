@@ -83,10 +83,8 @@ public abstract class BaseBuilder {
                 Assert.isTrue(i == cascadeFields.size() - 1,
                         "The {0} field in cascade field {1} is not a relational field!", fieldName, logicField);
                 if (metaField.isTranslatable()) {
-                    // If the field is a translatable field, get the alias of the translation table
-                    String transAlias = sqlWrapper.getTableAlias().getTransTableAlias(fieldChain.toString());
                     // Construct the SQL segment of the translation field
-                    columnAlias = sqlWrapper.selectTranslatableField(metaField, lastAlias, transAlias);
+                    columnAlias = sqlWrapper.selectTranslatableField(metaField, lastAlias);
                 }
             }
         }
@@ -120,10 +118,8 @@ public abstract class BaseBuilder {
             MetaField metaField = ModelManager.getModelField(this.mainModelName, simpleField);
             sqlWrapper.accessModelField(this.mainModelName, simpleField);
             if (metaField.isTranslatable()) {
-                // If the field is a translatable field, get the alias of the translation table
-                String transAlias = sqlWrapper.getTableAlias().getTransTableAlias(simpleField);
                 // Construct the SQL segment of the translation field
-                return sqlWrapper.selectTranslatableField(metaField, SqlWrapper.MAIN_TABLE_ALIAS, transAlias);
+                return sqlWrapper.selectTranslatableField(metaField, SqlWrapper.MAIN_TABLE_ALIAS);
             } else {
                 return SqlWrapper.MAIN_TABLE_ALIAS + "." + metaField.getColumnName();
             }
