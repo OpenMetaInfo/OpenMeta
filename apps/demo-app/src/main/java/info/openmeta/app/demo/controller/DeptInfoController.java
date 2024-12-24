@@ -31,7 +31,7 @@ public class DeptInfoController extends EntityController<DeptInfoService, DeptIn
     @Autowired
     private DeptInfoService deptInfoService;
 
-    @GetMapping(value = "/readCustomize", params = { "id", "fields" })
+    @GetMapping(value = "/readCustomize")
     @Operation(summary = "readCustomize", description = "Read customized department info by ID.")
     @Parameters({
             @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),

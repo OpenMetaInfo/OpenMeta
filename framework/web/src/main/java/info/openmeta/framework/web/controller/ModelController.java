@@ -136,7 +136,7 @@ public class ModelController<K extends Serializable> {
      * @param effectiveDate effective date of timeline data
      * @return data row
      */
-    @GetMapping(value = "/getById", params = { "id", "fields" })
+    @GetMapping(value = "/getById")
     @Operation(description = "Get one row by ID.")
     @Parameters({
             @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
@@ -167,7 +167,7 @@ public class ModelController<K extends Serializable> {
      * @param effectiveDate effective date of timeline data
      * @return List<Map> of multiple data
      */
-    @GetMapping(value = "/getByIds", params = { "ids", "fields" })
+    @GetMapping(value = "/getByIds")
     @Operation(description = "Get multiple rows by IDs.")
     @Parameters({
             @Parameter(name = "ids", description = "Data IDs to be read."),
