@@ -52,6 +52,6 @@ public class FlowDebugHistory extends BaseModel {
     @Schema(description = "Event Message")
     private JsonNode eventMessage;
 
-    @Schema(description = "Action Trace")
-    private JsonNode actionTrace;
+    @Schema(description = "Node Trace")
+    private JsonNode nodeTrace;
 }

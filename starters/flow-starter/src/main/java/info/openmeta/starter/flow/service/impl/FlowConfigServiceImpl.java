@@ -5,16 +5,13 @@ import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.starter.flow.FlowEnv;
-import info.openmeta.starter.flow.action.ActionContext;
 import info.openmeta.starter.flow.constant.FlowConstant;
-import info.openmeta.starter.flow.entity.FlowConfig;
-import info.openmeta.starter.flow.entity.FlowEvent;
-import info.openmeta.starter.flow.entity.FlowInstance;
-import info.openmeta.starter.flow.entity.FlowNode;
-import info.openmeta.starter.flow.enums.ActionExceptionSignal;
+import info.openmeta.starter.flow.entity.*;
 import info.openmeta.starter.flow.enums.FlowStatus;
 import info.openmeta.starter.flow.enums.FlowType;
+import info.openmeta.starter.flow.enums.NodeExceptionSignal;
 import info.openmeta.starter.flow.message.dto.FlowEventMessage;
+import info.openmeta.starter.flow.node.NodeContext;
 import info.openmeta.starter.flow.service.FlowConfigService;
 import info.openmeta.starter.flow.service.FlowEventService;
 import info.openmeta.starter.flow.service.FlowInstanceService;
@@ -41,7 +38,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
     private FlowEventService flowEventService;
 
     /**
-     * Get the flow configuration, including the node list and the action list in the node.
+     * Get the flow configuration, including the node list and the node list in the node.
      *
      * @param flowId flow configuration ID
      * @return flow configuration
@@ -68,21 +65,21 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
         FlowConfig flowDefinition = this.getFlowDefinition(eventMessage.getFlowId());
         StopWatch stopWatch = new StopWatch("Executing flow：" + flowDefinition.getName());
         // Add the row data that triggers the flow to the environment variables
-        ActionContext actionContext = new ActionContext(FlowEnv.getEnv());
-        actionContext.put(FlowConstant.TRIGGER_ROW_ID, eventMessage.getTriggerRowId());
-        actionContext.put(FlowConstant.TRIGGER_PARAMS, eventMessage.getTriggerParams());
+        NodeContext nodeContext = new NodeContext(FlowEnv.getEnv());
+        nodeContext.put(FlowConstant.TRIGGER_ROW_ID, eventMessage.getTriggerRowId());
+        nodeContext.put(FlowConstant.TRIGGER_PARAMS, eventMessage.getTriggerParams());
         for (FlowNode flowNode : flowDefinition.getNodeList()) {
             stopWatch.start(flowNode.getNodeType().getType() + " - " + flowNode.getName());
-            flowNodeService.processFlowNode(flowNode, actionContext);
+            flowNodeService.processFlowNode(flowNode, nodeContext);
             stopWatch.stop();
-            if (ActionExceptionSignal.END_FLOW.equals(actionContext.getExceptionSignal())) {
+            if (NodeExceptionSignal.END_FLOW.equals(nodeContext.getExceptionSignal())) {
                 // End the flow, exit directly, do not execute subsequent nodes, and do not roll back the executed nodes.
                 log.info(stopWatch.prettyPrint());
                 return null;
             }
         }
         log.warn(stopWatch.prettyPrint());
-        return actionContext.getReturnData();
+        return nodeContext.getReturnData();
     }
 
     /**

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * Flow environment variables, which are shared by all flow nodes and flow actions.
+ * Flow environment variables, which are shared by all flow nodes.
  */
 public class FlowEnv {
 

@@ -7,7 +7,7 @@ import java.util.Set;
  */
 public interface FlowConstant {
 
-    // The key of the trigger data record in the action context environment variable
+    // The key of the trigger data record in the node context environment variable
     String TRIGGER_PARAMS = "TriggerParams";
     String TRIGGER_ROW_ID = "TriggerRowId";
 

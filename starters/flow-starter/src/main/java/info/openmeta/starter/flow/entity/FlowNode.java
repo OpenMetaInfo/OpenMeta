@@ -27,6 +27,9 @@ public class FlowNode extends BaseModel {
     @Schema(description = "Node Name")
     private String name;
 
+    @Schema(description = "Node Code")
+    private String code;
+
     @Schema(description = "Flow ID")
     private Long flowId;
 
@@ -36,17 +39,23 @@ public class FlowNode extends BaseModel {
     @Schema(description = "Node Type")
     private FlowNodeType nodeType;
 
+    @Schema(description = "Parent Node ID")
+    private Long parentId;
+
+    @Schema(description = "Child Nodes")
+    private List<FlowNode> childNodes;
+
     @Schema(description = "Sequence")
     private Integer sequence;
 
     @Schema(description = "Node Execute Condition")
     private String nodeCondition;
 
-    @Schema(description = "Loop Params")
-    private JsonNode loopParams;
+    @Schema(description = "Node Params")
+    private JsonNode nodeParams;
 
-    @Schema(description = "Action List")
-    private List<FlowAction> actionList;
+    @Schema(description = "Exception Policy")
+    private JsonNode exceptionPolicy;
 
     @Schema(description = "Disabled")
     private Boolean disabled;
