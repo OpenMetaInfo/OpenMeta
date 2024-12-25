@@ -60,12 +60,6 @@ public class SysField extends BaseModel {
     @Schema(description = "Inverse Link Field")
     private String inverseLinkField;
 
-    @Schema(description = "Auto Bind Many")
-    private Boolean autoBindMany;
-
-    @Schema(description = "Auto Expand Many")
-    private Boolean autoExpandMany;
-
     @Schema(description = "Cascaded Field")
     private String cascadedField;
 
