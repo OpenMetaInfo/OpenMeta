@@ -57,6 +57,9 @@ public class FlowNode extends BaseModel {
     @Schema(description = "Exception Policy")
     private JsonNode exceptionPolicy;
 
+    @Schema(description = "Position")
+    private JsonNode position;
+
     @Schema(description = "Disabled")
     private Boolean disabled;
 }

@@ -22,7 +22,7 @@ public class FlowStage extends BaseModel {
     private Long id;
 
     @Schema(description = "Model Name")
-    private String model;
+    private String modelName;
 
     @Schema(description = "Flow ID")
     private Long flowId;

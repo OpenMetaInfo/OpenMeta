@@ -21,6 +21,9 @@ public class FlowEdge extends BaseModel {
     @Schema(description = "ID")
     private Long id;
 
+    @Schema(description = "Flow ID")
+    private Long flowId;
+
     @Schema(description = "Edge Label")
     private String label;
 

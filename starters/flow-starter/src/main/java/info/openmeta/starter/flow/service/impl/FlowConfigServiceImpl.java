@@ -1,12 +1,14 @@
 package info.openmeta.starter.flow.service.impl;
 
 import info.openmeta.framework.orm.domain.Filters;
-import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.orm.domain.Orders;
+import info.openmeta.framework.orm.domain.SubQueries;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.starter.flow.FlowEnv;
 import info.openmeta.starter.flow.constant.FlowConstant;
-import info.openmeta.starter.flow.entity.*;
+import info.openmeta.starter.flow.entity.FlowConfig;
+import info.openmeta.starter.flow.entity.FlowEvent;
+import info.openmeta.starter.flow.entity.FlowInstance;
+import info.openmeta.starter.flow.entity.FlowNode;
 import info.openmeta.starter.flow.enums.FlowStatus;
 import info.openmeta.starter.flow.enums.FlowType;
 import info.openmeta.starter.flow.enums.NodeExceptionSignal;
@@ -21,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
+
+import java.util.List;
 
 /**
  * FlowConfig Model Service Implementation
@@ -38,18 +42,28 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
     private FlowEventService flowEventService;
 
     /**
-     * Get the flow configuration, including the node list and the node list in the node.
+     * Get the flow list by model name.
      *
-     * @param flowId flow configuration ID
-     * @return flow configuration
+     * @param modelName model name
+     * @return flow configuration list
      */
-    private FlowConfig getFlowDefinition(Long flowId) {
-        FlowConfig flowConfig = this.getById(flowId);
-        Filters filters = new Filters().eq(FlowNode::getFlowId, flowId);
-        // Sort FlowNode in ascending order according to the `sequence` of the node.
-        Orders orders = Orders.ofAsc(FlowNode::getSequence);
-        flowConfig.setNodeList(flowNodeService.searchList(new FlexQuery(filters, orders)));
-        return flowConfig;
+    @Override
+    public List<FlowConfig> getByModel(String modelName) {
+        Filters filters = new Filters().eq(FlowConfig::getModelName, modelName);
+        return this.searchList(filters);
+    }
+
+    /**
+     * Get the flowConfig by ID, including nodes and edges.
+     *
+     * @param flowId flow ID
+     * @return flowConfig object with nodes and edges
+     */
+    @Override
+    public FlowConfig getFlowById(Long flowId) {
+        SubQueries subQueries = new SubQueries().expand(FlowConfig::getNodeList)
+                .expand(FlowConfig::getEdgeList);
+        return this.getById(flowId, subQueries);
     }
 
     /**
@@ -62,7 +76,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
     public Object executeFlow(FlowEventMessage eventMessage) {
         // TODO: Add the validation of the `scope` of the flow.
         // Filters scope = flowConfig.getScope();
-        FlowConfig flowDefinition = this.getFlowDefinition(eventMessage.getFlowId());
+        FlowConfig flowDefinition = this.getFlowById(eventMessage.getFlowId());
         StopWatch stopWatch = new StopWatch("Executing flow：" + flowDefinition.getName());
         // Add the row data that triggers the flow to the environment variables
         NodeContext nodeContext = new NodeContext(FlowEnv.getEnv());
@@ -136,7 +150,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
      */
     private FlowInstance initFlowInstance(FlowEvent flowEvent) {
         FlowInstance flowInstance = new FlowInstance();
-        flowInstance.setModel(flowEvent.getFlowModel());
+        flowInstance.setModelName(flowEvent.getFlowModel());
         flowInstance.setRowId(flowEvent.getRowId());
         flowInstance.setFlowId(flowEvent.getFlowId());
         flowInstance.setTriggerId(flowEvent.getTriggerId());
