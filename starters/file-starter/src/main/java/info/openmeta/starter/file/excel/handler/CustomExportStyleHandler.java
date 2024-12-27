@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * custom export style handler
- * head color and font style
+ * head color
  */
 public class CustomExportStyleHandler implements CellWriteHandler {
 
@@ -23,24 +23,24 @@ public class CustomExportStyleHandler implements CellWriteHandler {
     public void afterCellDispose(CellWriteHandlerContext context) {
         Sheet sheet = context.getWriteSheetHolder().getSheet();
         Workbook workbook = context.getWriteWorkbookHolder().getWorkbook();
-
+        // Set column width
         sheet.setDefaultColumnWidth(25);
 
         // Set the global font to Microsoft Yahei
         Font defaultFont = workbook.createFont();
-        defaultFont.setFontName("微软雅黑");
-        defaultFont.setFontHeightInPoints((short) 11);
+        defaultFont.setFontName("宋体");
         CellStyle defaultStyle = workbook.createCellStyle();
         defaultStyle.setFont(defaultFont);
         styleCache.put("default", defaultStyle);
 
         // Sets the header row style
         Row titleRow = sheet.getRow(0);
+        // Set row height
         titleRow.setHeightInPoints((short) 30);
+        // Set header row font style
         Font titleFont = workbook.createFont();
         titleFont.setBold(true);
-        titleFont.setFontName("微软雅黑");
-        titleFont.setFontHeightInPoints((short) 11);
+        titleFont.setFontName("宋体");
         titleFont.setColor(IndexedColors.WHITE.getIndex());
         XSSFCellStyle titleStyle = (XSSFCellStyle) workbook.createCellStyle();
         titleStyle.setFont(titleFont);
