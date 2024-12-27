@@ -26,7 +26,7 @@ public class FlowDebugHistory extends BaseModel {
     private Long id;
 
     @Schema(description = "Model Name")
-    private String model;
+    private String modelName;
 
     @Schema(description = "Flow ID")
     private Long flowId;
@@ -52,6 +52,6 @@ public class FlowDebugHistory extends BaseModel {
     @Schema(description = "Event Message")
     private JsonNode eventMessage;
 
-    @Schema(description = "Action Trace")
-    private JsonNode actionTrace;
+    @Schema(description = "Node Trace")
+    private JsonNode nodeTrace;
 }

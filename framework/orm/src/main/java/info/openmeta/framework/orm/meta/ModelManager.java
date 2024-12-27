@@ -637,8 +637,8 @@ public class ModelManager {
     }
 
     /**
-     * Get the fields of the model that are read by default, including `autoBindMany = true` OneToMany/ManyToMany fields.
-     * To read OneToMany/ManyToMany fields which `autoBindMany = false`, the client needs to use QueryParams/SubQuery.
+     * Get the fields of the model that are read by default, excluding OneToMany/ManyToMany fields.
+     * To get OneToMany/ManyToMany fields, the client needs to specify the fields parameter or use SubQuery.
      *
      * @param modelName model name
      * @return fields collection
@@ -646,7 +646,7 @@ public class ModelManager {
     public static Set<String> getModelDefaultReadFields(String modelName){
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> !FieldType.TO_MANY_TYPES.contains(metaField.getFieldType()) || metaField.isAutoBindMany())
+                .filter(metaField -> !FieldType.TO_MANY_TYPES.contains(metaField.getFieldType()))
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
     }
 

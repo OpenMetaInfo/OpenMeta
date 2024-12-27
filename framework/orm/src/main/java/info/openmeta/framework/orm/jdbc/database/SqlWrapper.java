@@ -9,6 +9,7 @@ import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import lombok.Getter;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -87,11 +88,14 @@ public class SqlWrapper {
      *
      * @param metaField translatable field object of the left table
      * @param leftAlias left table alias
-     * @param transAlias corresponding translation table alias
      * @return SQL segment of the translation field
      */
-    public String selectTranslatableField(MetaField metaField, String leftAlias, String transAlias) {
-        this.leftJoinTranslation(metaField, leftAlias, transAlias);
+    public String selectTranslatableField(MetaField metaField, String leftAlias) {
+        String transAlias = tableAlias.getTransTableAlias(leftAlias);
+        if (!StringUtils.hasLength(transAlias)) {
+            transAlias = tableAlias.generateTransTableAlias(leftAlias);
+            this.leftJoinTranslation(metaField, leftAlias, transAlias);
+        }
         String columnName = metaField.getColumnName();
         String columnAlias = leftAlias + "." + columnName;
         return "COALESCE(NULLIF(" + transAlias + "." + columnName + ", ''), " + columnAlias + ") AS " + columnName;

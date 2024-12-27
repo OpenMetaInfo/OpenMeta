@@ -17,6 +17,7 @@ public class ExcelDataDTO {
 
     private List<String> fetchFields;
 
+    // Ignore fields in the export template
     private List<String> ignoreFields;
 
     private List<List<Object>> rowsTable;

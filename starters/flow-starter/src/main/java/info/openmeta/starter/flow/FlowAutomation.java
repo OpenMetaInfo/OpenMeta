@@ -98,7 +98,7 @@ public class FlowAutomation {
                                                      Serializable rowId, Map<String, Object> params) {
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
-        eventMessage.setFlowModel(flowConfig.getModel());
+        eventMessage.setFlowModel(flowConfig.getModelName());
         eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
         eventMessage.setTriggerId(flowTrigger.getId());
         eventMessage.setTriggeredModel(flowTrigger.getTriggeredModel());
@@ -211,7 +211,7 @@ public class FlowAutomation {
         // Generate the flow event message triggered by scheduled task, and send it to the MQ.
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
-        eventMessage.setFlowModel(flowConfig.getModel());
+        eventMessage.setFlowModel(flowConfig.getModelName());
         eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
         eventMessage.setTriggerId(flowTrigger.getId());
         eventMessage.setTriggerParams(triggerParams);
@@ -239,7 +239,7 @@ public class FlowAutomation {
                 "Subflow Trigger {0}:{1} is not yet bound to any flow!", triggerModel, triggerCode);
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
-        eventMessage.setFlowModel(flowConfig.getModel());
+        eventMessage.setFlowModel(flowConfig.getModelName());
         eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
         eventMessage.setTriggerId(flowTrigger.getId());
         eventMessage.setTriggerParams(triggerParams);

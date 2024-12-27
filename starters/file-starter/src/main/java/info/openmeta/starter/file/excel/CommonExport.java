@@ -74,15 +74,16 @@ public class CommonExport {
         List<ExportTemplateField> exportFields = exportTemplateFieldService.searchList(new FlexQuery(filters, orders));
         exportFields.forEach(exportField -> {
             fieldNames.add(exportField.getFieldName());
-            if (StringUtils.hasText(exportField.getCustomHeader())) {
+            // If the field is ignored, add it to the ignore list, otherwise add to the headers list
+            if (Boolean.TRUE.equals(exportField.getIgnore())) {
+                ignoreFields.add(exportField.getFieldName());
+            } else if (StringUtils.hasText(exportField.getCustomHeader())) {
                 headers.add(exportField.getCustomHeader());
             } else {
                 MetaField lastField = ModelManager.getLastFieldOfCascaded(exportTemplate.getModelName(), exportField.getFieldName());
                 headers.add(lastField.getLabelName());
             }
-            if (Boolean.TRUE.equals(exportField.getIgnore())) {
-                ignoreFields.add(exportField.getFieldName());
-            }
+
         });
         excelDataDTO.setHeaders(headers);
         excelDataDTO.setFetchFields(fieldNames);

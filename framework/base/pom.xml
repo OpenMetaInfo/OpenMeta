@@ -6,7 +6,7 @@
     <parent>
         <groupId>info.openmeta</groupId>
         <artifactId>framework</artifactId>
-        <version>0.8.5</version>
+        <version>0.8.6</version>
     </parent>
 
     <artifactId>base</artifactId>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.0.0-jre</version>
+            <version>33.4.0-jre</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

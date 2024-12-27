@@ -2,6 +2,7 @@ package info.openmeta.starter.flow.entity;
 
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.entity.BaseModel;
+import info.openmeta.starter.flow.enums.FlowLayoutType;
 import info.openmeta.starter.flow.enums.FlowType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -28,7 +29,7 @@ public class FlowConfig extends BaseModel {
     private String name;
 
     @Schema(description = "Model Name")
-    private String model;
+    private String modelName;
 
     @Schema(description = "Flow Type")
     private FlowType flowType;
@@ -38,6 +39,12 @@ public class FlowConfig extends BaseModel {
 
     @Schema(description = "Node List")
     private List<FlowNode> nodeList;
+
+    @Schema(description = "Edge List")
+    private List<FlowEdge> edgeList;
+
+    @Schema(description = "Layout Type")
+    private FlowLayoutType layoutType;
 
     @Schema(description = "Is Sync Executed Flow")
     private Boolean sync;

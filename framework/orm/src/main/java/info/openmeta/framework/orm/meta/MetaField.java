@@ -45,10 +45,6 @@ public class MetaField implements Serializable {
 
     private String inverseLinkField;
 
-    private boolean autoBindMany;
-
-    private boolean autoExpandMany;
-
     private String cascadedField;
 
     // Used when the current field is a relational field

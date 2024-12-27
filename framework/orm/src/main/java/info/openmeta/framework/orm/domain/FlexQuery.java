@@ -152,9 +152,25 @@ public class FlexQuery {
      */
     public FlexQuery select(Collection<String> fields) {
         if (!CollectionUtils.isEmpty(fields)) {
-            this.fields = new ArrayList<>(fields);
+            if (CollectionUtils.isEmpty(this.fields)) {
+                this.fields = new ArrayList<>(fields);
+            } else {
+                this.fields.addAll(fields);
+            }
         }
         return this;
+    }
+
+    public FlexQuery select(String... fields) {
+        if (fields.length > 0) {
+            this.select(Arrays.asList(fields));
+        }
+        return this;
+    }
+
+    public FlexQuery select(SFunction<?, ?>... lambdaFields) {
+        List<String> fields = Arrays.stream(lambdaFields).map(LambdaUtils::getAttributeName).collect(Collectors.toList());
+        return this.select(fields);
     }
 
     public FlexQuery where(Filters filters) {

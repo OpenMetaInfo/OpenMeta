@@ -126,6 +126,9 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         }
         SqlParams sqlParams = StaticSqlBuilder.getSelectSql(modelName, fields, ids);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
+        if (CollectionUtils.isEmpty(rows)) {
+            return Collections.emptyList();
+        }
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
         if (!ConvertType.ORIGINAL.equals(convertType)) {
             FlexQuery flexQuery = new FlexQuery(fields);
@@ -211,6 +214,9 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         }
         SqlParams sqlParams = SqlBuilderFactory.buildPageSql(modelName, flexQuery, page);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
+        if (CollectionUtils.isEmpty(rows)) {
+            return page;
+        }
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
         if (!ConvertType.ORIGINAL.equals(flexQuery.getConvertType())) {
             DataReadPipeline dataPipeline = new DataReadPipeline(modelName, flexQuery);

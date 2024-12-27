@@ -15,7 +15,6 @@ public class FlowAsyncTaskMessage {
 
     private Long flowId;
     private Long nodeId;
-    private Long actionId;
     private String asyncTaskHandlerCode;
     private Map<String, Object> asyncTaskParams;
 
