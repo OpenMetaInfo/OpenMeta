@@ -26,14 +26,7 @@ public class CustomExportStyleHandler implements CellWriteHandler {
         // Set column width
         sheet.setDefaultColumnWidth(25);
 
-        // Set the global font to Microsoft Yahei
-        Font defaultFont = workbook.createFont();
-        defaultFont.setFontName("宋体");
-        CellStyle defaultStyle = workbook.createCellStyle();
-        defaultStyle.setFont(defaultFont);
-        styleCache.put("default", defaultStyle);
-
-        // Sets the header row style
+        // Set the header row style
         Row titleRow = sheet.getRow(0);
         // Set row height
         titleRow.setHeightInPoints((short) 30);
@@ -54,19 +47,6 @@ public class CustomExportStyleHandler implements CellWriteHandler {
         for (int i = 0; i < titleRow.getLastCellNum(); i++) {
             Cell cell = titleRow.getCell(i);
             cell.setCellStyle(titleStyle);
-        }
-
-        // Apply the default style to all cells
-        for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
-            Row row = sheet.getRow(rowIndex);
-            if (row != null) {
-                for (int cellIndex = 0; cellIndex < row.getLastCellNum(); cellIndex++) {
-                    Cell cell = row.getCell(cellIndex);
-                    if (cell != null) {
-                        cell.setCellStyle(defaultStyle);
-                    }
-                }
-            }
         }
     }
 
