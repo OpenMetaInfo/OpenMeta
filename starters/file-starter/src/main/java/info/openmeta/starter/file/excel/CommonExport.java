@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.builder.ExcelWriterSheetBuilder;
 import com.alibaba.excel.write.handler.CellWriteHandler;
+import com.alibaba.excel.write.handler.SheetWriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.BusinessException;
@@ -165,10 +166,11 @@ public class CommonExport {
      *
      * @param modelName the model name
      * @param excelDataDTO the Excel data DTO
-     * @param handler the cell handler
+     * @param cellWriteHandler the cell handler
      * @return the file info object with download URL
      */
-    public FileInfo generateFileAndUpload(String modelName, ExcelDataDTO excelDataDTO, CellWriteHandler handler) {
+    public FileInfo generateFileAndUpload(String modelName, ExcelDataDTO excelDataDTO,
+                                          CellWriteHandler cellWriteHandler) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
@@ -176,8 +178,11 @@ public class CommonExport {
             // Write the header and data, EasyExcel requires the header to be a list of lists
             List<List<String>> headersList = excelDataDTO.getHeaders().stream().map(Collections::singletonList).toList();
             ExcelWriterSheetBuilder builder = EasyExcel.writerSheet(excelDataDTO.getSheetName()).head(headersList);
-            WriteSheet writeSheet = handler == null ? builder.build() : builder.registerWriteHandler(handler).build();
-            excelWriter.write(excelDataDTO.getRowsTable(), writeSheet);
+
+            // Add custom cells and sheet handler
+            builder = cellWriteHandler == null ? builder : builder.registerWriteHandler(cellWriteHandler);
+
+            excelWriter.write(excelDataDTO.getRowsTable(), builder.build());
             excelWriter.finish();
             // Upload the Excel bytes to the file storage
             byte[] excelBytes = outputStream.toByteArray();
