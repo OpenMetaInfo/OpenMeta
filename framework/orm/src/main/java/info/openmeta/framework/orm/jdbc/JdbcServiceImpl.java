@@ -181,7 +181,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         return Cast.of(rows.stream()
                 .map(row -> row.get(fieldName))
-                .toList());
+                .collect(Collectors.toList()));
     }
 
     /**

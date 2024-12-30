@@ -683,7 +683,9 @@ public class Filters {
             return null;
         }
         Filters combinedFilters = and();
-        combinedFilters.setChildren(filtersList.stream().filter(f -> !Filters.isEmpty(f)).toList());
+        combinedFilters.setChildren(filtersList.stream()
+                .filter(f -> !Filters.isEmpty(f))
+                .collect(Collectors.toList()));
         return combinedFilters;
     }
 
