@@ -61,6 +61,7 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
         DocumentTemplate template = this.getById(templateId);
         this.validateTemplate(template);
         Map<String, Object> data = modelService.getById(template.getModelName(), rowId);
+        Assert.notNull(data, "The data of `{0}` does not exist", rowId);
         return generateDocument(templateId, data);
     }
 

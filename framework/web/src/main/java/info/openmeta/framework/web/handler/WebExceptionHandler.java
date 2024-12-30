@@ -19,6 +19,7 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -178,6 +179,16 @@ public class WebExceptionHandler {
             errorMessage.append(fieldError.getDefaultMessage());
         }
         return handler(ResponseCode.BAD_REQUEST, e, errorMessage.toString());
+    }
+
+    /**
+     * Handle UnsatisfiedServletRequestParameterException
+     * @param e Exception
+     * @return ResponseEntity
+     */
+    @ExceptionHandler(value = UnsatisfiedServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse<String>> handleException(UnsatisfiedServletRequestParameterException e) {
+        return handler(ResponseCode.BAD_REQUEST, e);
     }
 
     /**

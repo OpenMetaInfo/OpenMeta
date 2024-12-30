@@ -219,8 +219,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     public Map<String, Object> getById(String modelName, K id, Collection<String> fields,
                                        SubQueries subQueries, ConvertType convertType) {
         List<Map<String, Object>> rows = this.getByIds(modelName, Collections.singletonList(id), fields, subQueries, convertType);
-        Assert.notEmpty(rows, "Model {0} does not have data with id {1}!", modelName, id);
-        return rows.getFirst();
+        return rows.isEmpty() ? null : rows.getFirst();
     }
 
     /**
@@ -255,6 +254,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             return Collections.emptyList();
         }
         FlexQuery flexQuery = new FlexQuery(fields, Filters.of(ModelConstant.ID, Operator.IN, ids));
+        flexQuery.setSubQueries(subQueries);
         flexQuery.setConvertType(convertType);
         List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
         List<Serializable> resultIds = rows.stream().map(row -> (Serializable) row.get(ModelConstant.ID)).toList();
@@ -274,6 +274,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Override
     public Map<String, Object> getCopyableFields(String modelName, K id) {
         Map<String, Object> value = this.getById(modelName, id, Collections.emptyList());
+        Assert.notNull(value, "The data of model {0} with id {1} does not exist!", modelName, id);
         List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
         copyableFields.forEach(value::remove);
         return value;

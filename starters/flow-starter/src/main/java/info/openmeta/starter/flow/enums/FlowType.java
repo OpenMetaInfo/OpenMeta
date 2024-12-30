@@ -12,7 +12,6 @@ import lombok.Getter;
 public enum FlowType {
     AUTOMATED_FLOW("AutomatedFlow", "Automated Flow", ""),
     WORK_FLOW("WorkFlow", "WorkFlow", ""),
-    CRON_FLOW("CronFlow", "Schedule Task Flow", "Triggered by schedule task"),
     FORM_FLOW("FormFlow", "Form Flow", "Form data submission flow"),
     VALIDATION_FLOW("ValidationFlow", "Validation Flow",
             "Triggered before transaction commit, used for data validation. Rollback transaction if validation failed."),

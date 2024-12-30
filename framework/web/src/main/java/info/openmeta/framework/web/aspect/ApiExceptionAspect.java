@@ -40,10 +40,10 @@ public class ApiExceptionAspect {
         if (signature instanceof MethodSignature methodSignature) {
             Object[] args = joinPoint.getArgs();
             String[] parameterNames = methodSignature.getParameterNames();
-            StringBuilder stringBuilder = new StringBuilder();
-            if (parameterNames.length > 0) {
-                stringBuilder.append("API Method Parameters: ");
+            if (parameterNames == null || parameterNames.length == 0) {
+                return;
             }
+            StringBuilder stringBuilder = new StringBuilder("API Method Parameters: ");
             for (int i = 0; i < args.length; i++) {
                 Object arg = args[i];
                 String argStr;

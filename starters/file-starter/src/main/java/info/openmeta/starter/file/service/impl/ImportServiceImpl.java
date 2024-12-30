@@ -10,6 +10,7 @@ import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
+import info.openmeta.framework.orm.domain.SubQueries;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
@@ -88,7 +89,8 @@ public class ImportServiceImpl implements ImportService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FileInfo getTemplateFile(Long templateId) {
-        ImportTemplate importTemplate = importTemplateService.getById(templateId);
+        SubQueries subQueries = new SubQueries().expand(ImportTemplate::getImportFields);
+        ImportTemplate importTemplate = importTemplateService.getById(templateId, subQueries);
         validateImportTemplate(importTemplate);
         // Construct the importTemplateDTO object
         ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, null);
@@ -116,7 +118,8 @@ public class ImportServiceImpl implements ImportService {
      */
     @Override
     public ImportHistory importByTemplate(Long templateId, MultipartFile file, Map<String, Object> env) {
-        ImportTemplate importTemplate = importTemplateService.getById(templateId);
+        SubQueries subQueries = new SubQueries().expand(ImportTemplate::getImportFields);
+        ImportTemplate importTemplate = importTemplateService.getById(templateId, subQueries);
         this.validateImportTemplate(importTemplate);
         String fileName = FileUtils.getShortFileName(file);
         FileRecord fileRecord = fileRecordService.uploadFile(importTemplate.getModelName(), file);
