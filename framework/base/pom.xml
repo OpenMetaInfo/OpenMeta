@@ -6,7 +6,7 @@
     <parent>
         <groupId>info.openmeta</groupId>
         <artifactId>framework</artifactId>
-        <version>0.8.6</version>
+        <version>0.8.10</version>
     </parent>
 
     <artifactId>base</artifactId>
@@ -35,6 +35,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
 

@@ -4,19 +4,28 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>apps</artifactId>
-        <groupId>info.openmeta</groupId>
-        <version>0.8.6</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.1</version>
+        <relativePath/>
     </parent>
 
     <artifactId>mini-app</artifactId>
     <description>Minimized Demo application</description>
 
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <openmeta.version>0.8.8</openmeta.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>info.openmeta</groupId>
             <artifactId>web</artifactId>
-            <version>${project.version}</version>
+            <version>${openmeta.version}</version>
         </dependency>
     </dependencies>
 

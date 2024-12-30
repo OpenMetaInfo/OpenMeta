@@ -11,7 +11,7 @@
 	<name>openmeta</name>
 	<groupId>info.openmeta</groupId>
 	<artifactId>openmeta</artifactId>
-	<version>0.8.6</version>
+	<version>0.8.10</version>
 
 	<packaging>pom</packaging>
 	<url>https://openmeta.info</url>
@@ -20,7 +20,6 @@
 	<modules>
 		<module>framework</module>
 		<module>starters</module>
-		<module>apps</module>
 	</modules>
 
 	<properties>
@@ -39,12 +38,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-			<version>${spring.boot.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-logging</artifactId>
 			<version>${spring.boot.version}</version>
 		</dependency>
 
