@@ -5,6 +5,7 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.builder.ExcelWriterSheetBuilder;
 import com.alibaba.excel.write.handler.CellWriteHandler;
 import com.alibaba.excel.write.handler.SheetWriteHandler;
+import com.alibaba.excel.write.handler.WriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.BusinessException;
@@ -166,11 +167,11 @@ public class CommonExport {
      *
      * @param modelName the model name
      * @param excelDataDTO the Excel data DTO
-     * @param cellWriteHandler the cell handler
+     * @param handler the cell handler
      * @return the file info object with download URL
      */
     public FileInfo generateFileAndUpload(String modelName, ExcelDataDTO excelDataDTO,
-                                          CellWriteHandler cellWriteHandler) {
+                                          WriteHandler handler) {
         // Generate the Excel file
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              // Use EasyExcel to write the file with dynamic headers and data
@@ -180,7 +181,7 @@ public class CommonExport {
             ExcelWriterSheetBuilder builder = EasyExcel.writerSheet(excelDataDTO.getSheetName()).head(headersList);
 
             // Add custom cells and sheet handler
-            builder = cellWriteHandler == null ? builder : builder.registerWriteHandler(cellWriteHandler);
+            builder = handler == null ? builder : builder.registerWriteHandler(handler);
 
             excelWriter.write(excelDataDTO.getRowsTable(), builder.build());
             excelWriter.finish();
