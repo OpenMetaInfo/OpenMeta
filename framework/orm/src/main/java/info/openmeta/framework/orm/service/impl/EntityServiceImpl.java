@@ -16,10 +16,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -112,7 +109,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object
      */
     @Override
-    public T getById(K id) {
+    public Optional<T> getById(K id) {
         return this.getById(id, Collections.emptyList());
     }
 
@@ -125,9 +122,9 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object
      */
     @Override
-    public T getById(K id, SubQueries subQueries) {
-        Map<String, Object> row = modelService.getById(modelName, id, subQueries);
-        return CollectionUtils.isEmpty(row) ? null : BeanTool.mapToObject(row, entityClass);
+    public Optional<T> getById(K id, SubQueries subQueries) {
+        Optional<Map<String, Object>> optionalRow = modelService.getById(modelName, id, subQueries);
+        return optionalRow.map(row -> BeanTool.mapToObject(row, entityClass));
     }
 
     /**
@@ -140,9 +137,9 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @return data object
      */
     @Override
-    public T getById(K id, Collection<String> fields) {
-        Map<String, Object> row = modelService.getById(modelName, id, fields);
-        return CollectionUtils.isEmpty(row) ? null : BeanTool.mapToObject(row, entityClass);
+    public Optional<T> getById(K id, Collection<String> fields) {
+        Optional<Map<String, Object>> optionalRow = modelService.getById(modelName, id, fields);
+        return optionalRow.map(row -> BeanTool.mapToObject(row, entityClass));
     }
 
     /**
@@ -209,6 +206,19 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     @Override
     public List<K> getIds(Filters filters) {
         return modelService.getIds(modelName, filters);
+    }
+
+    /**
+     * Get the ids for ManyToOne/OneToOne relational field.
+     *
+     * @param filters filters
+     * @param method field method, Lambda expression, method reference passing parameters
+     * @return distinct ids for relational field
+     */
+    @Override
+    public <EK extends Serializable, R> List<EK> getRelatedIds(Filters filters, SFunction<T, R> method) {
+        String fieldName = LambdaUtils.getAttributeName(method);
+        return modelService.getRelatedIds(modelName, filters, fieldName);
     }
 
     /**

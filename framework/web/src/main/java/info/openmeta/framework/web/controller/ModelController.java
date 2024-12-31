@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Model Common Controller.
@@ -152,7 +153,8 @@ public class ModelController<K extends Serializable> {
                                                     @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.getById(modelName, id, fields, subQueries, ConvertType.REFERENCE));
+        Optional<Map<String, Object>> row = modelService.getById(modelName, id, fields, subQueries, ConvertType.REFERENCE);
+        return ApiResponse.success(row.orElse(null));
     }
 
     /**

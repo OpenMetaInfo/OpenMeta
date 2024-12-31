@@ -53,7 +53,7 @@ public class XToOneProcessor extends BaseProcessor {
     }
 
     /**
-     * Process one inputting row, convert Integer id to Long.
+     * Process one inputting row, format ID field.
      *
      * @param row        data row
      */
@@ -61,7 +61,7 @@ public class XToOneProcessor extends BaseProcessor {
     public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         if (row.containsKey(fieldName) && row.get(fieldName) != null) {
-            row.compute(fieldName, (k, id) -> IdUtils.convertIdToLong(id));
+            row.compute(fieldName, (k, id) -> IdUtils.formatId(metaField.getRelatedModel(), (Serializable) id));
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
             row.put(fieldName, metaField.getDefaultValueObject());
@@ -99,7 +99,6 @@ public class XToOneProcessor extends BaseProcessor {
             return;
         }
         Serializable id = (Serializable) row.get(fieldName);
-        id = IdUtils.convertIdToLong(id);
         Object value = null;
         if (displayNameMap.containsKey(id)) {
             value = displayNameMap.get(id);

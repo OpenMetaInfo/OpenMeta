@@ -4,6 +4,7 @@ import com.deepoove.poi.XWPFTemplate;
 import com.deepoove.poi.config.Configure;
 import com.deepoove.poi.config.ConfigureBuilder;
 import com.deepoove.poi.plugin.table.LoopRowTableRenderPolicy;
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.enums.FileType;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * DocumentTemplate Model Service Implementation
@@ -58,11 +60,11 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
      */
     @Override
     public FileInfo generateDocument(Long templateId, Serializable rowId) {
-        DocumentTemplate template = this.getById(templateId);
-        this.validateTemplate(template);
-        Map<String, Object> data = modelService.getById(template.getModelName(), rowId);
-        Assert.notNull(data, "The data of `{0}` does not exist", rowId);
-        return generateDocument(templateId, data);
+        DocumentTemplate template = getTemplateById(templateId);
+        Optional<Map<String, Object>> optionalData = modelService.getById(template.getModelName(), rowId);
+        Map<String, Object> data = optionalData
+                .orElseThrow(() -> new IllegalArgumentException("The data of `{0}` does not exist", rowId));
+        return generateDocumentByTemplate(template, data);
     }
 
     /**
@@ -75,9 +77,21 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
      */
     @Override
     public FileInfo generateDocument(Long templateId, Object data) {
-        DocumentTemplate template = this.getById(templateId);
-        this.validateTemplate(template);
+        DocumentTemplate template = getTemplateById(templateId);
         return generateDocumentByTemplate(template, data);
+    }
+
+    /**
+     * Get the document template by ID
+     *
+     * @param templateId the template ID
+     * @return the document template
+     */
+    private DocumentTemplate getTemplateById(Long templateId) {
+        DocumentTemplate template = this.getById(templateId)
+                .orElseThrow(() -> new IllegalArgumentException("The document template does not exist"));
+        this.validateTemplate(template);
+        return template;
     }
 
     /**
@@ -85,7 +99,6 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
      * @param template the document template
      */
     private void validateTemplate(DocumentTemplate template) {
-        Assert.notNull(template, "The document template does not exist");
         Assert.notBlank(template.getModelName(), "The modelName of `{0}` template is empty", template.getFileName());
         Assert.notNull(template.getFileId(), "The document template file is empty");
     }

@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Common Model Service Interface.
@@ -60,9 +61,9 @@ public interface ModelService<K extends Serializable> {
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
-     * @return data row
+     * @return Optional data row
      */
-    Map<String, Object> getById(String modelName, K id);
+    Optional<Map<String, Object>> getById(String modelName, K id);
 
     /**
      * Get one row by id, default to read all fields.
@@ -70,9 +71,9 @@ public interface ModelService<K extends Serializable> {
      *
      * @param id data id
      * @param subQueries subQueries for relational fields
-     * @return data row
+     * @return Optional data row
      */
-    Map<String, Object> getById(String modelName, K id, SubQueries subQueries);
+    Optional<Map<String, Object>> getById(String modelName, K id, SubQueries subQueries);
 
     /**
      * Get one row by id.
@@ -81,9 +82,9 @@ public interface ModelService<K extends Serializable> {
      *
      * @param id data id
      * @param fields field list to get value
-     * @return data row
+     * @return Optional data row
      */
-    Map<String, Object> getById(String modelName, K id, Collection<String> fields);
+    Optional<Map<String, Object>> getById(String modelName, K id, Collection<String> fields);
 
     /**
      * Get one row by id.
@@ -93,9 +94,9 @@ public interface ModelService<K extends Serializable> {
      * @param fields field list to get value
      * @param subQueries subQueries for relational fields
      * @param convertType data convert type of the return value.
-     * @return data row
+     * @return Optional data row
      */
-    Map<String, Object> getById(String modelName, K id, Collection<String> fields,
+    Optional<Map<String, Object>> getById(String modelName, K id, Collection<String> fields,
                                 SubQueries subQueries, ConvertType convertType);
 
     /**

@@ -37,7 +37,14 @@ public class StringProcessor extends BaseProcessor {
     public void processInputRow(Map<String, Object> row) {
         checkReadonly(row);
         Object obj = row.get(fieldName);
-        String value = obj instanceof Enum ? StringTools.toUpperCamelCase(((Enum<?>) obj).name()) : (String) obj;
+        String value;
+        if (obj instanceof Enum) {
+            value = StringTools.toUpperCamelCase(((Enum<?>) obj).name());
+        } else if (obj instanceof String) {
+            value = (String) obj;
+        } else {
+            value = obj == null ? null : String.valueOf(obj);
+        }
         if (StringUtils.isNotBlank(value)) {
             // Remove the leading and trailing spaces
             value = value.trim();

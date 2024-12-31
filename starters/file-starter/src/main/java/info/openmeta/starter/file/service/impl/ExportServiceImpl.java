@@ -1,5 +1,6 @@
 package info.openmeta.starter.file.service.impl;
 
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
@@ -43,7 +44,6 @@ public class ExportServiceImpl implements ExportService {
      * @param exportTemplate the export template to be validated
      */
     protected void validateExportTemplate(ExportTemplate exportTemplate) {
-        Assert.notNull(exportTemplate, "The export template does not exist.");
         Assert.isTrue(StringUtils.hasText(exportTemplate.getModelName()),
                 "The model name in the export template cannot be empty.");
     }
@@ -97,7 +97,8 @@ public class ExportServiceImpl implements ExportService {
      * @return fileInfo object with download URL
      */
     public FileInfo exportByTemplate(Long exportTemplateId, FlexQuery flexQuery) {
-        ExportTemplate exportTemplate = exportTemplateService.getById(exportTemplateId);
+        ExportTemplate exportTemplate = exportTemplateService.getById(exportTemplateId)
+                .orElseThrow(() -> new IllegalArgumentException("The export template does not exist."));
         this.validateExportTemplate(exportTemplate);
         return exportByTemplate.export(exportTemplate, flexQuery);
     }
@@ -144,9 +145,10 @@ public class ExportServiceImpl implements ExportService {
      * @return fileInfo object with download URL
      */
     public FileInfo exportByFileTemplate(Long exportTemplateId, FlexQuery flexQuery) {
-        ExportTemplate exportTemplate = exportTemplateService.getById(exportTemplateId);
+        ExportTemplate exportTemplate = exportTemplateService.getById(exportTemplateId)
+                .orElseThrow(() -> new IllegalArgumentException("The export template does not exist."));
         this.validateExportTemplate(exportTemplate);
-        Assert.isTrue(exportTemplate.getFileId() != null, "The export template does not have a file template.");
+        Assert.notNull(exportTemplate.getFileId(), "The export template does not have a file template.");
         return exportByFileTemplate.export(exportTemplate, flexQuery);
     }
 }

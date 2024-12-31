@@ -99,14 +99,14 @@ public class OneToManyProcessor extends BaseProcessor {
         List<Map<String, Object>> updateRows = new ArrayList<>();
         List<Serializable> deleteIds = new ArrayList<>();
         // {mainModelId: Set<relatedModelIds>}: get the existing OneToMany ids mapping.
-        Map<Serializable, Set<Serializable>> existOToMIdsMap = this.getExistOneToManyMap(rows);
+        Map<Serializable, Set<Serializable>> existOneToManyIdsMap = this.getExistOneToManyMap(rows);
         for (Map<String, Object> row : rows) {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Object value = row.get(fieldName);
             if (value instanceof List<?> valueList) {
-                if (valueList.isEmpty() && existOToMIdsMap.containsKey(id)) {
+                if (valueList.isEmpty() && existOneToManyIdsMap.containsKey(id)) {
                     // Delete related model rows when set OneToMany field to empty list.
-                    deleteIds.addAll(existOToMIdsMap.get(id));
+                    deleteIds.addAll(existOneToManyIdsMap.get(id));
                 } else {
                     List<Map<String, Object>> subRows;
                     try {
@@ -115,9 +115,9 @@ public class OneToManyProcessor extends BaseProcessor {
                         throw new IllegalArgumentException("Failed to cast {0}:{1} value to List<Map<String, Object>>: {2}",
                                 modelName, fieldName, valueList, e);
                     }
-                    if (existOToMIdsMap.containsKey(id)) {
+                    if (existOneToManyIdsMap.containsKey(id)) {
                         // Process related model rows, when update the OneToMany field from old value to a new list.
-                        processOneToManyUpdate(id, subRows, existOToMIdsMap, createRows, updateRows, deleteIds);
+                        processOneToManyUpdate(id, subRows, existOneToManyIdsMap, createRows, updateRows, deleteIds);
                     } else {
                         // Create related model rows, when update the OneToMany field from empty to a new list.
                         subRows.forEach(subRow -> subRow.put(metaField.getRelatedField(), id));
@@ -153,18 +153,19 @@ public class OneToManyProcessor extends BaseProcessor {
      *
      * @param id mainModelId
      * @param subRows related model rows
-     * @param existOToMIdsMap existing OneToMany ids mapping
+     * @param existOneToManyIdsMap existing OneToMany ids mapping
      * @param createRows created rows of related model
      * @param updateRows updated rows of related model
      * @param deleteIds deleted ids of related models
      */
-    private void processOneToManyUpdate(Serializable id, List<Map<String, Object>> subRows, Map<Serializable, Set<Serializable>> existOToMIdsMap,
-                                        List<Map<String, Object>> createRows, List<Map<String, Object>> updateRows, List<Serializable> deleteIds) {
+    private void processOneToManyUpdate(Serializable id, List<Map<String, Object>> subRows,
+                                        Map<Serializable, Set<Serializable>> existOneToManyIdsMap, List<Map<String, Object>> createRows,
+                                        List<Map<String, Object>> updateRows, List<Serializable> deleteIds) {
         Set<Serializable> currentSubIds = new HashSet<>();
-        Set<Serializable> previousSubIds = existOToMIdsMap.get(id);
+        Set<Serializable> previousSubIds = existOneToManyIdsMap.get(id);
         subRows.forEach(subRow -> {
             Serializable subId = (Serializable) subRow.get(ModelConstant.ID);
-            subId = IdUtils.convertIdToLong(subId);
+            subId = IdUtils.formatId(metaField.getRelatedModel(), subId);
             if (previousSubIds.contains(subId)) {
                 currentSubIds.add(subId);
                 updateRows.add(subRow);

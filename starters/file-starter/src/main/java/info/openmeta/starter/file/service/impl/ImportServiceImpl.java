@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import info.openmeta.framework.base.exception.BusinessException;
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.i18n.I18n;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.StringTools;
@@ -71,7 +72,6 @@ public class ImportServiceImpl implements ImportService {
     private AsyncImportProducer asyncImportProducer;
 
     public void validateImportTemplate(ImportTemplate importTemplate) {
-        Assert.notNull(importTemplate, "Import template cannot be null");
         Assert.notBlank(importTemplate.getModelName(),
                 "Import template `{0}` modelName cannot be empty.", importTemplate.getName());
         Assert.notNull(importTemplate.getImportRule(),
@@ -90,7 +90,8 @@ public class ImportServiceImpl implements ImportService {
     @Transactional(rollbackFor = Exception.class)
     public FileInfo getTemplateFile(Long templateId) {
         SubQueries subQueries = new SubQueries().expand(ImportTemplate::getImportFields);
-        ImportTemplate importTemplate = importTemplateService.getById(templateId, subQueries);
+        ImportTemplate importTemplate = importTemplateService.getById(templateId, subQueries)
+                .orElseThrow(() -> new IllegalArgumentException("Import template not found by ID: {0}", templateId));
         validateImportTemplate(importTemplate);
         // Construct the importTemplateDTO object
         ImportTemplateDTO importTemplateDTO = this.getImportTemplateDTO(importTemplate, null);
@@ -119,7 +120,8 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public ImportHistory importByTemplate(Long templateId, MultipartFile file, Map<String, Object> env) {
         SubQueries subQueries = new SubQueries().expand(ImportTemplate::getImportFields);
-        ImportTemplate importTemplate = importTemplateService.getById(templateId, subQueries);
+        ImportTemplate importTemplate = importTemplateService.getById(templateId, subQueries)
+                .orElseThrow(() -> new IllegalArgumentException("Import template not found by ID: {0}", templateId));
         this.validateImportTemplate(importTemplate);
         String fileName = FileUtils.getShortFileName(file);
         FileRecord fileRecord = fileRecordService.uploadFile(importTemplate.getModelName(), file);

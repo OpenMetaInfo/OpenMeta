@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import info.openmeta.framework.base.config.TenantConfig;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.exception.BusinessException;
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
@@ -237,8 +238,8 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public InputStream downloadStream(Long fileId) {
-        FileRecord fileRecord = this.getById(fileId);
-        Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
+        FileRecord fileRecord = this.getById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("FileRecord not found by fileId {0}", fileId));
         return ossClientService.downloadStreamFromOSS(fileRecord.getOssKey(), fileRecord.getFileName());
     }
 
@@ -251,8 +252,8 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileInfo getFileInfo(Long fileId) {
-        FileRecord fileRecord = this.getById(fileId);
-        Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
+        FileRecord fileRecord = this.getById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("FileRecord not found by fileId {0}", fileId));
         return convertToFileInfo(fileRecord);
     }
 
@@ -279,8 +280,8 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public String getDownloadUrl(Long fileId) {
-        FileRecord fileRecord = this.getById(fileId);
-        Assert.notNull(fileRecord, "FileRecord not found by fileId: {0}", fileId);
+        FileRecord fileRecord = this.getById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("FileRecord not found by fileId {0}", fileId));
         return ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
     }
 
