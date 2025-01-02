@@ -271,10 +271,13 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         List<Map<String, Object>> differRows = pipeline.processUpdateData(rows, originalRowsMap, updatedTime);
         int count = differRows.stream().mapToInt(row -> updateOne(modelName, row)).sum();
         // After updating the main table, update the sub-table to avoid the sub-table cascade field being the old value.
-        pipeline.processXToManyData(rows);
+        boolean changed = pipeline.processXToManyData(rows);
         if (count > 0) {
             // Collect changeLogs
             changeLogPublisher.publishUpdateLog(modelName, differRows, originalRowsMap, updatedTime);
+        } else if (changed) {
+            // If the main table is not updated, but the sub-table is updated, mark the main table as updated
+            return 1;
         }
         return count;
     }

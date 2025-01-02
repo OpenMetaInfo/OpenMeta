@@ -30,10 +30,11 @@ public class JdbcProxy {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * Insert and return id.
+     * Insert and return auto-increment ID, which is Long type.
      *
      * @param modelName Model name can be used to switch datasource
      * @param sqlParams SQL parameters
+     * @return Auto-increment ID of Long type
      */
     @WriteOperation
     @ExecuteSql

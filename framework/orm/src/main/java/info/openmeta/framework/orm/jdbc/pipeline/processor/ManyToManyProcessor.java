@@ -11,6 +11,7 @@ import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -38,7 +39,11 @@ import java.util.stream.Collectors;
 public class ManyToManyProcessor extends BaseProcessor {
 
     private final FlexQuery flexQuery;
+
     private SubQuery subQuery;
+
+    @Getter
+    private boolean changed = false;
 
     public ManyToManyProcessor(MetaField metaField, AccessType accessType, FlexQuery flexQuery) {
         super(metaField, accessType);
@@ -79,7 +84,10 @@ public class ManyToManyProcessor extends BaseProcessor {
                 ));
             }
         });
-        ReflectTool.createList(metaField.getRelatedModel(), mappingRows);
+        if (!CollectionUtils.isEmpty(mappingRows)) {
+            changed = true;
+            ReflectTool.createList(metaField.getRelatedModel(), mappingRows);
+        }
     }
 
     /**
@@ -122,10 +130,13 @@ public class ManyToManyProcessor extends BaseProcessor {
                 }
             }
         });
-        // Create middle table rows
-        ReflectTool.createList(metaField.getRelatedModel(), newMToMRows);
-        // Delete middle table rows
-        ReflectTool.deleteList(metaField.getRelatedModel(), deleteMiddleIds);
+        if (!CollectionUtils.isEmpty(newMToMRows) || !CollectionUtils.isEmpty(deleteMiddleIds)) {
+            changed = true;
+            // Create middle table rows
+            ReflectTool.createList(metaField.getRelatedModel(), newMToMRows);
+            // Delete middle table rows
+            ReflectTool.deleteList(metaField.getRelatedModel(), deleteMiddleIds);
+        }
     }
 
     /**

@@ -69,6 +69,8 @@ public abstract class DataPipeline {
      * Process the OneToMany and ManyToMany fields associated with the current model,
      * without performing association permission check.
      */
-    public void processXToManyData(List<Map<String, Object>> rows) {}
+    public boolean processXToManyData(List<Map<String, Object>> rows) {
+        return false;
+    }
 
 }

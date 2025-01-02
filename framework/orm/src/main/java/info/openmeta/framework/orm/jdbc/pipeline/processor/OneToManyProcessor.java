@@ -18,6 +18,7 @@ import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
 import info.openmeta.framework.orm.vo.ModelReference;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -33,7 +34,11 @@ import java.util.stream.Collectors;
 public class OneToManyProcessor extends BaseProcessor {
 
     private final FlexQuery flexQuery;
+
     private SubQuery subQuery;
+
+    @Getter
+    private boolean changed = false;
 
     /**
      * Constructor of the OneToMany field processor object.
@@ -85,7 +90,10 @@ public class OneToManyProcessor extends BaseProcessor {
                 createRows.addAll(subRows);
             }
         }
-        ReflectTool.createList(metaField.getRelatedModel(), createRows);
+        if (!CollectionUtils.isEmpty(createRows)) {
+            changed = true;
+            ReflectTool.createList(metaField.getRelatedModel(), createRows);
+        }
     }
 
     /**
@@ -126,9 +134,12 @@ public class OneToManyProcessor extends BaseProcessor {
                 }
             }
         }
-        ReflectTool.createList(metaField.getRelatedModel(), createRows);
-        ReflectTool.updateList(metaField.getRelatedModel(), updateRows);
-        ReflectTool.deleteList(metaField.getRelatedModel(), deleteIds);
+        List<?> newIds = ReflectTool.createList(metaField.getRelatedModel(), createRows);
+        boolean updated = ReflectTool.updateList(metaField.getRelatedModel(), updateRows);
+        boolean deleted = ReflectTool.deleteList(metaField.getRelatedModel(), deleteIds);
+        if (updated || deleted || !newIds.isEmpty()) {
+            changed = true;
+        }
     }
 
     /**

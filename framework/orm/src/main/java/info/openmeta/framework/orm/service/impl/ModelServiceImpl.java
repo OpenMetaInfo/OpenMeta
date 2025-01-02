@@ -496,14 +496,17 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         Set<String> updatableFields = ModelManager.getModelUpdatableFields(modelName);
         Set<String> toUpdateFields = new HashSet<>();
         List<Map<String, Object>> toUpdateRows = new ArrayList<>();
-        String pk = ModelManager.getModelPrimaryKey(modelName);
+        String pkField = ModelManager.getModelPrimaryKey(modelName);
+        List<Serializable> pks = new ArrayList<>();
         rows.forEach(row -> {
             // Remove audit fields from the update data
             ModelConstant.AUDIT_FIELDS.forEach(row::remove);
             Set<String> rowFields = new HashSet<>(row.keySet());
             rowFields.retainAll(updatableFields);
-            Assert.notNull(row.get(pk),
-                    "When updating model {0}, the primary key {1} cannot be null! {2}", modelName, pk, row);
+            IdUtils.formatMapId(modelName, row);
+            Serializable pk = (Serializable) row.get(pkField);
+            Assert.notNull(pk, "When updating model {0}, the primary key {1} cannot be null! {2}", modelName, pkField, row);
+            pks.add(pk);
             if (rowFields.isEmpty()) {
                 log.warn("Missing business fields when updating model {} data! {}, automatically ignored.", modelName, row);
                 return;
@@ -517,7 +520,6 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             return false;
         }
         this.checkTenantId(modelName, rows);
-        List<Serializable> pks = rows.stream().map(row -> (Serializable) row.get(pk)).collect(Collectors.toList());
         Integer updateCount;
         if (ModelManager.isTimelineModel(modelName)) {
             FlexQuery flexQuery = new FlexQuery(Arrays.asList(ModelConstant.ID, ModelConstant.SLICE_ID), new Filters().in(ModelConstant.SLICE_ID, pks));
