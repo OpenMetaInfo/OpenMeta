@@ -31,7 +31,7 @@ public class DeptInfoController extends EntityController<DeptInfoService, DeptIn
     @Autowired
     private DeptInfoService deptInfoService;
 
-    @GetMapping(value = "/readCustomize", params = { "id", "fields" })
+    @GetMapping(value = "/readCustomize")
     @Operation(summary = "readCustomize", description = "Read customized department info by ID.")
     @Parameters({
             @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
@@ -43,7 +43,7 @@ public class DeptInfoController extends EntityController<DeptInfoService, DeptIn
                                          @RequestParam(required = false) List<String> fields,
                                          @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
-        return ApiResponse.success(deptInfoService.getById(id, fields));
+        return ApiResponse.success(deptInfoService.getById(id, fields).orElse(null));
     }
 
 }

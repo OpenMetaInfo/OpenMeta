@@ -23,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * ImportHandlerManager
@@ -215,7 +216,7 @@ public class ImportHandlerManager {
     private Map<String, Map<String, Object>> getRowKeyMapFromDB(ImportTemplateDTO importTemplateDTO, Map<String, Set<Object>> uniqueValuesMap) {
         Filters filters = Filters.and(uniqueValuesMap.entrySet().stream()
                 .map(e -> new Filters().in(e.getKey(), e.getValue()))
-                .toList());
+                .collect(Collectors.toList()));
         List<String> fields = new ArrayList<>(List.of(ModelConstant.ID));
         fields.addAll(importTemplateDTO.getUniqueConstraints());
         FlexQuery flexQuery = new FlexQuery(fields, filters);

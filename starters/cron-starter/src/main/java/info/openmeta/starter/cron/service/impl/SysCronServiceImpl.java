@@ -1,5 +1,6 @@
 package info.openmeta.starter.cron.service.impl;
 
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.orm.compute.CronUtils;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.starter.cron.scheduler.CronScheduler;
@@ -32,7 +33,8 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
         // Cancel the existing cron job with the same ID first (if any).
         cronScheduler.cancelTask(cronId);
         // Schedule the new cron job.
-        SysCron sysCron = this.getById(cronId);
+        SysCron sysCron = this.getById(cronId)
+                .orElseThrow(() -> new IllegalArgumentException("The cron job with ID `{0}` does not exist", cronId));
         cronScheduler.registerCron(sysCron);
     }
 
@@ -55,14 +57,24 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
     /**
      * Execute the specified cron job immediately
      *
+     * @param sysCron Cron job object
+     */
+    private void executeCron(SysCron sysCron) {
+        CronUtils.getCron(sysCron.getName(), sysCron.getCronExpression());
+        cronScheduler.sendToMessageQueue(sysCron);
+    }
+
+    /**
+     * Execute the specified cron job immediately
+     *
      * @param cronId Cron job ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void executeNow(Long cronId) {
-        SysCron sysCron = this.getById(cronId);
-        CronUtils.getCron(sysCron.getName(), sysCron.getCronExpression());
-        cronScheduler.sendToMessageQueue(sysCron);
+        SysCron sysCron = this.getById(cronId)
+                .orElseThrow(() -> new IllegalArgumentException("The cron job with ID `{0}` does not exist", cronId));
+        this.executeCron(sysCron);
     }
 
     /**
@@ -75,7 +87,7 @@ public class SysCronServiceImpl extends EntityServiceImpl<SysCron, Long> impleme
     public void executeMultipleNow(List<Long> cronIds) {
         List<SysCron> sysCronList = this.getByIds(cronIds);
         for (SysCron sysCron : sysCronList) {
-            this.executeNow(sysCron.getId());
+            this.executeCron(sysCron);
         }
     }
 

@@ -66,7 +66,6 @@ public class CronScheduler {
      * @param sysCron Cron job object
      */
     public void registerCron(SysCron sysCron) {
-        SysCron sysCron1 = new SysCron();
         Cron cron = CronUtils.getCron(sysCron.getName(), sysCron.getCronExpression());
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
         if (!Boolean.TRUE.equals(sysCron.getLimitExecution())) {

@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Entity Service Interface.
@@ -60,7 +61,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param id data id
      * @return data object
      */
-    T getById(K id);
+    Optional<T> getById(K id);
 
     /**
      * Get one data object by id.
@@ -70,7 +71,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param subQueries subQueries object, can expand relational fields
      * @return data object
      */
-    T getById(K id, SubQueries subQueries);
+    Optional<T> getById(K id, SubQueries subQueries);
 
     /**
      * Get one data object by id.
@@ -81,7 +82,7 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param fields field list to read
      * @return data object
      */
-    T getById(K id, Collection<String> fields);
+    Optional<T> getById(K id, Collection<String> fields);
 
     /**
      * Get multiple data objects by ids.
@@ -130,6 +131,15 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @return ids list
      */
     List<K> getIds(Filters filters);
+
+    /**
+     * Get the ids for ManyToOne/OneToOne relational field.
+     *
+     * @param filters filters
+     * @param method field method, Lambda expression, method reference passing parameters
+     * @return distinct ids for relational field
+     */
+    <EK extends Serializable, R> List<EK> getRelatedIds(Filters filters, SFunction<T, R> method);
 
     /**
      * Get the ids for ManyToOne/OneToOne relational field.

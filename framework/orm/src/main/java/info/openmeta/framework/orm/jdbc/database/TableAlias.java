@@ -27,8 +27,7 @@ public class TableAlias {
     private final Map<String, String> chainTableAliasMap = new HashMap<>();
 
     /**
-     * The translation table alias with the field chain as the key, which is used to join the translation table
-     * when the field is translatable.
+     * Table alias to translation table alias.
      */
     private final Map<String, String> transTableAliasMap = new HashMap<>();
 
@@ -54,22 +53,25 @@ public class TableAlias {
     }
 
     /**
-     * Get the alias of the translation table by the field chain.
-     * If the field chain has been associated with a table alias, return the table alias directly;
+     * Get the translation table alias for the specified table alias
      *
-     * @param fieldChain Table alias key, that is, the left part of the cascading field,
-     *                   such as `jobId` of `jobId.name`, `jobId.typeId` of `jobId.typeId.name`.
-     * @return Alias of the right table
+     * @param tableAlias Table alias
+     * @return Alias of the translation table
      */
-    public String getTransTableAlias(String fieldChain) {
-        String transTableAlias;
-        if (transTableAliasMap.containsKey(fieldChain)) {
-            transTableAlias = transTableAliasMap.get(fieldChain);
-        } else {
-            // Generate a new trans table alias based on the size +1
-            transTableAlias = TRANS_TABLE_ALIAS + (transTableAliasMap.size() + 1);
-            this.transTableAliasMap.put(fieldChain, transTableAlias);
-        }
+    public String getTransTableAlias(String tableAlias) {
+        return transTableAliasMap.get(tableAlias);
+    }
+
+    /**
+     * Generate the translation table alias for the specified table alias
+     *
+     * @param tableAlias Table alias
+     * @return Alias of the translation table
+     */
+    public String generateTransTableAlias(String tableAlias) {
+        // Generate a new trans table alias based on the size +1
+        String transTableAlias = TRANS_TABLE_ALIAS + (transTableAliasMap.size() + 1);
+        this.transTableAliasMap.put(tableAlias, transTableAlias);
         return transTableAlias;
     }
 }

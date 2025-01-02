@@ -1,5 +1,6 @@
 package info.openmeta.starter.designer.service.impl;
 
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.domain.SubQueries;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
@@ -35,7 +36,7 @@ public class DesignModelServiceImpl extends EntityServiceImpl<DesignModel, Long>
     public String previewDDL(Long id) {
         SubQueries subQueries = new SubQueries().expand(DesignModel::getModelFields)
                 .expand(DesignModel::getModelIndexes);
-        DesignModel designModel = this.getById(id, subQueries);
+        DesignModel designModel = this.getById(id, subQueries).orElse(null);
         Assert.notNull(designModel, "The designModel id {0} does not exist!", id);
         StringBuilder ddl = new StringBuilder("-- Create table for model: ").append(designModel.getLabelName()).append("\n");
         ddl.append(DDLFactory.getInstance().createTableDDL(designModel)).append("\n");
@@ -55,8 +56,8 @@ public class DesignModelServiceImpl extends EntityServiceImpl<DesignModel, Long>
      */
     @Override
     public ModelCodeDTO previewCode(Long id) {
-        DesignModel designModel = this.getById(id);
-        Assert.notNull(designModel, "The designModel id {0} does not exist!", id);
+        DesignModel designModel = this.getById(id)
+                .orElseThrow(() -> new IllegalArgumentException("The designModel id {0} does not exist!", id));
         Assert.notNull(designModel.getAppId(), "The appId of the model cannot be null!");
         String packageName = appService.getFieldValue(designModel.getAppId(), DesignApp::getPackageName);
         Assert.notBlank(packageName, "To generate code, the packageName field of the App cannot be blank!");

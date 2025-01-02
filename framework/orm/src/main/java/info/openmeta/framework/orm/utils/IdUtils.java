@@ -30,8 +30,11 @@ public class IdUtils {
     public static Long convertIdToLong(Object id) {
         if (id instanceof Integer) {
             return ((Integer) id).longValue();
+        } else if (id instanceof String) {
+            return Long.parseLong((String) id);
+        } else {
+            return (Long) id;
         }
-        return id instanceof String ? Long.parseLong((String) id) : (Long) id;
     }
 
     /**

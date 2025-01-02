@@ -75,8 +75,8 @@ public class IdProcessor extends BaseProcessor {
      */
     private void formatExternalIds(Collection<Map<String, Object>> rows) {
         rows.forEach(row -> {
-            Object idValue = row.get(fieldName);
-            Assert.notNull(idValue, "Model {0} external ID cannot be empty!", modelName);
+            Serializable idValue = (Serializable) row.get(fieldName);
+            Assert.isTrue(IdUtils.validId(idValue), "Model {0} external ID cannot be empty!", modelName);
             row.put(fieldName, IdUtils.formatId(metaField.getFieldType(), idValue));
         });
     }

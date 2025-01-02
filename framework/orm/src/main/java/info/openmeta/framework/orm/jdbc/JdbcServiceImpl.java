@@ -126,6 +126,9 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         }
         SqlParams sqlParams = StaticSqlBuilder.getSelectSql(modelName, fields, ids);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
+        if (CollectionUtils.isEmpty(rows)) {
+            return Collections.emptyList();
+        }
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
         if (!ConvertType.ORIGINAL.equals(convertType)) {
             FlexQuery flexQuery = new FlexQuery(fields);
@@ -178,7 +181,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
         return Cast.of(rows.stream()
                 .map(row -> row.get(fieldName))
-                .toList());
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -211,6 +214,9 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         }
         SqlParams sqlParams = SqlBuilderFactory.buildPageSql(modelName, flexQuery, page);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);
+        if (CollectionUtils.isEmpty(rows)) {
+            return page;
+        }
         // Whether to format the data, including data decryption, convert data, and fill in relation fields
         if (!ConvertType.ORIGINAL.equals(flexQuery.getConvertType())) {
             DataReadPipeline dataPipeline = new DataReadPipeline(modelName, flexQuery);
@@ -263,14 +269,16 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         Map<Serializable, Map<String, Object>> originalRowsMap = this.getOriginalRowMap(modelName, rows, pipeline.getDifferFields());
         // Get the list of changed data, keeping only the fields and row data that have changed.
         List<Map<String, Object>> differRows = pipeline.processUpdateData(rows, originalRowsMap, updatedTime);
-        if (differRows.isEmpty()) {
-            return 0;
-        }
-        Integer count = differRows.stream().mapToInt(row -> updateOne(modelName, row)).sum();
+        int count = differRows.stream().mapToInt(row -> updateOne(modelName, row)).sum();
         // After updating the main table, update the sub-table to avoid the sub-table cascade field being the old value.
-        pipeline.processXToManyData(rows);
-        // Collect changeLogs
-        changeLogPublisher.publishUpdateLog(modelName, differRows, originalRowsMap, updatedTime);
+        boolean changed = pipeline.processXToManyData(rows);
+        if (count > 0) {
+            // Collect changeLogs
+            changeLogPublisher.publishUpdateLog(modelName, differRows, originalRowsMap, updatedTime);
+        } else if (changed) {
+            // If the main table is not updated, but the sub-table is updated, mark the main table as updated
+            return 1;
+        }
         return count;
     }
 

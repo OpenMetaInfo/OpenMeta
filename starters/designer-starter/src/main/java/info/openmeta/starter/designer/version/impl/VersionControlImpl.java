@@ -210,11 +210,9 @@ public class VersionControlImpl implements VersionControl {
                 updateDataList.add(rowChangeDTO.getDataAfterChange());
             }
         });
-        if (!updateDataList.isEmpty()) {
-            // Format the field values before and after the change for Update data
-            FlexQuery flexQuery = new FlexQuery(fields);
-            dataPipelineProxy.processReadData(versionedModel, flexQuery, updateDataList);
-        }
+        // Format the field values before and after the change for Update data
+        FlexQuery flexQuery = new FlexQuery(fields);
+        dataPipelineProxy.processReadData(versionedModel, flexQuery, updateDataList);
     }
 
 }

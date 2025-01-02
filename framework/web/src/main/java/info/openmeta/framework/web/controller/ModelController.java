@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Model Common Controller.
@@ -136,7 +137,7 @@ public class ModelController<K extends Serializable> {
      * @param effectiveDate effective date of timeline data
      * @return data row
      */
-    @GetMapping(value = "/getById", params = { "id", "fields" })
+    @GetMapping(value = "/getById")
     @Operation(description = "Get one row by ID.")
     @Parameters({
             @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
@@ -152,7 +153,8 @@ public class ModelController<K extends Serializable> {
                                                     @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
         id = IdUtils.formatId(modelName, id);
-        return ApiResponse.success(modelService.getById(modelName, id, fields, subQueries, ConvertType.REFERENCE));
+        Optional<Map<String, Object>> row = modelService.getById(modelName, id, fields, subQueries, ConvertType.REFERENCE);
+        return ApiResponse.success(row.orElse(null));
     }
 
     /**
@@ -167,7 +169,7 @@ public class ModelController<K extends Serializable> {
      * @param effectiveDate effective date of timeline data
      * @return List<Map> of multiple data
      */
-    @GetMapping(value = "/getByIds", params = { "ids", "fields" })
+    @GetMapping(value = "/getByIds")
     @Operation(description = "Get multiple rows by IDs.")
     @Parameters({
             @Parameter(name = "ids", description = "Data IDs to be read."),

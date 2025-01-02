@@ -11,6 +11,7 @@ import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.starter.file.dto.ExcelDataDTO;
 import info.openmeta.starter.file.entity.ExportTemplate;
+import info.openmeta.starter.file.excel.handler.CustomExportStyleHandler;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,8 @@ public class ExportByTemplate extends CommonExport {
         this.fillHeadersByTemplate(exportTemplate, excelDataDTO);
         this.fillRowsByTemplate(exportTemplate, flexQuery, excelDataDTO);
         // Generate the Excel file
-        FileInfo fileInfo = this.generateFileAndUpload(exportTemplate.getModelName(), excelDataDTO);
+        FileInfo fileInfo = this.generateFileAndUpload(exportTemplate.getModelName(), excelDataDTO,
+                new CustomExportStyleHandler());
         // Generate an export history record
         this.generateExportHistory(exportTemplate.getId(), fileInfo.getFileId());
         return fileInfo;
@@ -99,7 +101,7 @@ public class ExportByTemplate extends CommonExport {
 
                 // Write the header and data
                 List<List<String>> headerList = excelDataDTO.getHeaders().stream().map(Collections::singletonList).toList();
-                WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetName).head(headerList).build();
+                WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetName).head(headerList).registerWriteHandler(new CustomExportStyleHandler()).build();
                 excelWriter.write(excelDataDTO.getRowsTable(), writeSheet);
             }
             excelWriter.finish();

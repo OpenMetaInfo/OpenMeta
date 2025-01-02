@@ -13,6 +13,6 @@ import info.openmeta.starter.flow.service.FlowTriggerService;
 @Tag(name = "FlowTrigger")
 @RestController
 @RequestMapping("/FlowTrigger")
-public class FlowTriggerController extends EntityController<FlowTriggerService, FlowTrigger, Long> {
+public class FlowTriggerController extends EntityController<FlowTriggerService, FlowTrigger, String> {
 
 }

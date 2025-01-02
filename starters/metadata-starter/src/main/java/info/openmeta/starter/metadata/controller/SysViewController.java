@@ -44,7 +44,7 @@ public class SysViewController extends EntityController<SysViewService, SysView,
      */
     @Operation(summary = "getModelViews", description =
             "Get the list of views visible to the current user based on the model name. [Public views, personal views] and sorted by sequence.")
-    @GetMapping(value = "/getModelViews", params = {"modelName"})
+    @GetMapping(value = "/getModelViews")
     @Parameters({
             @Parameter(name = "modelName", description = "Model Name", required = true)
     })

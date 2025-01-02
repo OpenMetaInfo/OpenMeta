@@ -9,6 +9,6 @@ import info.openmeta.starter.flow.service.FlowTriggerService;
  * FlowTrigger Model Service Implementation
  */
 @Service
-public class FlowTriggerServiceImpl extends EntityServiceImpl<FlowTrigger, Long> implements FlowTriggerService {
+public class FlowTriggerServiceImpl extends EntityServiceImpl<FlowTrigger, String> implements FlowTriggerService {
 
 }

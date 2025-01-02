@@ -107,9 +107,10 @@ public class DataCreatePipeline extends DataPipeline {
      * @param rows rows
      */
     @Override
-    public void processXToManyData(List<Map<String, Object>> rows) {
+    public boolean processXToManyData(List<Map<String, Object>> rows) {
         FieldProcessorFactoryChain xToManyFactoryChain = FieldProcessorFactoryChain.of(modelName, accessType)
                 .addFactory(new XToManyProcessorFactory());
         xToManyFactoryChain.generateProcessorChain(fields).processInputRows(rows);
+        return true;
     }
 }

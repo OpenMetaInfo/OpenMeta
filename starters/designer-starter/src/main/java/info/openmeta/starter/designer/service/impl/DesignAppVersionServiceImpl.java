@@ -2,6 +2,7 @@ package info.openmeta.starter.designer.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import info.openmeta.framework.base.exception.BusinessException;
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.orm.constant.ModelConstant;
@@ -101,7 +102,8 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
     @Transactional(rollbackFor = Exception.class)
     public boolean reloadAppVersion(Long id) {
         List<String> fields = ListUtils.getLambdaFields(DesignAppVersion::getAppId, DesignAppVersion::getLocked);
-        DesignAppVersion appVersion = this.getById(id, fields);
+        DesignAppVersion appVersion = this.getById(id, fields)
+                .orElseThrow(() -> new IllegalArgumentException("The specified version does not exist! {0}", id));
         if (Boolean.TRUE.equals(appVersion.getLocked())) {
             throw new BusinessException("""
                     The version is locked and historical version published content cannot be modified.
@@ -124,9 +126,9 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
         ModelChangesDTO modelChanges = null;
         ModelChangesDTO fieldChanges = null;
         ModelChangesDTO indexChanges = null;
-        DesignAppEnv appEnv = appEnvService.getById(appVersion.getEnvId());
-        Assert.notNull(appEnv, "The envId {0} of app version {1} does not exist!",
-                appVersion.getEnvId(), appVersion.getName());
+        DesignAppEnv appEnv = appEnvService.getById(appVersion.getEnvId())
+                .orElseThrow(() -> new IllegalArgumentException("The envId {0} of app version {1} does not exist!",
+                        appVersion.getEnvId(), appVersion.getName()));
         for (String versionedModel : MetadataConstant.BASIC_METADATA_MODELS.keySet()) {
             ModelChangesDTO modelChangesDTO = versionControl.getModelChanges(appEnv, versionedModel, versionedTime);
             if (modelChangesDTO == null) {
@@ -156,10 +158,10 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void publish(Long id) {
-        DesignAppVersion appVersion = this.getById(id);
-        Assert.notNull(appVersion, "The specified version does not exist! {0}", id);
-        DesignAppEnv appEnv = appEnvService.getById(appVersion.getEnvId());
-        Assert.notNull(appEnv, "The specified environment does not exist! {0}", appVersion.getEnvId());
+        DesignAppVersion appVersion = this.getById(id)
+                .orElseThrow(() -> new IllegalArgumentException("The specified version does not exist! {0}", id));
+        DesignAppEnv appEnv = appEnvService.getById(appVersion.getEnvId())
+                .orElseThrow(() -> new IllegalArgumentException("The specified environment does not exist! {0}", appVersion.getEnvId()));
         Assert.notBlank(appEnv.getUpgradeEndpoint(),
                 "The interface address of the App-Env {0}: {1} cannot be empty!", appEnv.getAppCode(), appEnv.getName());
         Assert.notTrue(appEnv.getAutoUpgrade(),

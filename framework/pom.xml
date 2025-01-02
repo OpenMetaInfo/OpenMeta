@@ -6,13 +6,18 @@
     <parent>
         <groupId>info.openmeta</groupId>
         <artifactId>openmeta</artifactId>
-        <version>0.8.5</version>
+        <version>0.8.13</version>
     </parent>
 
     <artifactId>framework</artifactId>
     <description>Framework components</description>
     <url>https://openmeta.info</url>
     <packaging>pom</packaging>
+
+    <properties>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <modules>
         <module>base</module>

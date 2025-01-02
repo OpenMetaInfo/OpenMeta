@@ -21,9 +21,6 @@ public class FlowStage extends BaseModel {
     @Schema(description = "ID")
     private Long id;
 
-    @Schema(description = "Model Name")
-    private String model;
-
     @Schema(description = "Flow ID")
     private Long flowId;
 

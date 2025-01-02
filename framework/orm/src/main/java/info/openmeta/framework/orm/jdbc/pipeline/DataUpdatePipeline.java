@@ -10,6 +10,9 @@ import info.openmeta.framework.orm.jdbc.AutofillFields;
 import info.openmeta.framework.orm.jdbc.pipeline.chain.FieldProcessorChain;
 import info.openmeta.framework.orm.jdbc.pipeline.chain.FieldProcessorFactoryChain;
 import info.openmeta.framework.orm.jdbc.pipeline.factory.*;
+import info.openmeta.framework.orm.jdbc.pipeline.processor.FieldProcessor;
+import info.openmeta.framework.orm.jdbc.pipeline.processor.ManyToManyProcessor;
+import info.openmeta.framework.orm.jdbc.pipeline.processor.OneToManyProcessor;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import lombok.Getter;
@@ -109,10 +112,20 @@ public class DataUpdatePipeline extends DataPipeline {
      * Temporarily without permission check.
      */
     @Override
-    public void processXToManyData(List<Map<String, Object>> rows) {
+    public boolean processXToManyData(List<Map<String, Object>> rows) {
         FieldProcessorFactoryChain xToManyFactoryChain = FieldProcessorFactoryChain.of(modelName, accessType)
                 .addFactory(new XToManyProcessorFactory());
-        xToManyFactoryChain.generateProcessorChain(fields).processInputRows(rows);
+        FieldProcessorChain xToManyProcessorChain = xToManyFactoryChain.generateProcessorChain(fields);
+        xToManyProcessorChain.processInputRows(rows);
+        // Mark the XToMany fields that have been modified.
+        for (FieldProcessor processor : xToManyProcessorChain.getProcessors()) {
+            if (processor instanceof OneToManyProcessor oneToManyProcessor && oneToManyProcessor.isChanged()) {
+                return true;
+            } else if (processor instanceof ManyToManyProcessor manyToManyProcessor && manyToManyProcessor.isChanged()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

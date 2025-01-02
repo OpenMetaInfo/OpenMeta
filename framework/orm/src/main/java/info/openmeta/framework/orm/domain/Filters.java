@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.enums.Operator;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.base.utils.SFunction;
 import info.openmeta.framework.orm.domain.antlr.FilterExprVisitorImpl;
@@ -462,6 +463,7 @@ public class Filters {
      * @return the updated filters
      */
     public <T, R> Filters between(SFunction<T, R> method, Object value1, Object value2) {
+        Assert.isTrue(value1 != null && value2 != null, "The comparison value cannot be null.");
         return this.add(method, Operator.BETWEEN, Arrays.asList(value1, value2));
     }
 
@@ -473,6 +475,7 @@ public class Filters {
      * @return the updated filters
      */
     public Filters between(String field, Object value1, Object value2) {
+        Assert.isTrue(value1 != null && value2 != null, "The comparison value cannot be null.");
         return this.add(field, Operator.BETWEEN, Arrays.asList(value1, value2));
     }
 
@@ -484,6 +487,7 @@ public class Filters {
      * @return the updated filters
      */
     public <T, R> Filters notBetween(SFunction<T, R> method, Object value1, Object value2) {
+        Assert.isTrue(value1 != null && value2 != null, "The comparison value cannot be null.");
         return this.add(method, Operator.NOT_BETWEEN, Arrays.asList(value1, value2));
     }
 
@@ -495,6 +499,7 @@ public class Filters {
      * @return the updated filters
      */
     public Filters notBetween(String field, Object value1, Object value2) {
+        Assert.isTrue(value1 != null && value2 != null, "The comparison value cannot be null.");
         return this.add(field, Operator.NOT_BETWEEN, Arrays.asList(value1, value2));
     }
 
@@ -541,6 +546,7 @@ public class Filters {
      * @return the updated filters
      */
     public <T, R> Filters parentOf(SFunction<T, R> method, String idPath) {
+        Assert.notBlank(idPath, "The idPath cannot be blank.");
         return this.add(method, Operator.PARENT_OF, Collections.singletonList(idPath));
     }
 
@@ -561,6 +567,7 @@ public class Filters {
      * @return the updated filters
      */
     public Filters parentOf(String field, String idPath) {
+        Assert.notBlank(idPath, "The idPath cannot be blank.");
         return this.add(field, Operator.PARENT_OF, Collections.singletonList(idPath));
     }
 
@@ -581,6 +588,7 @@ public class Filters {
      * @return the updated filters
      */
     public <T, R> Filters childOf(SFunction<T, R> method, String idPath) {
+        Assert.notBlank(idPath, "The idPath cannot be blank.");
         return this.add(method, Operator.CHILD_OF, Collections.singletonList(idPath));
     }
 
@@ -601,6 +609,7 @@ public class Filters {
      * @return the updated filters
      */
     public Filters childOf(String field, String idPath) {
+        Assert.notBlank(idPath, "The idPath cannot be blank.");
         return this.add(field, Operator.CHILD_OF, Collections.singletonList(idPath));
     }
 
@@ -674,7 +683,9 @@ public class Filters {
             return null;
         }
         Filters combinedFilters = and();
-        combinedFilters.setChildren(filtersList.stream().filter(f -> !Filters.isEmpty(f)).toList());
+        combinedFilters.setChildren(filtersList.stream()
+                .filter(f -> !Filters.isEmpty(f))
+                .collect(Collectors.toList()));
         return combinedFilters;
     }
 

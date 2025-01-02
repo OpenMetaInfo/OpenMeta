@@ -22,7 +22,7 @@ public class FlowNode extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    private Long id;
+    private String id;
 
     @Schema(description = "Node Name")
     private String name;
@@ -39,14 +39,26 @@ public class FlowNode extends BaseModel {
     @Schema(description = "Sequence")
     private Integer sequence;
 
+    @Schema(description = "Parent Node ID")
+    private String parentId;
+
+    @Schema(description = "Child Nodes")
+    private List<FlowNode> childNodes;
+
     @Schema(description = "Node Execute Condition")
     private String nodeCondition;
 
-    @Schema(description = "Loop Params")
-    private JsonNode loopParams;
+    @Schema(description = "Node Params")
+    private JsonNode nodeParams;
 
-    @Schema(description = "Action List")
-    private List<FlowAction> actionList;
+    @Schema(description = "Exception Policy")
+    private JsonNode exceptionPolicy;
+
+    @Schema(description = "Position")
+    private JsonNode position;
+
+    @Schema(description = "Description")
+    private String description;
 
     @Schema(description = "Disabled")
     private Boolean disabled;

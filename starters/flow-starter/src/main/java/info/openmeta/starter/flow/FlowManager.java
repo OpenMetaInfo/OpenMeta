@@ -4,7 +4,6 @@ import info.openmeta.framework.base.context.Context;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
-import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.jdbc.JdbcService;
 import info.openmeta.starter.flow.entity.FlowConfig;
 import info.openmeta.starter.flow.entity.FlowTrigger;
@@ -32,11 +31,14 @@ import static info.openmeta.framework.base.enums.AccessType.*;
 @Component
 public class FlowManager implements InitializingBean {
 
-    // { triggerModel: [FlowTrigger] }
-    private static final Map<String, List<FlowTrigger>> MODEL_TRIGGER_MAP = new ConcurrentHashMap<>();
+    // { triggerId: FlowTrigger }
+    private static final Map<String, FlowTrigger> TRIGGER_MAP = new ConcurrentHashMap<>();
 
-    // { cronId: FlowTrigger }
-    private static final Map<Long, FlowTrigger> CRON_TRIGGER_MAP = new ConcurrentHashMap<>();
+    // { triggerModel: [TriggerId] }
+    private static final Map<String, List<String>> MODEL_TRIGGER_MAP = new ConcurrentHashMap<>();
+
+    // { cronId: TriggerId }
+    private static final Map<Long, String> CRON_TRIGGER_MAP = new ConcurrentHashMap<>();
 
     // { flowId: FlowConfig }
     private static final Map<Long, FlowConfig> FLOW_MAP = new ConcurrentHashMap<>();
@@ -49,6 +51,7 @@ public class FlowManager implements InitializingBean {
      */
     @Override
     public void afterPropertiesSet() {
+        TRIGGER_MAP.clear();
         MODEL_TRIGGER_MAP.clear();
         CRON_TRIGGER_MAP.clear();
         FLOW_MAP.clear();
@@ -57,9 +60,10 @@ public class FlowManager implements InitializingBean {
         // Load flow triggers
         List<FlowTrigger> triggers = jdbcService.selectMetaEntityList(FlowTrigger.class, null);
         triggers.forEach(trigger -> {
-            MODEL_TRIGGER_MAP.computeIfAbsent(trigger.getTriggeredModel(), k -> new ArrayList<>()).add(trigger);
+            TRIGGER_MAP.put(trigger.getId(), trigger);
+            MODEL_TRIGGER_MAP.computeIfAbsent(trigger.getSourceModel(), k -> new ArrayList<>()).add(trigger.getId());
             if (trigger.getCronId() != null && trigger.getCronId() > 0) {
-                CRON_TRIGGER_MAP.put(trigger.getCronId(), trigger);
+                CRON_TRIGGER_MAP.put(trigger.getCronId(), trigger.getId());
             }
         });
         // Load flow configs
@@ -72,7 +76,7 @@ public class FlowManager implements InitializingBean {
      * @param flowId flowId
      * @return FlowConfig
      */
-    public static FlowConfig getFlowById(Long flowId) {
+    public static FlowConfig getById(Long flowId) {
         return FLOW_MAP.get(flowId);
     }
 
@@ -83,55 +87,54 @@ public class FlowManager implements InitializingBean {
      * @return FlowTrigger
      */
     public static FlowTrigger getTriggerByCronId(Long cronId) {
-        return CRON_TRIGGER_MAP.get(cronId);
+        if (CRON_TRIGGER_MAP.containsKey(cronId)) {
+            return TRIGGER_MAP.get(CRON_TRIGGER_MAP.get(cronId));
+        } else {
+            return null;
+        }
     }
 
     /**
-     * Get all FlowTriggers by triggerModel
+     * Get all FlowTriggers by sourceModel
      *
-     * @param triggerModel triggerModel
+     * @param sourceModel sourceModel
      * @return List of FlowTrigger
      */
-    private static List<FlowTrigger> getModelFlowTriggers(String triggerModel) {
-        List<FlowTrigger> flowTriggers = MODEL_TRIGGER_MAP.get(triggerModel);
-        Assert.notEmpty(flowTriggers, "The model {0} does not define any triggers!", triggerModel);
-        return flowTriggers;
-    }
-
-    /**
-     * Get FlowTrigger by triggerModel and triggerCode
-     *
-     * @param triggerModel triggerModel
-     * @param triggerCode triggerCode
-     * @return FlowTrigger
-     */
-    public static FlowTrigger getTriggerByCode(String triggerModel, @NotNull String triggerCode) {
-        List<FlowTrigger> flowTriggers = getModelFlowTriggers(triggerModel);
-        for (FlowTrigger flowTrigger : flowTriggers) {
-            if (triggerCode.equals(flowTrigger.getTriggerCode())) {
-                return flowTrigger;
-            }
+    private static List<FlowTrigger> getModelTriggers(String sourceModel) {
+        List<String> triggerIds = MODEL_TRIGGER_MAP.get(sourceModel);
+        if (CollectionUtils.isEmpty(triggerIds)) {
+            return Collections.emptyList();
         }
-        throw new IllegalArgumentException("The model {0} does not define a trigger with code {1}!", triggerModel, triggerCode);
+        return triggerIds.stream().map(TRIGGER_MAP::get).collect(Collectors.toList());
     }
 
     /**
-     * Get FlowTrigger by triggerModel, triggerCode and eventType
+     * Get FlowTrigger by triggerId
+     *
+     * @param triggerId triggerId
+     * @return FlowTrigger object
+     */
+    public static FlowTrigger getTriggerById(@NotNull String triggerId) {
+        return TRIGGER_MAP.get(triggerId);
+    }
+
+    /**
+     * Get FlowTrigger by triggerModel, triggerId and eventType
      *
      * @param triggerModel triggerModel
-     * @param triggerCode triggerCode
+     * @param triggerId triggerId
      * @param eventType eventType
      * @return FlowTrigger
      */
-    public static FlowTrigger getTriggerByCode(String triggerModel, @NotNull String triggerCode, @NotNull TriggerEventType eventType) {
-        List<FlowTrigger> flowTriggers = getModelFlowTriggers(triggerModel);
+    public static FlowTrigger getTriggerById(String triggerModel, @NotNull String triggerId, @NotNull TriggerEventType eventType) {
+        List<FlowTrigger> flowTriggers = getModelTriggers(triggerModel);
         for (FlowTrigger flowTrigger : flowTriggers) {
-            if (triggerCode.equals(flowTrigger.getTriggerCode()) && eventType.equals(flowTrigger.getEventType())) {
+            if (triggerId.equals(flowTrigger.getId()) && eventType.equals(flowTrigger.getEventType())) {
                 return flowTrigger;
             }
         }
-        throw new IllegalArgumentException("The model {0} does not define a {1} trigger with code {2}!",
-                triggerModel, eventType.getType(), triggerCode);
+        throw new IllegalArgumentException("The model {0} does not define a {1} trigger with triggerId {2}!",
+                triggerModel, eventType.getType(), triggerId);
     }
 
     /**
@@ -143,7 +146,7 @@ public class FlowManager implements InitializingBean {
      * @return List of FlowTrigger
      */
     public static List<FlowTrigger> getTriggersByChangeEvent(String triggerModel, @NotNull AccessType accessType, Set<String> updateFields) {
-        List<FlowTrigger> flowTriggers = MODEL_TRIGGER_MAP.get(triggerModel);
+        List<FlowTrigger> flowTriggers = getModelTriggers(triggerModel);
         if (CollectionUtils.isEmpty(flowTriggers)) {
             return Collections.emptyList();
         }
@@ -171,9 +174,9 @@ public class FlowManager implements InitializingBean {
         } else if (UPDATE.equals(accessType)) {
             // UPDATE event: UPDATE_EVENT, CREATE_OR_UPDATE, and the triggered fields are empty,
             // or any of the updated fields are in the triggered fields
-            if (CollectionUtils.isEmpty(flowTrigger.getTriggeredFields())
+            if (CollectionUtils.isEmpty(flowTrigger.getSourceFields())
                     || CollectionUtils.isEmpty(updateFields)
-                    || updateFields.stream().anyMatch(flowTrigger.getTriggeredFields()::contains)) {
+                    || updateFields.stream().anyMatch(flowTrigger.getSourceFields()::contains)) {
                 return TriggerEventType.UPDATE_EVENT.equals(eventType)
                         || TriggerEventType.CREATE_OR_UPDATE.equals(eventType);
             } else {

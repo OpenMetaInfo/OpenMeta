@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.0</version>
+		<version>3.3.7</version>
 	</parent>
 
 	<name>openmeta</name>
 	<groupId>info.openmeta</groupId>
 	<artifactId>openmeta</artifactId>
-	<version>0.8.5</version>
+	<version>0.8.13</version>
 
 	<packaging>pom</packaging>
 	<url>https://openmeta.info</url>
@@ -20,7 +20,6 @@
 	<modules>
 		<module>framework</module>
 		<module>starters</module>
-		<module>apps</module>
 	</modules>
 
 	<properties>
@@ -28,7 +27,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<spring.boot.version>3.4.0</spring.boot.version>
+		<spring.boot.version>3.3.7</spring.boot.version>
 		<lombok.version>1.18.30</lombok.version>
 
 	</properties>
@@ -39,12 +38,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-			<version>${spring.boot.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-logging</artifactId>
 			<version>${spring.boot.version}</version>
 		</dependency>
 

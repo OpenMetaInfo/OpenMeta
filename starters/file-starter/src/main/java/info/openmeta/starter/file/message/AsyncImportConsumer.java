@@ -1,5 +1,6 @@
 package info.openmeta.starter.file.message;
 
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.starter.file.dto.ImportTemplateDTO;
 import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.service.FileRecordService;
@@ -32,7 +33,8 @@ public class AsyncImportConsumer implements RocketMQListener<ImportTemplateDTO> 
 
     @Override
     public void onMessage(ImportTemplateDTO importTemplateDTO) {
-        ImportHistory importHistory = importHistoryService.getById(importTemplateDTO.getHistoryId());
+        ImportHistory importHistory = importHistoryService.getById(importTemplateDTO.getHistoryId())
+                .orElseThrow(() -> new IllegalArgumentException("The import history with ID `{0}` does not exist", importTemplateDTO.getHistoryId()));
         InputStream inputStream = fileRecordService.downloadStream(importTemplateDTO.getFileId());
         importService.syncImport(importTemplateDTO, inputStream, importHistory);
     }

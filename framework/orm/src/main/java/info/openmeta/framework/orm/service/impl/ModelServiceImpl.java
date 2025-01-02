@@ -171,10 +171,10 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
-     * @return data row
+     * @return Optional data row
      */
     @Override
-    public Map<String, Object> getById(String modelName, K id) {
+    public Optional<Map<String, Object>> getById(String modelName, K id) {
         return this.getById(modelName, id, Collections.emptyList(), null, ConvertType.TYPE_CAST);
     }
 
@@ -184,10 +184,10 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      *
      * @param id data id
      * @param subQueries SubQueries object, used to specify the subQuery for different relational fields.
-     * @return data row
+     * @return Optional data row
      */
     @Override
-    public Map<String, Object> getById(String modelName, K id, SubQueries subQueries) {
+    public Optional<Map<String, Object>> getById(String modelName, K id, SubQueries subQueries) {
         return this.getById(modelName, id, Collections.emptyList(), subQueries, ConvertType.TYPE_CAST);
     }
 
@@ -198,10 +198,10 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      *
      * @param id data id
      * @param fields field list to get value
-     * @return data row
+     * @return Optional data row
      */
     @Override
-    public Map<String, Object> getById(String modelName, K id, Collection<String> fields) {
+    public Optional<Map<String, Object>> getById(String modelName, K id, Collection<String> fields) {
         return this.getById(modelName, id, fields, null, ConvertType.TYPE_CAST);
     }
 
@@ -213,14 +213,13 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      * @param fields field list to get value
      * @param subQueries SubQueries object, used to specify the subQuery for different relational fields.
      * @param convertType data convert type of the return value.
-     * @return data row
+     * @return Optional data row
      */
     @Override
-    public Map<String, Object> getById(String modelName, K id, Collection<String> fields,
+    public Optional<Map<String, Object>> getById(String modelName, K id, Collection<String> fields,
                                        SubQueries subQueries, ConvertType convertType) {
         List<Map<String, Object>> rows = this.getByIds(modelName, Collections.singletonList(id), fields, subQueries, convertType);
-        Assert.notEmpty(rows, "Model {0} does not have data with id {1}!", modelName, id);
-        return rows.getFirst();
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.getFirst());
     }
 
     /**
@@ -255,6 +254,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             return Collections.emptyList();
         }
         FlexQuery flexQuery = new FlexQuery(fields, Filters.of(ModelConstant.ID, Operator.IN, ids));
+        flexQuery.setSubQueries(subQueries);
         flexQuery.setConvertType(convertType);
         List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
         List<Serializable> resultIds = rows.stream().map(row -> (Serializable) row.get(ModelConstant.ID)).toList();
@@ -273,7 +273,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public Map<String, Object> getCopyableFields(String modelName, K id) {
-        Map<String, Object> value = this.getById(modelName, id, Collections.emptyList());
+        Map<String, Object> value = this.getById(modelName, id, Collections.emptyList())
+                .orElseThrow(() -> new IllegalArgumentException("The data of model {0} with id {1} does not exist!", modelName, id));
         List<String> copyableFields = ModelManager.getModelCopyableFields(modelName);
         copyableFields.forEach(value::remove);
         return value;
@@ -339,8 +340,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public <V extends Serializable> V getFieldValue(String modelName, K id, String field) {
-        Map<String, Object> row = this.getById(modelName, id, Collections.singletonList(field), null, ConvertType.TYPE_CAST);
-        return Cast.of(row.get(field));
+        Optional<Map<String, Object>> optionalRow = this.getById(modelName, id, Collections.singletonList(field));
+        Object value = optionalRow.map(row -> row.get(field)).orElse(null);
+        return Cast.of(value);
     }
 
     /**
@@ -448,7 +450,11 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
                     "The `maskingType` of model {0} field {1} is null, cannot invoke unmask!",
                     modelName, field);
         });
-        return getById(modelName, id, fields);
+        Optional<Map<String, Object>> optionalValue = this.getById(modelName, id, fields);
+        if (optionalValue.isEmpty()) {
+            throw new IllegalArgumentException("The data of model {0} with id {1} does not exist!", modelName, id);
+        }
+        return optionalValue.get();
     }
 
     /**
@@ -490,14 +496,17 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         Set<String> updatableFields = ModelManager.getModelUpdatableFields(modelName);
         Set<String> toUpdateFields = new HashSet<>();
         List<Map<String, Object>> toUpdateRows = new ArrayList<>();
-        String pk = ModelManager.getModelPrimaryKey(modelName);
+        String pkField = ModelManager.getModelPrimaryKey(modelName);
+        List<Serializable> pks = new ArrayList<>();
         rows.forEach(row -> {
             // Remove audit fields from the update data
             ModelConstant.AUDIT_FIELDS.forEach(row::remove);
             Set<String> rowFields = new HashSet<>(row.keySet());
             rowFields.retainAll(updatableFields);
-            Assert.notNull(row.get(pk),
-                    "When updating model {0}, the primary key {1} cannot be null! {2}", modelName, pk, row);
+            IdUtils.formatMapId(modelName, row);
+            Serializable pk = (Serializable) row.get(pkField);
+            Assert.notNull(pk, "When updating model {0}, the primary key {1} cannot be null! {2}", modelName, pkField, row);
+            pks.add(pk);
             if (rowFields.isEmpty()) {
                 log.warn("Missing business fields when updating model {} data! {}, automatically ignored.", modelName, row);
                 return;
@@ -511,7 +520,6 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
             return false;
         }
         this.checkTenantId(modelName, rows);
-        List<Serializable> pks = rows.stream().map(row -> (Serializable) row.get(pk)).collect(Collectors.toList());
         Integer updateCount;
         if (ModelManager.isTimelineModel(modelName)) {
             FlexQuery flexQuery = new FlexQuery(Arrays.asList(ModelConstant.ID, ModelConstant.SLICE_ID), new Filters().in(ModelConstant.SLICE_ID, pks));

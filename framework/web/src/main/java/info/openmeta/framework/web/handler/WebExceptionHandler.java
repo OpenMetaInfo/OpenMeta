@@ -19,6 +19,7 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -60,7 +61,7 @@ public class WebExceptionHandler {
      * @param e Exception
      * @return ResponseEntity
      */
-    private ResponseEntity<ApiResponse<String>> handler(ResponseCode responseCode, Exception e) {
+    private ResponseEntity<ApiResponse<String>> handler(ResponseCode responseCode, Throwable e) {
         String exceptionMessage = e.getMessage() == null ? e.getClass().getName() : e.getMessage();
         return handler(responseCode, e, exceptionMessage);
     }
@@ -74,7 +75,7 @@ public class WebExceptionHandler {
      * @param exceptionMessage the custom message for the exception
      * @return a ResponseEntity wrapping the ApiResponse with the specified message
      */
-    private ResponseEntity<ApiResponse<String>> handler(ResponseCode responseCode, Exception e, String exceptionMessage) {
+    private ResponseEntity<ApiResponse<String>> handler(ResponseCode responseCode, Throwable e, String exceptionMessage) {
         if (!(e instanceof BaseException)) {
             // If the exception is not an instance of BaseException, translate the exception message.
             // Support i18n of Java exception messages and third-party exception messages.
@@ -178,6 +179,26 @@ public class WebExceptionHandler {
             errorMessage.append(fieldError.getDefaultMessage());
         }
         return handler(ResponseCode.BAD_REQUEST, e, errorMessage.toString());
+    }
+
+    /**
+     * Handle UnsatisfiedServletRequestParameterException
+     * @param e Exception
+     * @return ResponseEntity
+     */
+    @ExceptionHandler(value = UnsatisfiedServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse<String>> handleException(UnsatisfiedServletRequestParameterException e) {
+        return handler(ResponseCode.BAD_REQUEST, e);
+    }
+
+    /**
+     * Handle NoSuchMethodError
+     * @param e Exception
+     * @return ResponseEntity
+     */
+    @ExceptionHandler(value = NoSuchMethodError.class)
+    public ResponseEntity<ApiResponse<String>> handleException(NoSuchMethodError e) {
+        return handler(ResponseCode.BAD_REQUEST, e);
     }
 
     /**

@@ -27,7 +27,7 @@ public class SysDataSource extends BaseModel {
     private String name;
 
     @Schema(description = "Data Source Key")
-    private String key;
+    private String dsKey;
 
     @Schema(description = "JDBC URL")
     private String jdbcUrl;
