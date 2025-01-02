@@ -13,6 +13,6 @@ import info.openmeta.starter.flow.service.FlowEventService;
 @Tag(name = "FlowEvent")
 @RestController
 @RequestMapping("/FlowEvent")
-public class FlowEventController extends EntityController<FlowEventService, FlowEvent, Long> {
+public class FlowEventController extends EntityController<FlowEventService, FlowEvent, String> {
 
 }

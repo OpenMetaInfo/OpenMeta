@@ -6,6 +6,6 @@ import info.openmeta.framework.orm.service.EntityService;
 /**
  * FlowStage Model Service Interface
  */
-public interface FlowStageService extends EntityService<FlowStage, Long> {
+public interface FlowStageService extends EntityService<FlowStage, String> {
 
 }

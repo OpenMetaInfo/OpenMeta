@@ -6,6 +6,6 @@ import info.openmeta.framework.orm.service.EntityService;
 /**
  * FlowEvent Model Service Interface
  */
-public interface FlowEventService extends EntityService<FlowEvent, Long> {
+public interface FlowEventService extends EntityService<FlowEvent, String> {
 
 }

@@ -28,7 +28,7 @@ public class FlowNode extends BaseModel {
     private String name;
 
     @Schema(description = "Flow ID")
-    private Long flowId;
+    private String flowId;
 
     @Schema(description = "Stage ID")
     private Long stageId;

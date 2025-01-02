@@ -5,6 +5,7 @@ import info.openmeta.framework.orm.annotation.DataMask;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.starter.flow.FlowAutomation;
 import info.openmeta.starter.flow.message.dto.FlowEventMessage;
+import info.openmeta.starter.flow.vo.FlowEventVO;
 import info.openmeta.starter.flow.vo.TriggerEventVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,17 +65,25 @@ public class AutomationController {
      * Simulates an event message for flow triggering.
      * This method is used for testing in non-production environments, such as dev, test and uat.
      *
-     * @param flowEventMessage The event message used to simulate the flow trigger.
+     * @param flowEventVO The event parameters used to simulate the flow trigger.
      * @return An ApiResponse containing the result of the simulated flow trigger.
      */
     @Operation(summary = "Simulate Event Message", description = """
-            Simulate flow triggering by passing a FlowEventMessage, suitable for scenarios such as ChangeLog, Cron, etc.
+            Simulate flow triggering by passing a FlowEventVO, suitable for scenarios such as ChangeLog, Cron, etc.
             For non-production environment testing only.""")
     @PostMapping("/simulateEvent")
-    public ApiResponse<Object> buttonEvent(@RequestBody FlowEventMessage flowEventMessage) {
+    public ApiResponse<Object> buttonEvent(@RequestBody FlowEventVO flowEventVO) {
         String[] profiles = env.getActiveProfiles();
         Assert.notTrue(Arrays.asList(profiles).contains("prod"),
                 "This API is only open to non-production environments!");
-        return ApiResponse.success(automation.triggerFlow(flowEventMessage, true));
+        FlowEventMessage message = new FlowEventMessage();
+        message.setFlowId(flowEventVO.getFlowId());
+        message.setFlowNodeId(flowEventVO.getFlowNodeId());
+        message.setRollbackOnFail(flowEventVO.getRollbackOnFail());
+        message.setTriggerId(flowEventVO.getTriggerId());
+        message.setSourceModel(flowEventVO.getSourceModel());
+        message.setTriggerRowId(flowEventVO.getTriggerRowId());
+        message.setTriggerParams(flowEventVO.getTriggerParams());
+        return ApiResponse.success(automation.triggerFlow(message, true));
     }
 }

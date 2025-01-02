@@ -12,6 +12,7 @@ import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -30,9 +31,9 @@ import java.util.List;
  * Web request exception handler, which catch the API exception that requires specifying responseCode.
  * Error response body:
  * {
- *     "code": responseCode,
- *     "message": statusMessage as request Exception category,
- *     "data": errorMessage for end users
+ * "code": responseCode,
+ * "message": statusMessage as request Exception category,
+ * "data": errorMessage for end users
  * }
  */
 @Slf4j
@@ -57,8 +58,9 @@ public class WebExceptionHandler {
     /**
      * Regard e.getMessage() as errorMessage if no errorMessage is specified to end user during handling XXXExceptions
      * errorMessage is translated already in BaseException or corresponding handler.
+     *
      * @param responseCode ResponseCode
-     * @param e Exception
+     * @param e            Exception
      * @return ResponseEntity
      */
     private ResponseEntity<ApiResponse<String>> handler(ResponseCode responseCode, Throwable e) {
@@ -70,8 +72,8 @@ public class WebExceptionHandler {
      * Support i18n of Java exception messages and third-party exception messages.
      * Logs exception messages, including API request info.
      *
-     * @param responseCode the response code associated with the exception
-     * @param e the exception that was thrown
+     * @param responseCode     the response code associated with the exception
+     * @param e                the exception that was thrown
      * @param exceptionMessage the custom message for the exception
      * @return a ResponseEntity wrapping the ApiResponse with the specified message
      */
@@ -93,10 +95,11 @@ public class WebExceptionHandler {
 
     /**
      * Handle normal Exception
+     *
      * @param e Exception
      * @return ResponseEntity
      */
-    @ExceptionHandler(value = Exception.class)
+    @ExceptionHandler(value = Throwable.class)
     public ResponseEntity<ApiResponse<String>> handleException(Exception e) {
         String clientExceptionMessage = "Unconfirmed exception";
         return handler(ResponseCode.ERROR, e, clientExceptionMessage);
@@ -104,6 +107,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle BaseException and its children exceptions.
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -114,6 +118,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle NoHandlerFoundException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -124,6 +129,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle HttpRequestMethodNotSupportedException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -134,6 +140,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle IllegalArgumentException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -144,6 +151,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle HttpMessageNotReadableException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -154,6 +162,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle DataIntegrityViolationException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -165,6 +174,7 @@ public class WebExceptionHandler {
     /**
      * Validation Errors of API Parameters
      * Handle MethodArgumentNotValidException
+     *
      * @param e Exception
      * @return All the validation error messages.
      */
@@ -183,6 +193,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle UnsatisfiedServletRequestParameterException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -193,6 +204,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle NoSuchMethodError
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -203,6 +215,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle ConstraintViolationException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -213,6 +226,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle ValidationException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -223,6 +237,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle ValidationException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -246,6 +261,7 @@ public class WebExceptionHandler {
 
     /**
      * Handle BadSqlGrammarException
+     *
      * @param e Exception
      * @return ResponseEntity
      */
@@ -254,4 +270,20 @@ public class WebExceptionHandler {
         String errorMessage = "SQL Syntax Error";
         return handler(ResponseCode.ERROR, e, errorMessage);
     }
+
+    /**
+     * Handle DuplicateKeyException
+     *
+     * @param e Exception
+     * @return ResponseEntity
+     */
+    @ExceptionHandler(value = DuplicateKeyException.class)
+    public ResponseEntity<ApiResponse<String>> handleException(DuplicateKeyException e) {
+        String errorMessage = "Duplicate Key Error";
+        if (e.getCause() instanceof Exception) {
+            errorMessage = e.getCause().getMessage();
+        }
+        return handler(ResponseCode.BAD_REQUEST, e, errorMessage);
+    }
+
 }

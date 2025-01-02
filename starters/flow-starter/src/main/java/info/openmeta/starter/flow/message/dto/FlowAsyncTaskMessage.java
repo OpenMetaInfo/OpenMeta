@@ -13,7 +13,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class FlowAsyncTaskMessage {
 
-    private Long flowId;
+    private String flowId;
     private String nodeId;
     private String asyncTaskHandlerCode;
     private Map<String, Object> asyncTaskParams;

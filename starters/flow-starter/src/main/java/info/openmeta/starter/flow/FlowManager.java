@@ -41,7 +41,7 @@ public class FlowManager implements InitializingBean {
     private static final Map<Long, String> CRON_TRIGGER_MAP = new ConcurrentHashMap<>();
 
     // { flowId: FlowConfig }
-    private static final Map<Long, FlowConfig> FLOW_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, FlowConfig> FLOW_MAP = new ConcurrentHashMap<>();
 
     @Autowired
     private JdbcService<?> jdbcService;
@@ -76,7 +76,7 @@ public class FlowManager implements InitializingBean {
      * @param flowId flowId
      * @return FlowConfig
      */
-    public static FlowConfig getById(Long flowId) {
+    public static FlowConfig getById(String flowId) {
         return FLOW_MAP.get(flowId);
     }
 

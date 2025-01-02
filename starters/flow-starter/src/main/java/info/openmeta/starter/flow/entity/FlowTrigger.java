@@ -27,7 +27,7 @@ public class FlowTrigger extends BaseModel {
     private String name;
 
     @Schema(description = "Triggered Flow")
-    private Long flowId;
+    private String flowId;
 
     @Schema(description = "Trigger Event Type")
     private TriggerEventType eventType;

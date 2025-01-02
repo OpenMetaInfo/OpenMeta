@@ -13,6 +13,6 @@ import info.openmeta.starter.flow.service.FlowDebugHistoryService;
 @Tag(name = "FlowDebugHistory")
 @RestController
 @RequestMapping("/FlowDebugHistory")
-public class FlowDebugHistoryController extends EntityController<FlowDebugHistoryService, FlowDebugHistory, Long> {
+public class FlowDebugHistoryController extends EntityController<FlowDebugHistoryService, FlowDebugHistory, String> {
 
 }

@@ -28,7 +28,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> implements FlowConfigService {
+public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, String> implements FlowConfigService {
 
     @Autowired
     private FlowInstanceService flowInstanceService;
@@ -51,7 +51,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
     @Override
     public List<Map<String, Object>> getByModel(String modelName) {
         Filters filters = new Filters().eq(FlowTrigger::getSourceModel, modelName);
-        List<Long> flowIds = flowTriggerService.getRelatedIds(filters, FlowTrigger::getFlowId);
+        List<String> flowIds = flowTriggerService.getRelatedIds(filters, FlowTrigger::getFlowId);
         return modelService.getByIds(modelName, flowIds, Collections.emptyList());
     }
 
@@ -62,9 +62,11 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, Long> i
      * @return flowConfig object with nodes and edges
      */
     @Override
-    public Optional<FlowConfig> getFlowById(Long flowId) {
-        SubQueries subQueries = new SubQueries().expand(FlowConfig::getNodeList)
-                .expand(FlowConfig::getEdgeList);
+    public Optional<FlowConfig> getFlowById(String flowId) {
+        SubQueries subQueries = new SubQueries()
+                .expand(FlowConfig::getNodeList)
+                .expand(FlowConfig::getEdgeList)
+                .expand(FlowConfig::getTriggerList);
         return this.getById(flowId, subQueries);
     }
 
