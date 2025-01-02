@@ -14,11 +14,10 @@ import java.util.Map;
 public class FlowEventMessage {
 
     private Long flowId;
-    private Long flowNodeId;
-    private String flowModel;
+    private String flowNodeId;
     private Boolean rollbackOnFail;
-    private Long triggerId;
-    private String triggeredModel;
+    private String triggerId;
+    private String sourceModel;
     private Serializable triggerRowId;
     private Map<String, Object> triggerParams;
 

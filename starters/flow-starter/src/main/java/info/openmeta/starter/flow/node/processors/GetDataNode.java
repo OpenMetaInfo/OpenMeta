@@ -94,7 +94,7 @@ public class GetDataNode implements NodeProcessor<GetDataParams> {
             result = this.executeMultiRows(nodeParams, clonedFilters);
         }
         // Put the result into the nodeContext
-        nodeContext.put(flowNode.getCode(), result);
+        nodeContext.put(flowNode.getId(), result);
     }
 
     /**

@@ -19,7 +19,7 @@ public class FlowEdge extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    private Long id;
+    private String id;
 
     @Schema(description = "Flow ID")
     private Long flowId;
@@ -28,8 +28,8 @@ public class FlowEdge extends BaseModel {
     private String label;
 
     @Schema(description = "Source Node ID")
-    private Long sourceId;
+    private String sourceId;
 
     @Schema(description = "Target Node ID")
-    private Long targetId;
+    private String targetId;
 }

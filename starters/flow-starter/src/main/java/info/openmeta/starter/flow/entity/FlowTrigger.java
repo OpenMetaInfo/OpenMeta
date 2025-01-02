@@ -21,31 +21,28 @@ public class FlowTrigger extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    private Long id;
+    private String id;
 
     @Schema(description = "Trigger Name")
     private String name;
 
-    @Schema(description = "Trigger Code")
-    private String triggerCode;
+    @Schema(description = "Triggered Flow")
+    private Long flowId;
 
     @Schema(description = "Trigger Event Type")
     private TriggerEventType eventType;
 
-    @Schema(description = "Triggered Model")
-    private String triggeredModel;
+    @Schema(description = "Source Model")
+    private String sourceModel;
 
-    @Schema(description = "Triggered Fields")
-    private List<String> triggeredFields;
+    @Schema(description = "Source Fields")
+    private List<String> sourceFields;
 
     @Schema(description = "Trigger Condition")
     private String triggerCondition;
 
     @Schema(description = "Cron Job ID")
     private Long cronId;
-
-    @Schema(description = "Triggered Flow")
-    private Long flowId;
 
     @Schema(description = "Disabled")
     private Boolean disabled;

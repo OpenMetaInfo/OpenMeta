@@ -40,7 +40,7 @@ import static info.openmeta.framework.base.constant.BaseConstant.MAX_BATCH_SIZE;
  */
 @Slf4j
 @Service
-public class FlowNodeServiceImpl extends EntityServiceImpl<FlowNode, Long> implements FlowNodeService {
+public class FlowNodeServiceImpl extends EntityServiceImpl<FlowNode, String> implements FlowNodeService {
 
     @Autowired
     private NodeFactory<?> nodeFactory;
@@ -136,7 +136,7 @@ public class FlowNodeServiceImpl extends EntityServiceImpl<FlowNode, Long> imple
     public void processFlowNode(FlowNode flowNode, NodeContext nodeContext) {
         // Skip the current node and continue to the next node when the execution condition is not met.
         if (!isValidNodeCondition(flowNode.getNodeCondition(), nodeContext)) {
-            nodeContext.put(flowNode.getCode(), null);
+            nodeContext.put(flowNode.getId(), null);
             return;
         }
 

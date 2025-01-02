@@ -1,8 +1,7 @@
 package info.openmeta.starter.flow.controller;
 
+import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
-import info.openmeta.framework.orm.domain.Filters;
-import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.web.controller.EntityController;
@@ -50,17 +49,15 @@ public class FlowConfigController extends EntityController<FlowConfigService, Fl
     public ApiResponse<List<Map<String, Object>>> getByModel(@RequestParam String modelName,
                                                              @RequestParam(required = false) List<String> fields) {
         Assert.isTrue(ModelManager.existModel(modelName), "Model {} not found", modelName);
-        Filters filters = new Filters().eq(FlowConfig::getModelName, modelName);
-        List<Map<String, Object>> modelFlows = modelService.searchList(modelName, new FlexQuery(fields, filters));
-        return ApiResponse.success(modelFlows);
+        return ApiResponse.success(service.getByModel(modelName));
     }
 
     @GetMapping(value = "/getFlowById")
     @Operation(summary = "getFlowById", description = "Get flow config by ID.")
-    @Parameter(name = "ID", description = "The flow ID", schema = @Schema(type = "number"))
+    @Parameter(name = "id", description = "The flow ID", schema = @Schema(type = "number"))
     public ApiResponse<FlowConfig> getFlowById(@RequestParam Long id) {
-        FlowConfig flowConfig = service.getFlowById(id);
-        Assert.notNull(flowConfig, "FlowConfig not found by ID: {0}", id);
+        FlowConfig flowConfig = service.getFlowById(id)
+                .orElseThrow(() -> new IllegalArgumentException("FlowConfig not found by ID: {0}", id));
         return ApiResponse.success(flowConfig);
     }
 }

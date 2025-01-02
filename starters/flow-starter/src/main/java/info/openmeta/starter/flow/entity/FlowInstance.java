@@ -35,14 +35,14 @@ public class FlowInstance extends BaseModel {
     @Schema(description = "Flow Type")
     private FlowType flowType;
 
+    @Schema(description = "Trigger ID")
+    private String triggerId;
+
     @Schema(description = "Current Node ID")
-    private Long currentNodeId;
+    private String currentNodeId;
 
     @Schema(description = "Current Status")
     private FlowStatus currentStatus;
-
-    @Schema(description = "Trigger ID")
-    private Long triggerId;
 
     @Schema(description = "Disabled")
     private Boolean disabled;

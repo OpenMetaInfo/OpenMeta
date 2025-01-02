@@ -55,9 +55,7 @@ public class TriggerSubflowNode implements NodeProcessor<TriggerSubflowParams> {
      */
     @Override
     public void validateParams(FlowNode flowNode, TriggerSubflowParams nodeParams) {
-        Assert.notBlank(nodeParams.getSubflowTriggerModel(),
-                "The subflow trigger model for Node {0} cannot be blank!", flowNode.getName());
-        Assert.notBlank(nodeParams.getSubflowTriggerCode(),
+        Assert.notBlank(nodeParams.getSubflowTriggerId(),
                 "The subflow trigger code for Node {0} cannot be blank!", flowNode.getName());
     }
 
@@ -73,8 +71,8 @@ public class TriggerSubflowNode implements NodeProcessor<TriggerSubflowParams> {
         // Resolve the subflow parameter data template
         Map<String, Object> subflowParams = FlowUtils.resolveDataTemplate(nodeParams.getDataTemplate(), nodeContext);
         // Trigger the subflow through the subflow event and pass the subflow parameters
-        Object result = automation.subflowEvent(nodeParams.getSubflowTriggerModel(), nodeParams.getSubflowTriggerCode(), subflowParams);
+        Object result = automation.subflowEvent(nodeParams.getSubflowTriggerId(), subflowParams);
         // Put the subflow execution result into the Node context
-        nodeContext.put(flowNode.getCode(), result);
+        nodeContext.put(flowNode.getId(), result);
     }
 }

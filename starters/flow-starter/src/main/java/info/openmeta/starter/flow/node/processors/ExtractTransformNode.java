@@ -72,7 +72,7 @@ public class ExtractTransformNode implements NodeProcessor<ExtractTransformParam
     public void execute(FlowNode flowNode, ExtractTransformParams nodeParams, NodeContext nodeContext) {
         Object variableValue = StringTools.extractVariable(nodeParams.getCollectionVariable(), nodeContext.getEnv());
         if (variableValue == null || (variableValue instanceof Collection && CollectionUtils.isEmpty((Collection<?>) variableValue))) {
-            nodeContext.put(flowNode.getCode(), Collections.emptySet());
+            nodeContext.put(flowNode.getId(), Collections.emptySet());
         } else if (variableValue instanceof Collection) {
             Set<Object> result = new HashSet<>();
             ((Collection<?>) variableValue).forEach(row -> {
@@ -83,7 +83,7 @@ public class ExtractTransformNode implements NodeProcessor<ExtractTransformParam
                     }
                 }
             });
-            nodeContext.put(flowNode.getCode(), result);
+            nodeContext.put(flowNode.getId(), result);
         } else {
             throw new IllegalArgumentException("""
                     The value of the data source variable {0} for Extract-Transform Node {1} is not a collection: {2}.

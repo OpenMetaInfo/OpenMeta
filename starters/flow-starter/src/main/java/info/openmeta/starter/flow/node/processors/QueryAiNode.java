@@ -60,6 +60,6 @@ public class QueryAiNode implements NodeProcessor<QueryAiParams> {
         ChatMessage chatMessage = new ChatMessage(nodeParams.getRobotId(), nodeParams.getConversationId(), query);
         AiMessage aiMessage = robotService.chat(chatMessage);
         // Put the AI reply content into the Node context
-        nodeContext.put(flowNode.getCode(), aiMessage.getAnswer());
+        nodeContext.put(flowNode.getId(), aiMessage.getAnswer());
     }
 }

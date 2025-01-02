@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Parameters for decision guard.
+ * Parameters for Condition node.
  * Determines if the flow can continue based on the condition.
  * If true, the flow continues; if false, an exception signal is thrown.
  * Example:
@@ -18,10 +18,10 @@ import lombok.NoArgsConstructor;
  * }
  * </p>
  */
-@Schema(name = "Decision Guard Params")
+@Schema(name = "Condition Params")
 @Data
 @NoArgsConstructor
-public class DecisionGuardParams implements NodeParams {
+public class ConditionParams implements NodeParams {
 
     @Schema(description = "The pass condition expression, return boolean value")
     private String passCondition;

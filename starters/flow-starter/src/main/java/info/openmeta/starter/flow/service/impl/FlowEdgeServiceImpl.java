@@ -9,6 +9,6 @@ import info.openmeta.starter.flow.service.FlowEdgeService;
  * FlowEdge Model Service Implementation
  */
 @Service
-public class FlowEdgeServiceImpl extends EntityServiceImpl<FlowEdge, Long> implements FlowEdgeService {
+public class FlowEdgeServiceImpl extends EntityServiceImpl<FlowEdge, String> implements FlowEdgeService {
 
 }

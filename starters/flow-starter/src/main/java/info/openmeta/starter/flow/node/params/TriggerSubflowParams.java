@@ -14,11 +14,8 @@ import java.util.Map;
 @NoArgsConstructor
 public class TriggerSubflowParams implements NodeParams {
 
-    @Schema(description = "Subflow trigger model")
-    private String subflowTriggerModel;
-
-    @Schema(description = "Subflow trigger code")
-    private String subflowTriggerCode;
+    @Schema(description = "Subflow trigger ID")
+    private String subflowTriggerId;
 
     @Schema(description = """
             The key-value structure configuration of the subflow data.

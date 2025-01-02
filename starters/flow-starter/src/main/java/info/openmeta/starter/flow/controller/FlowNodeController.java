@@ -13,6 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "FlowNode")
 @RestController
 @RequestMapping("/FlowNode")
-public class FlowNodeController extends EntityController<FlowNodeService, FlowNode, Long> {
+public class FlowNodeController extends EntityController<FlowNodeService, FlowNode, String> {
 
 }

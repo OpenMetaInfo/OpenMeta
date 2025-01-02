@@ -58,6 +58,6 @@ public class ComputeDataNode implements NodeProcessor<ComputeDataParams> {
     @Override
     public void execute(FlowNode flowNode, ComputeDataParams nodeParams, NodeContext nodeContext) {
         Object result = ComputeUtils.execute(nodeParams.getExpression(), nodeContext.getEnv(), nodeParams.getValueType());
-        nodeContext.put(flowNode.getCode(), result);
+        nodeContext.put(flowNode.getId(), result);
     }
 }

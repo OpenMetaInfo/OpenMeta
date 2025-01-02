@@ -5,7 +5,7 @@ import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.starter.flow.node.NodeContext;
 import info.openmeta.starter.flow.node.NodeExceptionResolver;
 import info.openmeta.starter.flow.node.NodeProcessor;
-import info.openmeta.starter.flow.node.params.DecisionGuardParams;
+import info.openmeta.starter.flow.node.params.ConditionParams;
 import info.openmeta.starter.flow.entity.FlowNode;
 import info.openmeta.starter.flow.enums.NodeExceptionSignal;
 import info.openmeta.starter.flow.enums.FlowNodeType;
@@ -13,12 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Processor for DecisionGuard node.
+ * Processor for Condition node.
  * Control the flow direction based on the specified condition, such as exiting the flow, exiting the node, etc.
  */
 @Slf4j
 @Component
-public class DecisionGuardNode implements NodeProcessor<DecisionGuardParams> {
+public class ConditionNode implements NodeProcessor<ConditionParams> {
 
     /**
      * Get the FlowNodeType processed by the current processor.
@@ -27,7 +27,7 @@ public class DecisionGuardNode implements NodeProcessor<DecisionGuardParams> {
      */
     @Override
     public FlowNodeType getNodeType() {
-        return FlowNodeType.DECISION_GUARD;
+        return FlowNodeType.CONDITION;
     }
 
     /**
@@ -36,8 +36,8 @@ public class DecisionGuardNode implements NodeProcessor<DecisionGuardParams> {
      * @return The Class of the encapsulated parameters.
      */
     @Override
-    public Class<DecisionGuardParams> getParamsClass() {
-        return DecisionGuardParams.class;
+    public Class<ConditionParams> getParamsClass() {
+        return ConditionParams.class;
     }
 
     /**
@@ -47,20 +47,20 @@ public class DecisionGuardNode implements NodeProcessor<DecisionGuardParams> {
      * @param nodeParams The parameters of the flow node.
      */
     @Override
-    public void validateParams(FlowNode flowNode, DecisionGuardParams nodeParams) {
+    public void validateParams(FlowNode flowNode, ConditionParams nodeParams) {
         Assert.notBlank(nodeParams.getPassCondition(),
-                "The pass condition expression for Decision Guard {0} cannot be blank!", flowNode.getName());
+                "The pass condition expression for Condition node {0} cannot be blank!", flowNode.getName());
         Assert.notNull(nodeParams.getExceptionSignal(),
-                "The exception handling signal for Decision Guard {0} cannot be null!", flowNode.getName());
+                "The exception handling signal for Condition node {0} cannot be null!", flowNode.getName());
         if (NodeExceptionSignal.THROW_EXCEPTION.equals(nodeParams.getExceptionSignal())) {
             Assert.notBlank(nodeParams.getExceptionMessage(),
-                    "Since Decision Guard {0} is configured to throw an exception, the exception message cannot be empty!",
+                    "Since Condition node {0} is configured to throw an exception, the exception message cannot be empty!",
                     flowNode.getName());
         }
     }
 
     /**
-     * Execute the DecisionGuardNode processor.
+     * Execute the ConditionNode processor.
      * Determines if the flow can continue based on the condition.
      * If true, the flow continues; if false, an exception signal is thrown.
      *
@@ -69,7 +69,7 @@ public class DecisionGuardNode implements NodeProcessor<DecisionGuardParams> {
      * @param nodeContext The node context
      */
     @Override
-    public void execute(FlowNode flowNode, DecisionGuardParams nodeParams, NodeContext nodeContext) {
+    public void execute(FlowNode flowNode, ConditionParams nodeParams, NodeContext nodeContext) {
         boolean passable = ComputeUtils.executeBoolean(nodeParams.getPassCondition(), nodeContext.getEnv());
         if (!passable) {
             NodeExceptionSignal exceptionSignal = nodeParams.getExceptionSignal();

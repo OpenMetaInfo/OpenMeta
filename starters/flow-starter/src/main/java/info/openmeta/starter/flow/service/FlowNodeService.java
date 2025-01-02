@@ -7,7 +7,7 @@ import info.openmeta.starter.flow.node.NodeContext;
 /**
  * FlowNode Model Service Interface
  */
-public interface FlowNodeService extends EntityService<FlowNode, Long> {
+public interface FlowNodeService extends EntityService<FlowNode, String> {
 
     /**
      * Process flow node.

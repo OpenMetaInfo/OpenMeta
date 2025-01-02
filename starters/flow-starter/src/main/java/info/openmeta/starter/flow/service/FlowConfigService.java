@@ -5,6 +5,8 @@ import info.openmeta.starter.flow.entity.FlowConfig;
 import info.openmeta.starter.flow.message.dto.FlowEventMessage;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * FlowConfig Model Service Interface
@@ -17,7 +19,7 @@ public interface FlowConfigService extends EntityService<FlowConfig, Long> {
      * @param modelName model name
      * @return flow configuration list
      */
-    List<FlowConfig> getByModel(String modelName);
+    List<Map<String, Object>> getByModel(String modelName);
 
     /**
      * Get the flowConfig by ID, including nodes and edges.
@@ -25,7 +27,7 @@ public interface FlowConfigService extends EntityService<FlowConfig, Long> {
      * @param flowId flow ID
      * @return flowConfig object with nodes and edges
      */
-    FlowConfig getFlowById(Long flowId);
+    Optional<FlowConfig> getFlowById(Long flowId);
 
     /**
      * Execute a non-transactional flow according to the FlowEventMessage.

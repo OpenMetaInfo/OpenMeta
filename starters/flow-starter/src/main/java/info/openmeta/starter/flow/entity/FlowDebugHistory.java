@@ -25,9 +25,6 @@ public class FlowDebugHistory extends BaseModel {
     @Schema(description = "ID")
     private Long id;
 
-    @Schema(description = "Model Name")
-    private String modelName;
-
     @Schema(description = "Flow ID")
     private Long flowId;
 

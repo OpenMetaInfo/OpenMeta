@@ -16,16 +16,16 @@ import java.util.Map;
 @Data
 public class TriggerEventVO {
 
-    @Schema(description = "Model Name")
+    @Schema(description = "Source Model Name")
     @NotBlank(message = "Model Name is required!")
-    private String model;
+    private String sourceModel;
 
     @Schema(description = "Row ID")
     private Serializable rowId;
 
-    @Schema(description = "Trigger Code")
-    @NotEmpty(message = "Trigger Code is required!")
-    private String triggerCode;
+    @Schema(description = "Trigger ID")
+    @NotEmpty(message = "Trigger ID is required!")
+    private String triggerId;
 
     @Schema(description = "Event Params")
     private Map<String, Object> eventParams;

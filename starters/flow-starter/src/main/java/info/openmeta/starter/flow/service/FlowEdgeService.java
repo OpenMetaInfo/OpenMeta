@@ -6,6 +6,6 @@ import info.openmeta.framework.orm.service.EntityService;
 /**
  * FlowEdge Model Service Interface
  */
-public interface FlowEdgeService extends EntityService<FlowEdge, Long> {
+public interface FlowEdgeService extends EntityService<FlowEdge, String> {
 
 }

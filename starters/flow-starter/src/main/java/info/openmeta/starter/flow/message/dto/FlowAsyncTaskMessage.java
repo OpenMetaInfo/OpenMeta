@@ -14,7 +14,7 @@ import java.util.Map;
 public class FlowAsyncTaskMessage {
 
     private Long flowId;
-    private Long nodeId;
+    private String nodeId;
     private String asyncTaskHandlerCode;
     private Map<String, Object> asyncTaskParams;
 

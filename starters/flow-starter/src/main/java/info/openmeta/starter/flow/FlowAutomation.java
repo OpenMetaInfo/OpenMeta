@@ -64,21 +64,21 @@ public class FlowAutomation {
     private List<FlowEventMessage> getEventMessagesByChangeLogs(List<ChangeLog> changeLogs, boolean sync) {
         List<FlowEventMessage> flowEventMessages = new ArrayList<>();
         for (ChangeLog changeLog : changeLogs) {
-            String triggerModel = changeLog.getModel();
+            String sourceModel = changeLog.getModel();
             Serializable triggerRowId = changeLog.getRowId();
             Set<String> updateFields = AccessType.UPDATE.equals(changeLog.getAccessType()) ? changeLog.getDataAfterChange().keySet() : Collections.emptySet();
             Map<String, Object> triggerParams = AccessType.DELETE.equals(changeLog.getAccessType()) ? changeLog.getDataBeforeChange() : changeLog.getDataAfterChange();
             // Get the triggers of the current model and event
-            List<FlowTrigger> flowTriggers = FlowManager.getTriggersByChangeEvent(triggerModel, changeLog.getAccessType(), updateFields);
+            List<FlowTrigger> flowTriggers = FlowManager.getTriggersByChangeEvent(sourceModel, changeLog.getAccessType(), updateFields);
             flowTriggers.forEach(flowTrigger -> {
                 // Validate the trigger execution condition
                 if (!this.validateTriggerCondition(flowTrigger, triggerParams)) {
                     log.debug("The trigger condition {} for Trigger {} is not met; the flow will not be triggered!",
-                            flowTrigger.getTriggerCondition(), flowTrigger.getTriggerCode());
+                            flowTrigger.getTriggerCondition(), flowTrigger.getId());
                     return;
                 }
-                FlowConfig flowConfig = FlowManager.getFlowById(flowTrigger.getFlowId());
-                Assert.notNull(flowConfig, "Trigger {0} is not yet bound to any flow!", flowTrigger.getTriggerCode());
+                FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
+                Assert.notNull(flowConfig, "Trigger {0} is not yet bound to any flow!", flowTrigger.getId());
                 FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig, triggerRowId, triggerParams);
                 flowEventMessages.add(eventMessage);
             });
@@ -98,10 +98,9 @@ public class FlowAutomation {
                                                      Serializable rowId, Map<String, Object> params) {
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
-        eventMessage.setFlowModel(flowConfig.getModelName());
         eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
         eventMessage.setTriggerId(flowTrigger.getId());
-        eventMessage.setTriggeredModel(flowTrigger.getTriggeredModel());
+        eventMessage.setSourceModel(flowTrigger.getSourceModel());
         eventMessage.setTriggerRowId(rowId);
         eventMessage.setTriggerParams(params);
         eventMessage.setContext(ContextHolder.getContext());
@@ -153,14 +152,14 @@ public class FlowAutomation {
      */
     public Object buttonEvent(TriggerEventVO triggerEventVO) {
         TriggerEventType eventType = TriggerEventType.BUTTON_EVENT;
-        String triggerModel = triggerEventVO.getModel();
-        String triggerCode = triggerEventVO.getTriggerCode();
-        FlowTrigger flowTrigger = FlowManager.getTriggerByCode(triggerModel, triggerCode, eventType);
+        String sourceModel = triggerEventVO.getSourceModel();
+        String triggerId = triggerEventVO.getTriggerId();
+        FlowTrigger flowTrigger = FlowManager.getTriggerById(sourceModel, triggerId, eventType);
         Assert.isTrue(this.validateTriggerCondition(flowTrigger, triggerEventVO.getEventParams()),
                 "The trigger condition {0} for Button Trigger {1} is not met; the flow will not be triggered!",
-                flowTrigger.getTriggerCondition(), triggerCode);
-        FlowConfig flowConfig = FlowManager.getFlowById(flowTrigger.getFlowId());
-        Assert.notNull(flowConfig, "Button Trigger {0} is not yet bound to any flow!", triggerCode);
+                flowTrigger.getTriggerCondition(), triggerId);
+        FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
+        Assert.notNull(flowConfig, "Button Trigger {0} is not yet bound to any flow!", triggerId);
         FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig,
                 triggerEventVO.getRowId(), triggerEventVO.getEventParams());
         return this.triggerFlow(eventMessage, flowConfig.getSync());
@@ -174,14 +173,14 @@ public class FlowAutomation {
      */
     public Object apiEvent(TriggerEventVO triggerEventVO) {
         TriggerEventType eventType = TriggerEventType.API_EVENT;
-        String triggerModel = triggerEventVO.getModel();
-        String triggerCode = triggerEventVO.getTriggerCode();
-        FlowTrigger flowTrigger = FlowManager.getTriggerByCode(triggerModel, triggerCode, eventType);
+        String triggerModel = triggerEventVO.getSourceModel();
+        String triggerId = triggerEventVO.getTriggerId();
+        FlowTrigger flowTrigger = FlowManager.getTriggerById(triggerModel, triggerId, eventType);
         Assert.isTrue(this.validateTriggerCondition(flowTrigger, triggerEventVO.getEventParams()),
                 "The trigger condition {0} for API Trigger {1} is not met; the flow will not be triggered!",
-                triggerCode, flowTrigger.getTriggerCondition());
-        FlowConfig flowConfig = FlowManager.getFlowById(flowTrigger.getFlowId());
-        Assert.notNull(flowConfig, "API Trigger {0} is not yet bound to any flow!", triggerCode);
+                flowTrigger.getTriggerCondition(), triggerId);
+        FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
+        Assert.notNull(flowConfig, "API Trigger {0} is not yet bound to any flow!", triggerId);
         FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig,
                 triggerEventVO.getRowId(), triggerEventVO.getEventParams());
         return this.triggerFlow(eventMessage, flowConfig.getSync());
@@ -206,14 +205,14 @@ public class FlowAutomation {
             lastRunTime = TimeConstant.EPOCH_TIME;
         }
         Map<String, Object> triggerParams = MapUtils.of(CronTaskMessage::getLastExecTime, lastRunTime);
-        FlowConfig flowConfig = FlowManager.getFlowById(flowTrigger.getFlowId());
+        FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
         Assert.notNull(flowConfig, "Cron Trigger {0} is not yet bound to any flow!", flowTrigger.getName());
         // Generate the flow event message triggered by scheduled task, and send it to the MQ.
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
-        eventMessage.setFlowModel(flowConfig.getModelName());
         eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
         eventMessage.setTriggerId(flowTrigger.getId());
+        eventMessage.setSourceModel(flowTrigger.getSourceModel());
         eventMessage.setTriggerParams(triggerParams);
         eventMessage.setContext(cronTaskMessage.getContext());
         flowEventProducer.sendFlowEvent(eventMessage);
@@ -222,26 +221,24 @@ public class FlowAutomation {
     /**
      * Subflow event.
      *
-     * @param triggerModel The trigger model.
-     * @param triggerCode The trigger code.
+     * @param triggerId The trigger ID.
      * @param triggerParams The trigger parameters.
      * @return The subflow event result.
      */
-    public Object subflowEvent(String triggerModel, String triggerCode, Map<String, Object> triggerParams) {
-        FlowTrigger flowTrigger = FlowManager.getTriggerByCode(triggerModel, triggerCode);
+    public Object subflowEvent(String triggerId, Map<String, Object> triggerParams) {
+        FlowTrigger flowTrigger = FlowManager.getTriggerById(triggerId);
         if (!this.validateTriggerCondition(flowTrigger, triggerParams)) {
-            log.debug("The trigger condition {} for Subflow Trigger {}:{} is not met; the flow will not be triggered!",
-                    flowTrigger.getTriggerCondition(), triggerModel, triggerCode);
+            log.debug("The trigger condition {} for Subflow Trigger {} is not met; the flow will not be triggered!",
+                    flowTrigger.getTriggerCondition(), triggerId);
             return null;
         }
-        FlowConfig flowConfig = FlowManager.getFlowById(flowTrigger.getFlowId());
-        Assert.notNull(flowConfig,
-                "Subflow Trigger {0}:{1} is not yet bound to any flow!", triggerModel, triggerCode);
+        FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
+        Assert.notNull(flowConfig, "Subflow Trigger {0} is not yet bound to any flow!", triggerId);
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
-        eventMessage.setFlowModel(flowConfig.getModelName());
         eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
         eventMessage.setTriggerId(flowTrigger.getId());
+        eventMessage.setSourceModel(flowTrigger.getSourceModel());
         eventMessage.setTriggerParams(triggerParams);
         eventMessage.setContext(ContextHolder.getContext());
         return this.triggerFlow(eventMessage, flowConfig.getSync());
