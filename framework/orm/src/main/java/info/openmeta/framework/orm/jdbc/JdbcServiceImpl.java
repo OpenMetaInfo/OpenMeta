@@ -67,11 +67,12 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Batch create data and return the result.
+     * Performs a batch insertion of multiple rows into the specified model,
+     * returning the inserted data (including any auto-generated fields).
      *
-     * @param modelName Model name
-     * @param rows List of data to be created
-     * @return List<Map> results
+     * @param modelName the name of the model
+     * @param rows a list of rows to be inserted
+     * @return a list of maps representing the inserted rows
      */
     @SkipPermissionCheck
     public List<Map<String, Object>> insertList(String modelName, List<Map<String, Object>> rows) {
@@ -107,14 +108,14 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Get multiple rows by ids.
-     * If the fields is not specified, all accessible fields as the default.
+     * Queries multiple rows by their IDs. If no fields are specified,
+     * all accessible fields are returned by default.
      *
-     * @param modelName Model name
-     * @param ids    List of data ids
-     * @param fields Field list
-     * @param convertType Data convert type
-     * @return List<Map> of multiple data
+     * @param modelName the name of the model
+     * @param ids a list of row IDs
+     * @param fields the list of fields to retrieve; if null or empty, retrieves all accessible fields
+     * @param convertType the type of data conversion applied to the result
+     * @return a list of maps representing the retrieved rows
      */
     @SkipPermissionCheck
     public List<Map<String, Object>> selectByIds(String modelName, List<K> ids, List<String> fields, ConvertType convertType) {
@@ -140,11 +141,11 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Get multiple rows by flexQuery object.
+     * Queries multiple rows based on a given {@link FlexQuery}.
      *
-     * @param modelName Model name
-     * @param flexQuery flexQuery
-     * @return List<Map> of multiple data
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} defining filters, fields, sorting, etc.
+     * @return a list of maps representing the filtered rows
      */
     @SkipPermissionCheck
     public List<Map<String, Object>> selectByFilter(String modelName, FlexQuery flexQuery) {
@@ -166,13 +167,15 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Get the ids by flexQuery object.
+     * Get a list of IDs based on a given {@link FlexQuery}.
+     * <p>If {@code fieldName} references the model's own primary key, retrieves IDs from the current model.
+     * If it references a ManyToOne or OneToOne field, retrieves the related entity IDs.</p>
      *
-     * @param modelName Model name
-     * @param fieldName Default to get the ids of the current model,
-     *                  or specify a ManyToOne or OneToOne fieldName to get the ids of this field.
-     * @param flexQuery flexQuery
-     * @return List<K>
+     * @param <EK> the type of the retrieved IDs
+     * @param modelName the name of the model
+     * @param fieldName the field name whose IDs are retrieved
+     * @param flexQuery a {@link FlexQuery} defining filters, sorting, etc.
+     * @return a list of IDs of type {@code EK}
      */
     @SkipPermissionCheck
     public <EK extends Serializable> List<EK> getIds(String modelName, String fieldName, FlexQuery flexQuery) {
@@ -185,11 +188,12 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Determine if the id physically exists, without permission check.
+     * Checks whether a row with the specified ID exists in the data store,
+     * without performing any permission checks.
      *
-     * @param modelName Model name
-     * @param id Data id
-     * @return true or false
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @return {@code true} if the row physically exists; otherwise {@code false}
      */
     public boolean exist(String modelName, Serializable id) {
         Long count = this.count(modelName, new FlexQuery(new Filters().eq(ModelConstant.ID, id)));
@@ -197,11 +201,13 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Query data based on FlexQuery with pagination.
+     * Performs a paginated query based on a given {@link FlexQuery},
+     * returning a {@link Page} of rows.
      *
-     * @param modelName Model name
-     * @param flexQuery flexQuery
-     * @return Page<Map> of multiple data
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} defining filters, fields, sorting, etc.
+     * @param page the {@link Page} containing pagination parameters
+     * @return a {@link Page} of maps representing the queried rows
      */
     @SkipPermissionCheck
     public Page<Map<String, Object>> selectByPage(String modelName, FlexQuery flexQuery, Page<Map<String, Object>> page) {
@@ -226,12 +232,13 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Update one row by id, not including data conversion, fill in audit fields, and send changelog.
-     * Only for limited use.
+     * Updates a single row identified by its ID, without performing any data conversion
+     * or automatic field population. Also triggers the audit fields and change log as needed.
+     * <p>Use with caution or in restricted scenarios.</p>
      *
-     * @param modelName Model name
-     * @param rowMap Update data
-     * @return Number of affected rows
+     * @param modelName the name of the model
+     * @param rowMap the data to update, including the row's primary key
+     * @return the number of rows affected
      */
     public Integer updateOne(String modelName, Map<String, Object> rowMap) {
         SqlParams sqlParams = StaticSqlBuilder.getUpdateSql(modelName, rowMap);
@@ -254,11 +261,14 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Batch update data by id, support different keys in different Map.
+     * Performs a batch update of multiple rows by their IDs. Each row can
+     * contain a different set of fields. Only the specified fields in
+     * {@code toUpdateFields} will be updated if provided.
      *
-     * @param modelName Model name
-     * @param rows List of data to be updated
-     * @return Number of affected rows
+     * @param modelName the name of the model
+     * @param rows the list of rows to be updated
+     * @param toUpdateFields a set of field names to update; if null/empty, updates all provided fields
+     * @return the number of rows affected
      */
     @SkipPermissionCheck
     public Integer updateList(String modelName, List<Map<String, Object>> rows, Set<String> toUpdateFields) {
@@ -302,11 +312,11 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Delete a slice of timeline model by `sliceId`.
+     * Deletes a single slice from a timeline model, identified by its slice ID.
      *
-     * @param modelName Model name
-     * @param sliceId Slice id of timeline model
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param sliceId the unique slice ID in a timeline model
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     public boolean deleteBySliceId(String modelName, Serializable sliceId) {
         // Get the original data before deletion for collecting changeLogs
@@ -322,12 +332,13 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Delete multiple rows by ids.
+     * Deletes multiple rows by their IDs. The {@code rows} parameter can be used
+     * to send a change log or audit trail, if applicable.
      *
-     * @param modelName Model name
-     * @param ids Data ids
-     * @param deletableRows Deleted data rows, used to send changelog
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param ids a list of row IDs to delete
+     * @param deletableRows the list of data corresponding to the rows to be deleted
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     public boolean deleteByIds(String modelName, List<K> ids, List<Map<String, Object>> deletableRows) {
         int count;
@@ -353,11 +364,11 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Count by flexQuery object.
+     * Counts the number of rows matching the given {@link FlexQuery}.
      *
-     * @param modelName Model name
-     * @param flexQuery flexQuery
-     * @return count result
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} defining filters, fields, etc.
+     * @return the total count of matching rows
      */
     @SkipPermissionCheck
     public Long count(String modelName, FlexQuery flexQuery) {
@@ -366,11 +377,13 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Query data by class object, not using the metadata of modelManager.
+     * Retrieves data as a list of entities of the specified class,
+     * not relying on any metadata from the model manager.
      *
-     * @param entityClass Entity class
-     * @param orderBy Order by
-     * @return Object list
+     * @param <T> the type of the entity
+     * @param entityClass the target entity class
+     * @param orderBy an optional "ORDER BY" clause
+     * @return a list of entities
      */
     public <T> List<T> selectMetaEntityList(Class<T> entityClass, String orderBy) {
         String modelName = entityClass.getSimpleName();
@@ -381,12 +394,14 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
     }
 
     /**
-     * Query data by model and class object, not using the metadata of modelManager.
+     * Retrieves data as a list of entities of the specified class from the given model,
+     * not relying on any metadata from the model manager.
      *
-     * @param modelName Model name
-     * @param entityClass Entity class
-     * @param orderBy Order by
-     * @return Object list
+     * @param <T> the type of the entity
+     * @param modelName the name of the model
+     * @param entityClass the target entity class
+     * @param orderBy an optional "ORDER BY" clause
+     * @return a list of entities
      */
     public <T> List<T> selectMetaEntityList(String modelName, Class<T> entityClass, String orderBy) {
         SqlParams sqlParams = StaticSqlBuilder.getSelectAllMetaSql(modelName, orderBy);

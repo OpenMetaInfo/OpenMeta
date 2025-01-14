@@ -19,8 +19,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * JDBC method proxy class.
- * Controlling the scope of JDBC methods, must use parameterized methods, and SQL log output.
+ * A proxy class for executing JDBC operations, offering parameterized methods,
+ * dynamic data source switching (via modelName), and SQL logging.
  */
 @Slf4j
 @Repository
@@ -30,11 +30,11 @@ public class JdbcProxy {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * Insert and return auto-increment ID, which is Long type.
+     * Inserts a new row and returns the auto-generated primary key (of type Long).
      *
-     * @param modelName Model name can be used to switch datasource
-     * @param sqlParams SQL parameters
-     * @return Auto-increment ID of Long type
+     * @param modelName identifies the model; can be used to switch the data source
+     * @param sqlParams encapsulates the SQL statement and parameters
+     * @return the generated primary key as a Long
      */
     @WriteOperation
     @ExecuteSql
@@ -47,15 +47,16 @@ public class JdbcProxy {
             }
             return ps;
         }, keyHolder);
-        // Make sure the auto-increment ID of the database is Long type.
+        // Ensure the auto-increment primary key is interpreted as a Long.
         return Cast.of(Objects.requireNonNull(keyHolder.getKey()).longValue());
     }
 
     /**
-     * Update and return the number of affected rows.
+     * Executes an update statement and returns the number of affected rows.
      *
-     * @param modelName Model name can be used to switch datasource
-     * @param sqlParams SQL parameters
+     * @param modelName identifies the model; can be used to switch the data source
+     * @param sqlParams encapsulates the SQL statement and parameters
+     * @return the number of rows affected by the update
      */
     @WriteOperation
     @ExecuteSql
@@ -64,11 +65,13 @@ public class JdbcProxy {
     }
 
     /**
-     * Batch update and return the number of affected rows.
+     * Performs a batch update for the provided SQL and parameter sets.
+     * Returns the total number of rows affected across all batches.
      *
-     * @param modelName Model name can be used to switch datasource
-     * @param sqlParams SQL parameters
-     * @param batchArgs Batch parameters
+     * @param modelName identifies the model; can be used to switch the data source
+     * @param sqlParams encapsulates the SQL statement and parameters
+     * @param batchArgs a list of parameter arrays, one for each batch
+     * @return the total number of rows affected across all batch executions
      */
     @WriteOperation
     @ExecuteSql
@@ -78,12 +81,12 @@ public class JdbcProxy {
     }
 
     /**
-     * Query and return List<Map>.
-     * MapRowMapper utility class is used to process row values, the key of Map is the camel fieldName.
+     * Executes a query and returns the results as a list of maps,
+     * with each map's keys in camelCase. This utilizes {@link MapRowMapper}.
      *
-     * @param modelName Model name can be used to switch datasource
-     * @param sqlParams SQL parameters
-     * @return List<Map>
+     * @param modelName identifies the model; can be used to switch the data source
+     * @param sqlParams encapsulates the SQL statement and parameters
+     * @return a list of maps representing each row of the result set
      */
     @ExecuteSql
     public List<Map<String, Object>> queryForList(String modelName, SqlParams sqlParams) {
@@ -91,12 +94,13 @@ public class JdbcProxy {
     }
 
     /**
-     * Query and return a single value of the specified type, such as count(*).
+     * Executes a query that returns a single value of the specified type
+     * (e.g., the result of a COUNT(*) operation).
      *
-     * @param modelName Model name can be used to switch datasource
-     * @param sqlParams   SQL parameters
-     * @param entityClass Entity class
-     * @return Single value
+     * @param modelName   identifies the model; can be used to switch the data source
+     * @param sqlParams   encapsulates the SQL statement and parameters
+     * @param entityClass the class representing the expected return type
+     * @return a single value of the specified type, or null if no result is found
      */
     @ExecuteSql
     public Object queryForObject(String modelName, SqlParams sqlParams, Class<?> entityClass) {

@@ -52,61 +52,61 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Create a single data object and return the id.
+     * Creates a new entity and returns its ID.
      *
-     * @param object data object to be created
-     * @return id
+     * @param entity the entity to be created
+     * @return the ID of the newly created entity
      */
     @Override
-    public K createOne(T object) {
-        Map<String, Object> rowMap = BeanTool.objectToMap(object);
+    public K createOne(T entity) {
+        Map<String, Object> rowMap = BeanTool.objectToMap(entity);
         return modelService.createOne(modelName, rowMap);
     }
 
     /**
-     * Create a single data object, fetch and return the object after creation.
+     * Creates a new entity and returns the created entity with any auto-generated fields populated.
      *
-     * @param object data object to be created
-     * @return object with the latest field values.
+     * @param entity the entity to be created
+     * @return the newly created entity
      */
     @Override
-    public T createOneAndFetch(T object) {
-        Map<String, Object> rowMap = BeanTool.objectToMap(object);
+    public T createOneAndFetch(T entity) {
+        Map<String, Object> rowMap = BeanTool.objectToMap(entity);
         Map<String, Object> result = modelService.createOneAndFetch(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
     /**
-     * Create multiple data objects and return the id list.
+     * Creates multiple entities at once and returns a list of their IDs.
      *
-     * @param objects data object list to be created
-     * @return id list
+     * @param entities the list of entities to be created
+     * @return a list of IDs for the created entities
      */
     @Override
-    public List<K> createList(List<T> objects) {
-        List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects);
+    public List<K> createList(List<T> entities) {
+        List<Map<String, Object>> rows = BeanTool.objectsToMapList(entities);
         return modelService.createList(modelName, rows);
     }
 
     /**
-     * Create multiple data objects, fetch and return the objects after creation.
+     * Creates multiple entities at once and returns them with any auto-generated fields populated.
      *
-     * @param objects data object list to be created
-     * @return object list with the latest field values.
+     * @param entities the list of entities to be created
+     * @return a list of the newly created entities
      */
     @Override
-    public List<T> createListAndFetch(List<T> objects) {
-        List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects);
+    public List<T> createListAndFetch(List<T> entities) {
+        List<Map<String, Object>> rows = BeanTool.objectsToMapList(entities);
         List<Map<String, Object>> results = modelService.createListAndFetch(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
     /**
-     * Get one data object by id.
+     * Get an entity by id.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
-     * @param id data id
-     * @return data object
+     * @param id the id of the entity to get
+     * @return an Optional object containing the entity if found, or empty if not found
      */
     @Override
     public Optional<T> getById(K id) {
@@ -114,12 +114,12 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Get one data object by id.
+     * Get an entity by id, with subQueries to expand relational fields.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
-     * @param id data id
-     * @param subQueries sub queries for relational fields
-     * @return data object
+     * @param id the id of the entity to get
+     * @param subQueries subQueries object, used to expand relational fields
+     * @return an Optional object containing the entity if found, or empty if not found
      */
     @Override
     public Optional<T> getById(K id, SubQueries subQueries) {
@@ -128,13 +128,13 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Get one data object by id.
+     * Get an entity by id, with specified fields to read.
      * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
-     * @param id data id
+     * @param id the id of the entity to get
      * @param fields field list to read
-     * @return data object
+     * @return an Optional object containing the entity if found, or empty if not found
      */
     @Override
     public Optional<T> getById(K id, Collection<String> fields) {
@@ -143,11 +143,11 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Read multiple data objects by ids.
+     * Get multiple entities by ids.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
-     * @param ids data ids list
-     * @return data object list
+     * @param ids a list of ids to get
+     * @return a list of entities
      */
     @Override
     public List<T> getByIds(List<K> ids) {
@@ -155,12 +155,12 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Read multiple data objects by ids.
+     * Get multiple entities by ids.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param ids data ids list
-     * @param subQueries sub queries for relational fields
-     * @return data object list
+     * @param subQueries subQueries object, can expand relational fields
+     * @return a list of entities
      */
     @Override
     public List<T> getByIds(List<K> ids, SubQueries subQueries) {
@@ -169,13 +169,13 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Read multiple data objects by ids.
-     * If the fields are not specified, all accessible fields as the default.
+     * Get multiple entities by ids, with specified fields to read.
+     * If the fields is not specified, all accessible fields as the default.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param ids data ids list
      * @param fields field list to read
-     * @return data object list
+     * @return a list of entities
      */
     @Override
     public List<T> getByIds(List<K> ids, Collection<String> fields) {
@@ -184,7 +184,7 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Get the specified field value based on id.
+     * Get the specified field value by id and field reference.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
@@ -200,8 +200,8 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     /**
      * Get the ids based on the filters.
      *
-     * @param filters filters
-     * @return ids list
+     * @param filters the filters to apply
+     * @return a list of IDs
      */
     @Override
     public List<K> getIds(Filters filters) {
@@ -209,9 +209,11 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Get the ids for ManyToOne/OneToOne relational field.
+     * Get the distinct ids for ManyToOne/OneToOne relational field based on the filters.
      *
-     * @param filters filters
+     * @param <EK> the type of the related entity ID, extending Serializable
+     * @param <R> the return type of the method reference
+     * @param filters the filters to apply
      * @param method field method, Lambda expression, method reference passing parameters
      * @return distinct ids for relational field
      */
@@ -222,8 +224,9 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Get the ids for ManyToOne/OneToOne relational field.
+     * Get the distinct ids for ManyToOne/OneToOne relational field based on the filters.
      *
+     * @param <EK> the type of the related entity ID, extending Serializable
      * @param filters filters
      * @param fieldName relational field name
      * @return distinct ids for relational field
@@ -234,118 +237,118 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Update one data object by its ID. Null values are not ignored.
+     * Updates an existing entity by its ID. Null values are ignored.
      *
-     * @param object the data object to update
-     * @return true / Exception
+     * @param entity the entity with updated values
+     * @return `true` if the update was successful; otherwise, an exception is thrown
      */
     @Override
-    public boolean updateOne(T object) {
-        Map<String, Object> rowMap = BeanTool.objectToMap(object, false);
+    public boolean updateOne(T entity) {
+        Map<String, Object> rowMap = BeanTool.objectToMap(entity, true);
         return modelService.updateOne(modelName, rowMap);
     }
 
     /**
-     * Update one data object by its ID.
+     * Updates an existing entity by its ID, with an option to ignore null values.
      *
-     * @param object the data object to update
-     * @param ignoreNull whether to ignore null values during the update
-     * @return true / Exception
+     * @param entity the entity with updated values
+     * @param ignoreNull if `true`, null values are ignored; otherwise, they overwrite existing values
+     * @return `true` if the update was successful; otherwise, an exception is thrown
      */
     @Override
-    public boolean updateOne(T object, boolean ignoreNull) {
-        Map<String, Object> rowMap = BeanTool.objectToMap(object, ignoreNull);
+    public boolean updateOne(T entity, boolean ignoreNull) {
+        Map<String, Object> rowMap = BeanTool.objectToMap(entity, ignoreNull);
         return modelService.updateOne(modelName, rowMap);
     }
 
     /**
-     * Update one data object by its ID. Null values are not ignored.
-     * Fetch and return the object with the latest field values.
+     * Updates an existing entity by its ID. Null values are ignored.
+     * Returns the updated entity with the latest field values.
      *
-     * @param object the data object to update
-     * @return the updated object fetched from the database with the latest field values.
+     * @param entity the entity with updated values
+     * @return the updated entity with the latest field values
      */
     @Override
-    public T updateOneAndFetch(T object) {
-        Map<String, Object> rowMap = BeanTool.objectToMap(object, false);
+    public T updateOneAndFetch(T entity) {
+        Map<String, Object> rowMap = BeanTool.objectToMap(entity, true);
         Map<String, Object> result = modelService.updateOneAndFetch(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
     /**
-     * Update one data object by its ID.
-     * Fetch and return the object with the latest field values.
+     * Updates an existing entity by its ID, with an option to ignore null values.
+     * Returns the updated entity with the latest field values.
      *
-     * @param object the data object to update
-     * @param ignoreNull whether to ignore null values during the update
-     * @return the updated object fetched from the database, with the latest field values.
+     * @param entity the entity with updated values
+     * @param ignoreNull if `true`, null values are ignored; otherwise, they overwrite existing values
+     * @return the updated entity with the latest field values
      */
     @Override
-    public T updateOneAndFetch(T object, boolean ignoreNull) {
-        Map<String, Object> rowMap = BeanTool.objectToMap(object, ignoreNull);
+    public T updateOneAndFetch(T entity, boolean ignoreNull) {
+        Map<String, Object> rowMap = BeanTool.objectToMap(entity, ignoreNull);
         Map<String, Object> result = modelService.updateOneAndFetch(modelName, rowMap, ConvertType.TYPE_CAST);
         return BeanTool.mapToObject(result, entityClass);
     }
 
     /**
-     * Update multiple data objects by their IDs. Null values are not ignored.
+     * Updates multiple entities by their IDs. Null values are ignored.
      *
-     * @param objects the list of data objects to update
-     * @return true / Exception
+     * @param entities the list of entities to be updated
+     * @return `true` if the update was successful; otherwise, an exception is thrown
      */
     @Override
-    public boolean updateList(List<T> objects) {
-        List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, false);
+    public boolean updateList(List<T> entities) {
+        List<Map<String, Object>> rows = BeanTool.objectsToMapList(entities, true);
         return modelService.updateList(modelName, rows);
     }
 
     /**
-     * Update multiple data objects by their IDs.
+     * Updates multiple entities by their IDs, with an option to ignore null values.
      *
-     * @param objects the list of data objects to update
-     * @param ignoreNull whether to ignore null values during the update
-     * @return true / Exception
+     * @param entities the list of entities to be updated
+     * @param ignoreNull if `true`, null values are ignored; otherwise, they overwrite existing values
+     * @return `true` if the update was successful; otherwise, an exception is thrown
      */
     @Override
-    public boolean updateList(List<T> objects, boolean ignoreNull) {
-        List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, ignoreNull);
+    public boolean updateList(List<T> entities, boolean ignoreNull) {
+        List<Map<String, Object>> rows = BeanTool.objectsToMapList(entities, ignoreNull);
         return modelService.updateList(modelName, rows);
     }
 
     /**
-     * Update multiple data objects by their IDs. Null values are not ignored.
-     * Fetch and return the objects with the latest field values.
+     * Updates multiple entities by their IDs. Null values are ignored.
+     * Returns the updated entities with the latest field values.
      *
-     * @param objects the list of data objects to update
-     * @return the updated objects fetched from the database with the latest field values.
+     * @param entities the list of entities to be updated
+     * @return a list of updated entities with the latest field values
      */
     @Override
-    public List<T> updateListAndFetch(List<T> objects) {
-        List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, false);
+    public List<T> updateListAndFetch(List<T> entities) {
+        List<Map<String, Object>> rows = BeanTool.objectsToMapList(entities, true);
         List<Map<String, Object>> results = modelService.updateListAndFetch(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
     /**
-     * Update multiple data objects by their IDs.
-     * Fetch and return the objects with the latest field values.
+     * Updates multiple entities by their IDs, with an option to ignore null values.
+     * Returns the updated entities with the latest field values.
      *
-     * @param objects the list of data objects to update
-     * @param ignoreNull whether to ignore null values during the update
-     * @return the updated objects fetched from the database with the latest field values.
+     * @param entities the list of entities to be updated
+     * @param ignoreNull if `true`, null values are ignored; otherwise, they overwrite existing values
+     * @return a list of updated entities with the latest field values
      */
     @Override
-    public List<T> updateListAndFetch(List<T> objects, boolean ignoreNull) {
-        List<Map<String, Object>> rows = BeanTool.objectsToMapList(objects, ignoreNull);
+    public List<T> updateListAndFetch(List<T> entities, boolean ignoreNull) {
+        List<Map<String, Object>> rows = BeanTool.objectsToMapList(entities, ignoreNull);
         List<Map<String, Object>> results = modelService.updateListAndFetch(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
     }
 
     /**
-     * Delete one data object by id.
+     * Deletes an entity by its ID.
      *
-     * @param id data id
-     * @return true / Exception
+     * @param id the ID of the entity to be deleted
+     * @return `true` if the deletion was successful; otherwise, an exception is thrown
      */
     @Override
     public boolean deleteById(K id) {
@@ -353,10 +356,10 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Delete multiple data objects by ids.
+     * Deletes multiple entities by their IDs.
      *
-     * @param ids data ids
-     * @return true / Exception
+     * @param ids the list of IDs of the entities to be deleted
+     * @return `true` if the deletion was successful; otherwise, an exception is thrown
      */
     @Override
     public boolean deleteByIds(List<K> ids) {
@@ -364,10 +367,10 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Delete data objects by specified filters.
+     * Deletes entities based on the specified filters.
      *
-     * @param filters filters
-     * @return true / Exception
+     * @param filters the filters that determine which entities to delete
+     * @return `true` if the deletion was successful; otherwise, an exception is thrown
      */
     @Override
     public boolean deleteByFilters(Filters filters) {
@@ -375,11 +378,11 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Query a single object based on filters. Only for code use.
-     * Throw an exception when there are multiple objects.
+     * Query one entity that matches the specified filters.
+     * If multiple entities match, an exception is thrown.
      *
-     * @param filters filters object
-     * @return single object
+     * @param filters the filters used to find the entity
+     * @return the single matching entity
      */
     @Override
     public T searchOne(Filters filters) {
@@ -387,11 +390,11 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Query a single object based on filters. Only for code use.
-     * Throw an exception when there are multiple objects.
+     * Query one entity that matches the specified FlexQuery, which can set fields to read.
+     * If multiple entities match, an exception is thrown.
      *
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @return single object
+     * @param flexQuery FlexQuery object containing fields, filters, orders, etc.
+     * @return the single matching entity
      */
     @Override
     public T searchOne(FlexQuery flexQuery) {
@@ -400,10 +403,10 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Query objects without pagination, only for code use.
-     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     * Query all entities without pagination. Only for code use.
+     * If the result exceeds the MAX_BATCH_SIZE, an error is logged, but no exception is thrown.
      *
-     * @return data list
+     * @return a list of all entities
      */
     @Override
     public List<T> searchList() {
@@ -411,11 +414,11 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Query objects based on filters without pagination, only for code use.
-     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     * Query all entities that match the specified filters without pagination.
+     * If the result exceeds the MAX_BATCH_SIZE, an error is logged, but no exception is thrown.
      *
-     * @param filters filters
-     * @return object list
+     * @param filters the filters used to find the entities
+     * @return a list of matching entities
      */
     @Override
     public List<T> searchList(Filters filters) {
@@ -423,11 +426,11 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Query objects based on FlexQuery without pagination, only for code use.
+     * Query all entities that match the specified flexQuery without pagination.
      * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
      *
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @return object list
+     * @param flexQuery FlexQuery object containing fields, filters, orders, etc.
+     * @return a list of matching entities
      */
     @Override
     public List<T> searchList(FlexQuery flexQuery) {
@@ -435,13 +438,13 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Searches for objects based on the provided FlexQuery and maps them to the specified DTO class.
-     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     * Executes a FlexQuery without pagination and maps the results to the specified DTO type.
+     * If the result exceeds the MAX_BATCH_SIZE, an error is logged, but no exception is thrown.
      *
-     * @param <R> the type of the DTO class
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param dtoClass the class of the objects to be returned
-     * @return object list of the specified DTO class
+     * @param <R> the DTO type
+     * @param flexQuery FlexQuery object containing fields, filters, sorting, etc.
+     * @param dtoClass the class of the DTO type
+     * @return a list of DTO objects of the specified type
      */
     @Override
     public <R> List<R> searchList(FlexQuery flexQuery, Class<R> dtoClass) {
@@ -449,12 +452,12 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Query objects based on FlexQuery with pagination.
-     * The page size cannot exceed the MAX_BATCH_SIZE.
+     * Performs a paginated query based on a FlexQuery.
+     * <p>The page size must not exceed MAX_BATCH_SIZE.</p>
      *
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page the Page object containing pagination information
-     * @return a Page object containing the objects
+     * @param flexQuery a FlexQuery object containing fields, filters, sorting, etc.
+     * @param page a Page object containing pagination information
+     * @return a Page containing the requested entities
      */
     @Override
     public Page<T> searchPage(FlexQuery flexQuery, Page<T> page) {
@@ -462,14 +465,14 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Query objects based on FlexQuery with pagination and map them to the specified DTO class.
-     * The page size cannot exceed the MAX_BATCH_SIZE.
+     * Performs a paginated query based on a FlexQuery and maps the results to a specified DTO type.
+     * <p>The page size must not exceed MAX_BATCH_SIZE.</p>
      *
-     * @param <R> the type of the DTO class
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page the Page object containing pagination information
-     * @param dtoClass the class of the objects to be returned
-     * @return a Page object containing the DTO objects
+     * @param <R> the DTO type
+     * @param flexQuery a FlexQuery object containing fields, filters, sorting, etc.
+     * @param page a Page object containing pagination information
+     * @param dtoClass the class of the DTO type
+     * @return a Page containing the requested DTO objects
      */
     @Override
     public <R> Page<R> searchPage(FlexQuery flexQuery, Page<R> page, Class<R> dtoClass) {
@@ -477,11 +480,11 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
-     * Groups objects by their IDs based on the provided filters.
-     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     * Groups entities by their IDs based on the provided filters.
+     * <p>If the result exceeds MAX_BATCH_SIZE, an error is logged but no exception is thrown.</p>
      *
-     * @param filters the filters to apply when searching for objects
-     * @return objects map (id -> object)
+     * @param filters the filters used to find the entities
+     * @return a map of IDs to the corresponding entities
      */
     @Override
     public Map<Serializable, T> groupById(Filters filters) {

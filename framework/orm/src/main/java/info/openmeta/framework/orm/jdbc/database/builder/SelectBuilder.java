@@ -47,7 +47,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
         Set<String> selectFields;
         if (CollectionUtils.isEmpty(flexQuery.getFields())) {
             // When the fields are not specified, use all fields of the main model by default.
-            selectFields = ModelManager.getModelDefaultReadFields(mainModelName);
+            selectFields = ModelManager.getModelFieldsWithoutXToMany(mainModelName);
         } else {
             selectFields = new HashSet<>(flexQuery.getFields());
             // Get the dependent fields of the dynamic calculation and cascaded fields in selectFields,

@@ -107,10 +107,10 @@ public class ModelManager {
      */
     public void validateModelAttributes(List<MetaModel> metaModels){
         for (MetaModel metaModel : metaModels) {
-            // Check if the model name is valid.
+            // Check if the model name is valid, to avoid SQL injection.
             Assert.isTrue(StringTools.isModelName(metaModel.getModelName()),
                     "Model name `{0}` does not meet the specification!", metaModel.getModelName());
-            // TODO: Assert validation after changing the `tableName` to computed field.
+            // Convert the model name to snake case as the table name, to avoid inject by modify the table name.
             metaModel.setTableName(StringTools.toUnderscoreCase(metaModel.getModelName()));
             // Assert.isTrue(StringTools.isSnakeNameValid(metaModel.getTableName()),
             // "The table name for model `{0}` does not meet the specification!", metaModel.getModelName(), metaModel.getTableName());
@@ -141,9 +141,10 @@ public class ModelManager {
      */
     public void validateFieldAttributes(List<MetaField> metaFields){
         for (MetaField metaField : metaFields) {
+            // Check if the field name is valid, to avoid SQL injection.
             Assert.isTrue(StringTools.isFieldName(metaField.getFieldName()),
                     "{0}:{1}, the fieldName is invalid!", metaField.getModelName(), metaField.getFieldName());
-            // TODO: remove `set` after changing the `columnName` to computed field.
+            // Convert the field name to snake case as the column name, to avoid inject by modify the column name.
             metaField.setColumnName(StringTools.toUnderscoreCase(metaField.getFieldName()));
             // Assert.isTrue(StringTools.isSnakeNameValid(metaField.getColumnName()), "{0}:{1}, the columnName {2} is invalid!", metaField.getModelName(), metaField.getFieldName(), metaField.getColumnName());
             Assert.notTrue(ModelConstant.VIRTUAL_FIELDS.contains(metaField.getFieldName()),
@@ -634,20 +635,6 @@ public class ModelManager {
                 .filter(metaField -> metaField.getMaskingType() != null
                         && metaField.getFieldType().equals(FieldType.STRING))
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Get the fields of the model that are read by default, excluding OneToMany/ManyToMany fields.
-     * To get OneToMany/ManyToMany fields, the client needs to specify the fields parameter or use SubQuery.
-     *
-     * @param modelName model name
-     * @return fields collection
-     */
-    public static Set<String> getModelDefaultReadFields(String modelName){
-        validateModel(modelName);
-        return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> !FieldType.TO_MANY_TYPES.contains(metaField.getFieldType()))
-                .map(MetaField::getFieldName).collect(Collectors.toSet());
     }
 
     /**

@@ -41,8 +41,8 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
 
     static  {
         ConfigureBuilder builder = Configure.builder();
-        // Custom the mark syntax to ${}
-        builder.buildGramer("${", "}");
+        // Custom the mark syntax to #{}
+        builder.buildGramer("#{", "}");
         // Enable the spring EL
         builder.useSpringEL();
         // Custom the table render policy
