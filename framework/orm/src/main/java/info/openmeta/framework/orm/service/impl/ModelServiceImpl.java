@@ -327,16 +327,17 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     /**
      * Get distinct values for the specified field, filtered by the given conditions.
      *
+     * @param <V> the type of the field's value
      * @param modelName the name of the model
      * @param field the field name for which to retrieve distinct values
      * @param filters optional filtering conditions
      * @return a list of distinct field values
      */
     @Override
-    public List<Object> getDistinctFieldValue(String modelName, String field, Filters filters) {
+    public <V extends Serializable> List<V> getDistinctFieldValue(String modelName, String field, Filters filters) {
         FlexQuery flexQuery = new FlexQuery(Sets.newHashSet(field), filters);
         List<Map<String, Object>> rows = searchList(modelName, flexQuery);
-        return rows.stream().map(r -> r.get(field)).distinct().collect(Collectors.toList());
+        return rows.stream().map(r -> (V) r.get(field)).distinct().collect(Collectors.toList());
     }
 
     /**

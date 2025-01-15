@@ -52,6 +52,17 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
+     * Counts the number of rows matching the given filters.
+     *
+     * @param filters filtering conditions
+     * @return the total count of matching rows
+     */
+    @Override
+    public Long count(Filters filters) {
+        return modelService.count(modelName, filters);
+    }
+
+    /**
      * Creates a new entity and returns its ID.
      *
      * @param entity the entity to be created
@@ -184,16 +195,30 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
     }
 
     /**
+     * Get distinct values for the specified field, filtered by the given conditions.
+     *
+     * @param <V> the type of the field's value
+     * @param fieldReference the field reference to get the value from
+     * @param filters optional filtering conditions
+     * @return a list of distinct field values
+     */
+    @Override
+    public <V extends Serializable, R> List<V> getDistinctFieldValue(SFunction<T, R> fieldReference, Filters filters) {
+        String fieldName = LambdaUtils.getAttributeName(fieldReference);
+        return modelService.getDistinctFieldValue(modelName, fieldName, filters);
+    }
+
+    /**
      * Get the specified field value by id and field reference.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
-     * @param method field method, Lambda expression, method reference passing parameters
+     * @param fieldReference field reference to get the value from
      * @return field value
      */
     @Override
-    public <V extends Serializable, R> V getFieldValue(K id, SFunction<T, R> method) {
-        String fieldName = LambdaUtils.getAttributeName(method);
+    public <V extends Serializable, R> V getFieldValue(K id, SFunction<T, R> fieldReference) {
+        String fieldName = LambdaUtils.getAttributeName(fieldReference);
         return modelService.getFieldValue(modelName, id, fieldName);
     }
 
@@ -214,12 +239,12 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
      * @param <EK> the type of the related entity ID, extending Serializable
      * @param <R> the return type of the method reference
      * @param filters the filters to apply
-     * @param method field method, Lambda expression, method reference passing parameters
+     * @param fieldReference field method reference to get the value from
      * @return distinct ids for relational field
      */
     @Override
-    public <EK extends Serializable, R> List<EK> getRelatedIds(Filters filters, SFunction<T, R> method) {
-        String fieldName = LambdaUtils.getAttributeName(method);
+    public <EK extends Serializable, R> List<EK> getRelatedIds(Filters filters, SFunction<T, R> fieldReference) {
+        String fieldName = LambdaUtils.getAttributeName(fieldReference);
         return modelService.getRelatedIds(modelName, filters, fieldName);
     }
 
@@ -342,6 +367,20 @@ public abstract class EntityServiceImpl<T extends BaseModel, K extends Serializa
         List<Map<String, Object>> rows = BeanTool.objectsToMapList(entities, ignoreNull);
         List<Map<String, Object>> results = modelService.updateListAndFetch(modelName, rows, ConvertType.TYPE_CAST);
         return BeanTool.mapListToObjects(results, entityClass);
+    }
+
+    /**
+     * Performs a batch update of rows that match the provided filters,
+     * updating the fields specified in the value map.
+     * <p>If no filters are specified, all data visible to the current user might be updated.</p>
+     *
+     * @param filters optional filter criteria
+     * @param value a map of field-value pairs to update
+     * @return the number of rows affected
+     */
+    @Override
+    public Integer updateByFilter(Filters filters, Map<String, Object> value) {
+        return modelService.updateByFilter(modelName, filters, value);
     }
 
     /**

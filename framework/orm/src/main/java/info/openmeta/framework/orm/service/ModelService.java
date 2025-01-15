@@ -155,12 +155,13 @@ public interface ModelService<K extends Serializable> {
     /**
      * Get distinct values for the specified field, filtered by the given conditions.
      *
+     * @param <V> the type of the field's value
      * @param modelName the name of the model
      * @param field the field name for which to retrieve distinct values
      * @param filters optional filtering conditions
      * @return a list of distinct field values
      */
-    List<Object> getDistinctFieldValue(String modelName, String field, Filters filters);
+    <V extends Serializable> List<V> getDistinctFieldValue(String modelName, String field, Filters filters);
 
     /**
      * Get the value of a specified field from a row identified by its ID.

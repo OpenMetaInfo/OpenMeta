@@ -26,6 +26,14 @@ import java.util.Optional;
 public interface EntityService<T extends BaseModel, K extends Serializable> {
 
     /**
+     * Counts the number of rows matching the given filters.
+     *
+     * @param filters filtering conditions
+     * @return the total count of matching rows
+     */
+    Long count(Filters filters);
+
+    /**
      * Creates a new entity and returns its ID.
      *
      * @param entity the entity to be created
@@ -118,14 +126,24 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
     List<T> getByIds(List<K> ids, Collection<String> fields);
 
     /**
+     * Get distinct values for the specified field, filtered by the given conditions.
+     *
+     * @param <V> the type of the field's value
+     * @param fieldReference the field reference to get the value from
+     * @param filters optional filtering conditions
+     * @return a list of distinct field values
+     */
+    <V extends Serializable, R> List<V> getDistinctFieldValue(SFunction<T, R> fieldReference, Filters filters);
+
+    /**
      * Get the specified field value by id and field reference.
      * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
      *
      * @param id data id
-     * @param method field method, Lambda expression, method reference passing parameters
+     * @param fieldReference field reference to get the value from
      * @return field value
      */
-    <V extends Serializable, R> V getFieldValue(K id, SFunction<T, R> method);
+    <V extends Serializable, R> V getFieldValue(K id, SFunction<T, R> fieldReference);
 
     /**
      * Get the ids based on the filters.
@@ -141,10 +159,10 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @param <EK> the type of the related entity ID, extending Serializable
      * @param <R> the return type of the method reference
      * @param filters the filters to apply
-     * @param method field method, Lambda expression, method reference passing parameters
+     * @param fieldReference the field reference to get the related entity ID
      * @return distinct ids for relational field
      */
-    <EK extends Serializable, R> List<EK> getRelatedIds(Filters filters, SFunction<T, R> method);
+    <EK extends Serializable, R> List<EK> getRelatedIds(Filters filters, SFunction<T, R> fieldReference);
 
     /**
      * Get the distinct ids for ManyToOne/OneToOne relational field based on the filters.
@@ -227,6 +245,17 @@ public interface EntityService<T extends BaseModel, K extends Serializable> {
      * @return a list of updated entities with the latest field values
      */
     List<T> updateListAndFetch(List<T> entities, boolean ignoreNull);
+
+    /**
+     * Performs a batch update of rows that match the provided filters,
+     * updating the fields specified in the value map.
+     * <p>If no filters are specified, all data visible to the current user might be updated.</p>
+     *
+     * @param filters optional filter criteria
+     * @param value a map of field-value pairs to update
+     * @return the number of rows affected
+     */
+    Integer updateByFilter(Filters filters, Map<String, Object> value);
 
     /**
      * Deletes an entity by its ID.
