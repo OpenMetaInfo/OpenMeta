@@ -93,3 +93,4 @@ oss:
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: demo-app
+  sub-dir:

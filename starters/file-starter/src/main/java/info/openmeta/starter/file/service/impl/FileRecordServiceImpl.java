@@ -14,14 +14,17 @@ import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
+import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.FileRecord;
 import info.openmeta.starter.file.enums.FileSource;
+import info.openmeta.starter.file.oss.OSSProperties;
 import info.openmeta.starter.file.oss.OssClientService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -38,6 +41,9 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private OssClientService ossClientService;
 
+    @Autowired
+    private OSSProperties ossProperties;
+
     /**
      * Generate an OSS key for the file
      * ModelName is used as the prefix of the OSS key, to store files in different directories
@@ -48,14 +54,27 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      * @return the generated OSS key
      */
     public String generateOssKey(String modelName, String fileName) {
-        String key = modelName + "/" + TsidCreator.getTsid() + "/" + fileName;
+        StringBuilder key = new StringBuilder();
+        // Set the subdirectory
+        if (StringUtils.hasText(ossProperties.getSubDir())) {
+            key.append(ossProperties.getSubDir()).append("/");
+        }
+        // Add tenantId as a subdirectory if multi-tenancy is enabled
         if (TenantConfig.isEnableMultiTenancy()) {
             Long tenantId = ContextHolder.getContext().getTenantId();
             if (tenantId != null) {
-                key = tenantId + "/" + key;
+                key.append(tenantId).append("/");
             }
         }
-        return key;
+        // Set the model name as a subdirectory if it is not null
+        if (StringUtils.hasText(modelName)) {
+            key.append(modelName).append("/");
+        } else {
+            key.append(FileConstant.DEFAULT_SUBFOLDER).append("/");
+        }
+        // Set the TSID as a part of the OSS key
+        key.append(TsidCreator.getTsid()).append("/").append(fileName);
+        return key.toString();
     }
 
     /**
@@ -117,7 +136,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         String fileName = uploadFileDTO.getFileName();
         FileType fileType = uploadFileDTO.getFileType();
         String fullFileName = getFullFileName(fileName, fileType);
-        String ossKey = this.generateOssKey(modelName, fullFileName);
+        String ossKey = this.generateOssKey(uploadFileDTO.getModelName(), fullFileName);
         String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), fileName);
         // Create file record
         FileRecord fileRecord = new FileRecord();
@@ -127,6 +146,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileRecord.setSource(uploadFileDTO.getFileSource());
         fileRecord.setChecksum(checksum);
         fileRecord.setFileSize(uploadFileDTO.getFileSize() / 1024);
+        fileRecord.setModelName(uploadFileDTO.getModelName());
         Long id = this.createOne(fileRecord);
         fileRecord.setId(id);
         return fileRecord;
