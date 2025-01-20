@@ -147,6 +147,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileRecord.setChecksum(checksum);
         fileRecord.setFileSize(uploadFileDTO.getFileSize() / 1024);
         fileRecord.setModelName(uploadFileDTO.getModelName());
+        fileRecord.setRowId(uploadFileDTO.getRowId() == null ? null : uploadFileDTO.getRowId().toString());
         Long id = this.createOne(fileRecord);
         fileRecord.setId(id);
         return fileRecord;

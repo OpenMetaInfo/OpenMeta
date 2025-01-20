@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,7 +44,30 @@ public enum FileType {
 
     // Code file types
     JSON("json", "application/json"),
-    XML("xml", "text/xml");
+    XML("xml", "text/xml"),
+    YAML("yaml", "application/x-yaml"),
+
+    // Compressed file types
+    ZIP("zip", "application/zip"),
+    GZIP("gzip", "application/gzip"),
+    TAR("tar", "application/x-tar"),
+    RAR("rar", "application/vnd.rar"),
+    GZ("gz", "application/gz"),
+
+    // Audio types
+    MP3("mp3", "audio/mpeg"),
+    WAV("wav", "audio/x-wav"),
+    AAC("aac", "audio/aac"),
+    OGG("ogg", "audio/ogg"),
+    FLAC("flac", "audio/flac"),
+
+    // Video types
+    MP4("mp4", "video/mp4"),
+    AVI("avi", "video/x-msvideo"),
+    MOV("mov", "video/quicktime"),
+    WMV("wmv", "video/x-ms-wmv"),
+    FLV("flv", "video/x-flv"),
+    ;
 
     private final String type;
     private final String mimetype;
@@ -63,31 +87,28 @@ public enum FileType {
     // Document types
     public static final Set<FileType> DOCUMENT_TYPE = Sets.newHashSet(CSV, TXT, DOC, DOCX, PPT, PPTX, XLS, XLSX, PDF);
 
-    // File types
-    public static final Set<FileType> FILE_TYPE = Sets.newHashSet(JPG, PNG, WEBP, BMP, TIF, SVG, GIF, ICO, CSV, TXT, DOC, DOCX, PPT, PPTX, XLS, XLSX, PDF);
-
     // Code file types
-    public static final Set<FileType> CODE_TYPE = Sets.newHashSet(JSON, XML);
+    public static final Set<FileType> CODE_TYPE = Sets.newHashSet(JSON, XML, YAML);
 
     /**
      * Get file type by mimeType.
      *
      * @param mimetype the mimeType of the file
-     * @return FileType
+     * @return Optional<FileType>
      */
-    public static FileType of(String mimetype) {
+    public static Optional<FileType> of(String mimetype) {
         Assert.notNull(mimetype, "Cannot process files with empty Mimetype attribute!", mimetype);
-        return mimeTypeMap.get(mimetype);
+        return Optional.ofNullable(mimeTypeMap.get(mimetype));
     }
 
     /**
      * Get file type by file extension.
      *
      * @param extension the file extension
-     * @return FileType
+     * @return Optional<FileType>
      */
-    public static FileType ofExtension(String extension) {
-        return typeMap.get(extension);
+    public static Optional<FileType> ofExtension(String extension) {
+        return Optional.ofNullable(typeMap.get(extension));
     }
 
     /**

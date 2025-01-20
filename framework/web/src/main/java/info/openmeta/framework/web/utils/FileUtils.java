@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 /**
  * Utility class for file operations
@@ -37,7 +38,9 @@ public class FileUtils {
         try {
             String extension = FilenameUtils.getExtension(fileName);
             Assert.notBlank(extension, "File has no extension!");
-            return FileType.ofExtension(extension);
+            Optional<FileType> fileType = FileType.ofExtension(extension);
+            return fileType.orElseThrow(() -> new BusinessException(
+                    "The file {0} is not supported. Its extension is: {1}.", fileName, extension));
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to parse the extension of file: {0}!", fileName);
         }
@@ -81,7 +84,8 @@ public class FileUtils {
         String fileName = file.getOriginalFilename();
         try (InputStream inputStream = file.getInputStream()) {
             FileType actualFileType = getActualFileType(fileName, inputStream);
-            FileType seemingFileType = FileType.of(file.getContentType());
+            FileType seemingFileType = FileType.of(file.getContentType()).orElseThrow(() -> new BusinessException(
+                    "The file {0} is not supported. Its content type is: {1}.", fileName, file.getContentType()));
             validateFileType(fileName, actualFileType, seemingFileType);
             fileInfo.setFileName(fileName);
             fileInfo.setFileType(actualFileType);
@@ -120,7 +124,8 @@ public class FileUtils {
         String fileName = file.getOriginalFilename();
         try (InputStream inputStream = file.getInputStream()) {
             FileType actualFileType = getActualFileType(fileName, inputStream);
-            FileType seemingFileType = FileType.of(file.getContentType());
+            FileType seemingFileType = FileType.of(file.getContentType()).orElseThrow(() -> new BusinessException(
+                    "The file {0} is not supported. Its content type is: {1}.", fileName, file.getContentType()));
             validateFileType(fileName, actualFileType, seemingFileType);
             return actualFileType;
         } catch (IOException e) {
@@ -139,12 +144,10 @@ public class FileUtils {
             Metadata fileMetadata = new Metadata();
             fileMetadata.set("resourceName", fileName);
             String mimetype = new Tika().detect(fileStream, fileMetadata);
-            FileType actualFileType = FileType.of(mimetype);
-            AssertBusiness.notNull(actualFileType, """
-                The file {0} is not supported. Its actual file type (MimeType) is: {1}.
-                Please contact the system administrator if you have any questions.""", fileName, mimetype);
-            return actualFileType;
-        } catch (IOException e) {
+            Optional<FileType> actualFileType = FileType.of(mimetype);
+            return actualFileType.orElseThrow( () -> new BusinessException(
+                    "The file {0} is not supported. Its actual file type (MimeType) is: {1}.", fileName, mimetype));
+        } catch (Throwable e) {
             throw new BusinessException("Failed to read the uploaded file!", e);
         }
     }
