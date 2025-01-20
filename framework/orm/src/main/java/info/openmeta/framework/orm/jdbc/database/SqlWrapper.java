@@ -88,9 +88,10 @@ public class SqlWrapper {
      *
      * @param metaField translatable field object of the left table
      * @param leftAlias left table alias
+     * @param isSelect whether to use in the SELECT statement, if true, add the AS column name
      * @return SQL segment of the translation field
      */
-    public String selectTranslatableField(MetaField metaField, String leftAlias) {
+    public String selectTranslatableField(MetaField metaField, String leftAlias, boolean isSelect) {
         String transAlias = tableAlias.getTransTableAlias(leftAlias);
         if (!StringUtils.hasLength(transAlias)) {
             transAlias = tableAlias.generateTransTableAlias(leftAlias);
@@ -98,7 +99,28 @@ public class SqlWrapper {
         }
         String columnName = metaField.getColumnName();
         String columnAlias = leftAlias + "." + columnName;
-        return "COALESCE(NULLIF(" + transAlias + "." + columnName + ", ''), " + columnAlias + ") AS " + columnName;
+        String selectSegment = "COALESCE(NULLIF(" + transAlias + "." + columnName + ", ''), " + columnAlias + ")";
+        if (isSelect) {
+            selectSegment += " AS " + columnName;
+        }
+        return selectSegment;
+    }
+
+    /**
+     * Replace the field name with the translation field name in the WHERE clause.
+     * For example, replace `t.name` with `trans1.name`
+     *
+     * @param leftAlias left table alias
+     * @param metaField translatable field object of the left table
+     * @return SQL segment of the translation field to be used in the WHERE clause
+     */
+    public String filterTranslatableField(String leftAlias, MetaField metaField) {
+        String transAlias = tableAlias.getTransTableAlias(leftAlias);
+        if (!StringUtils.hasLength(transAlias)) {
+            transAlias = tableAlias.generateTransTableAlias(leftAlias);
+            this.leftJoinTranslation(metaField, leftAlias, transAlias);
+        }
+        return transAlias + "." + metaField.getColumnName();
     }
 
     /**

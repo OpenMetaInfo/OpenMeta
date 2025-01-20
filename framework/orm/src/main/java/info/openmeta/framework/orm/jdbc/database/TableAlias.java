@@ -40,15 +40,21 @@ public class TableAlias {
      * @return Alias of the right table
      */
     public String getRightTableAlias(String fieldChain) {
-        String rightTableAlias;
-        if (chainTableAliasMap.containsKey(fieldChain)) {
-            rightTableAlias = chainTableAliasMap.get(fieldChain);
-        } else {
-            // Generate a new table alias based on the size +1
-            rightTableAlias = MAIN_TABLE_ALIAS + (chainTableAliasMap.size() + 1);
-            // Update the table alias dictionary
-            this.chainTableAliasMap.put(fieldChain, rightTableAlias);
-        }
+        return chainTableAliasMap.get(fieldChain);
+    }
+
+    /**
+     * Generate the alias of the right table by the field chain.
+     *
+     * @param fieldChain Table alias key, that is, the left part of the cascading field,
+     *                   such as `jobId` of `jobId.name`, `jobId.typeId` of `jobId.typeId.name`.
+     * @return Alias of the right table
+     */
+    public String generateRightTableAlias(String fieldChain) {
+        // Generate a new table alias based on the size +1
+        String rightTableAlias = MAIN_TABLE_ALIAS + (chainTableAliasMap.size() + 1);
+        // Update the table alias dictionary
+        this.chainTableAliasMap.put(fieldChain, rightTableAlias);
         return rightTableAlias;
     }
 

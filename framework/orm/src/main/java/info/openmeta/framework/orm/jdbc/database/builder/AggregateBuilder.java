@@ -44,11 +44,11 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
         List<String> sqlGroupByFields = new ArrayList<>(flexQuery.getGroupBy());
         sqlGroupByFields.addAll(flexQuery.getSplitBy());
         if (!CollectionUtils.isEmpty(sqlGroupByFields)) {
-            // Grouping fields can only be stored fields
+            // Grouping by current model fields, which can only be stored fields
             ModelManager.validateStoredFields(this.mainModelName, sqlGroupByFields);
             // Add grouping fields to the select condition and extract the numeric field set
             this.handleGroupByFields(flexQuery, sqlGroupByFields);
-            sqlWrapper.groupBy(this.parseLogicFields(sqlGroupByFields));
+            sqlWrapper.groupBy(this.parseStoredFields(sqlGroupByFields, false));
         }
     }
 
@@ -82,7 +82,7 @@ public class AggregateBuilder extends BaseBuilder implements SqlClauseBuilder {
         List<String> storedFields = selectFields.stream()
                 .filter(f -> ModelManager.existField(mainModelName, f) && ModelManager.isStored(mainModelName, f))
                 .collect(Collectors.toList());
-        sqlWrapper.select(this.parseLogicFields(storedFields));
+        sqlWrapper.select(this.parseStoredFields(storedFields, true));
         // Numeric fields, automatically add `sum(t.field) as field`, the alias here cannot add table alias
         if (!CollectionUtils.isEmpty(numericFields)) {
             numericFields.forEach(field -> {

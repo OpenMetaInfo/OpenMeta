@@ -70,9 +70,9 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
             // Get at least the ID field when all selectFields are non-stored fields
             storedFields.add(ModelConstant.ID);
         }
-        sqlWrapper.select(this.parseLogicFields(storedFields));
+        sqlWrapper.select(this.parseStoredFields(storedFields, true));
         // When cross-timeline access, the main model is a timeline model, and the ManyToOne/OneToOne field results
-        // need to be enhanced, add the displayNames of the associated timeline model to the SELECT fields.
+        // need to be enhanced by join clause, add the displayNames of the associated timeline model to the SELECT fields.
         if (flexQuery.isAcrossTimeline()
                 && ModelManager.isTimelineModel(mainModelName)
                 && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
@@ -139,7 +139,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                 }
             }
             cascadedFields.forEach(cascadedField -> {
-                String fieldAlias = parseLogicField(cascadedField) + " AS " + cascadedField;
+                String fieldAlias = parseLogicField(cascadedField, false) + " AS " + cascadedField;
                 timelineModelFields.add(fieldAlias);
             });
         });

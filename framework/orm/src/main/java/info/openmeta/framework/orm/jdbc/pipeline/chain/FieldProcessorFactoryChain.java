@@ -82,6 +82,7 @@ public class FieldProcessorFactoryChain {
                         the cascade level cannot exceed the {2} level.""",
                 modelName, fieldName, BaseConstant.CASCADE_LEVEL);
         MetaField customCascadedField = new MetaField();
+        customCascadedField.setModelName(modelName);
         customCascadedField.setFieldName(fieldName);
         customCascadedField.setCascadedField(fieldName);
         customCascadedField.setDynamic(true);
