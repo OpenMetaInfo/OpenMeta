@@ -40,6 +40,8 @@ public class MetaField implements Serializable {
     private String optionSetCode;
 
     private String relatedModel;
+    
+    private String middleModel;
 
     private String relatedField;
 

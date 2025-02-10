@@ -172,22 +172,21 @@ public class FilterXToManyParser {
      * @return ids of the main model
      */
     private List<Serializable> getIdsFromXToMany(MetaField metaField, Filters filters) {
-        List<Serializable> finalIds = new ArrayList<>();
+        List<Serializable> mainIds = new ArrayList<>();
         if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
             // OneToMany scenario: directly query the main model ids
-            finalIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), filters);
+            mainIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), filters);
         } else {
             // ManyToMany scenario: query the ids of the related model, that is,
             // the values of the inverseLinkField in the middle table.
-            MetaField inverseLinkField = ModelManager.getModelField(metaField.getRelatedModel(), metaField.getInverseLinkField());
-            List<Serializable> linkIds = ReflectTool.getRelatedIds(inverseLinkField.getRelatedModel(), ModelConstant.ID, filters);
+            List<Serializable> rightIds = ReflectTool.getIds(metaField.getRelatedModel(), filters);
             // Query the middle table to get the main model ids
-            if (!CollectionUtils.isEmpty(linkIds)) {
-                Filters middleFilters = Filters.of(metaField.getInverseLinkField(), Operator.IN, linkIds);
-                finalIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), middleFilters);
+            if (!CollectionUtils.isEmpty(rightIds)) {
+                Filters middleFilters = new Filters().in(metaField.getInverseLinkField(), rightIds);
+                mainIds = ReflectTool.getRelatedIds(metaField.getMiddleModel(), metaField.getRelatedField(), middleFilters);
             }
         }
-        return finalIds;
+        return mainIds;
     }
 
     /**
@@ -230,39 +229,38 @@ public class FilterXToManyParser {
      * @return ids obtained by reverse search
      */
     private List<Serializable> reverseSearch(MetaField metaField, Filters positiveFilters, Filters reversedFilters) {
-        List<Serializable> finalIds = new ArrayList<>();
+        List<Serializable> mainIds = new ArrayList<>();
         // Merge the positiveFilters and reversedFilters to generate the filters of the data to be excluded.
         Filters negationFilters = Filters.and(positiveFilters, reversedFilters);
-        List<Serializable> excludedIds;
+        List<Serializable> excludedMainIds;
         if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
             // OneToMany scenario
-            excludedIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), negationFilters);
+            excludedMainIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), negationFilters);
             // When the reverse search result is empty, there is no data to be excluded,
             // directly execute the positive search, otherwise merge and search.
-            Filters finalFilters = CollectionUtils.isEmpty(excludedIds) ? positiveFilters : Filters.and(positiveFilters, Filters.of(metaField.getRelatedField(), Operator.NOT_IN, excludedIds));
-            finalIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), finalFilters);
+            Filters finalMiddleFilters = CollectionUtils.isEmpty(excludedMainIds) ? positiveFilters : Filters.and(positiveFilters, Filters.of(metaField.getRelatedField(), Operator.NOT_IN, excludedMainIds));
+            mainIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), finalMiddleFilters);
         } else {
             // ManyToMany scenario:
             // query the ids of the related model, that is, the values of the inverseLinkField in the middle table.
-            MetaField inverseLinkField = ModelManager.getModelField(metaField.getRelatedModel(), metaField.getInverseLinkField());
-            List<Serializable> negativeLinkIds = ReflectTool.getRelatedIds(inverseLinkField.getRelatedModel(), ModelConstant.ID, negationFilters);
+            List<Serializable> negativeRightIds = ReflectTool.getIds(metaField.getRelatedModel(), negationFilters);
             // Query the middle table to get the main model ids
-            if (!CollectionUtils.isEmpty(negativeLinkIds)) {
-                Filters middleFilters = Filters.of(metaField.getInverseLinkField(), Operator.IN, negativeLinkIds);
-                excludedIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), middleFilters);
-                if (!CollectionUtils.isEmpty(excludedIds)) {
-                    List<Serializable> positiveIds = ReflectTool.getRelatedIds(inverseLinkField.getRelatedModel(), ModelConstant.ID, positiveFilters);
-                    if (!CollectionUtils.isEmpty(positiveIds)) {
-                        Filters finalFilters = Filters.of(metaField.getRelatedField(), Operator.NOT_IN, excludedIds).and(metaField.getInverseLinkField(), Operator.IN, positiveIds);
-                        finalIds = ReflectTool.getRelatedIds(metaField.getRelatedModel(), metaField.getRelatedField(), finalFilters);
+            if (!CollectionUtils.isEmpty(negativeRightIds)) {
+                Filters middleFilters = new Filters().in(metaField.getInverseLinkField(), negativeRightIds);
+                excludedMainIds = ReflectTool.getRelatedIds(metaField.getMiddleModel(), metaField.getRelatedField(), middleFilters);
+                if (!CollectionUtils.isEmpty(excludedMainIds)) {
+                    List<Serializable> positiveRightIds = ReflectTool.getIds(metaField.getRelatedModel(), positiveFilters);
+                    if (!CollectionUtils.isEmpty(positiveRightIds)) {
+                        Filters finalMiddleFilters = new Filters().notIn(metaField.getRelatedField(), excludedMainIds).in(metaField.getInverseLinkField(), positiveRightIds);
+                        mainIds = ReflectTool.getRelatedIds(metaField.getMiddleModel(), metaField.getRelatedField(), finalMiddleFilters);
                     }
                 } else {
                     // When the reverse search result is empty, there is no data to be excluded,
-                    finalIds = this.getIdsFromXToMany(metaField, positiveFilters);
+                    mainIds = this.getIdsFromXToMany(metaField, positiveFilters);
                 }
             }
         }
-        return finalIds;
+        return mainIds;
     }
 
 }

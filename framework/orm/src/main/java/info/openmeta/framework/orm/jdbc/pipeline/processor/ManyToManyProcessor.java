@@ -8,7 +8,6 @@ import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.SubQuery;
 import info.openmeta.framework.orm.meta.MetaField;
-import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
 import lombok.Getter;
@@ -78,15 +77,15 @@ public class ManyToManyProcessor extends BaseProcessor {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Object value = row.get(fieldName);
             if (value instanceof List<?> valueList && !valueList.isEmpty()) {
-                List<Serializable> linkIds = IdUtils.formatIds(metaField.getRelatedModel(), metaField.getInverseLinkField(), valueList);
-                linkIds.forEach(i -> mappingRows.add(
+                List<Serializable> rightIds = IdUtils.formatIds(metaField.getMiddleModel(), metaField.getInverseLinkField(), valueList);
+                rightIds.forEach(i -> mappingRows.add(
                         new HashMap<>(Map.of(metaField.getRelatedField(), id, metaField.getInverseLinkField(), i))
                 ));
             }
         });
         if (!CollectionUtils.isEmpty(mappingRows)) {
             changed = true;
-            ReflectTool.createList(metaField.getRelatedModel(), mappingRows);
+            ReflectTool.createList(metaField.getMiddleModel(), mappingRows);
         }
     }
 
@@ -111,20 +110,20 @@ public class ManyToManyProcessor extends BaseProcessor {
                     // When the ManyToMany field value is an empty list, it means to clear the mapping table data
                     deleteMiddleIds.addAll(mToMIdsMapping.get(id).values());
                 } else {
-                    List<Serializable> linkIds = IdUtils.formatIds(metaField.getRelatedModel(), metaField.getInverseLinkField(), valueList);
+                    List<Serializable> rightIds = IdUtils.formatIds(metaField.getMiddleModel(), metaField.getInverseLinkField(), valueList);
                     if (mToMIdsMapping.containsKey(id)) {
                         // Remove the existing ids of the associated model to obtain the newLinkIds to be associated.
-                        List<Serializable> newLinkIds = new ArrayList<>(linkIds);
-                        newLinkIds.removeAll(mToMIdsMapping.get(id).keySet());
+                        List<Serializable> newRightIds = new ArrayList<>(rightIds);
+                        newRightIds.removeAll(mToMIdsMapping.get(id).keySet());
                         // The difference set means the relationship to be deleted.
-                        List<Serializable> unlinkIds = new ArrayList<>(mToMIdsMapping.get(id).keySet());
-                        unlinkIds.removeAll(linkIds);
-                        if (!unlinkIds.isEmpty()) {
-                            unlinkIds.forEach(i -> deleteMiddleIds.add(mToMIdsMapping.get(id).get(i)));
+                        List<Serializable> unlinkRightIds = new ArrayList<>(mToMIdsMapping.get(id).keySet());
+                        unlinkRightIds.removeAll(rightIds);
+                        if (!unlinkRightIds.isEmpty()) {
+                            unlinkRightIds.forEach(i -> deleteMiddleIds.add(mToMIdsMapping.get(id).get(i)));
                         }
-                        linkIds = newLinkIds;
+                        rightIds = newRightIds;
                     }
-                    linkIds.forEach(i -> newMToMRows.add(
+                    rightIds.forEach(i -> newMToMRows.add(
                             new HashMap<>(Map.of(metaField.getRelatedField(), id, metaField.getInverseLinkField(), i))
                     ));
                 }
@@ -133,9 +132,9 @@ public class ManyToManyProcessor extends BaseProcessor {
         if (!CollectionUtils.isEmpty(newMToMRows) || !CollectionUtils.isEmpty(deleteMiddleIds)) {
             changed = true;
             // Create middle table rows
-            ReflectTool.createList(metaField.getRelatedModel(), newMToMRows);
+            ReflectTool.createList(metaField.getMiddleModel(), newMToMRows);
             // Delete middle table rows
-            ReflectTool.deleteList(metaField.getRelatedModel(), deleteMiddleIds);
+            ReflectTool.deleteList(metaField.getMiddleModel(), deleteMiddleIds);
         }
     }
 
@@ -151,8 +150,8 @@ public class ManyToManyProcessor extends BaseProcessor {
         Map<Serializable, Map<Serializable, Serializable>> mToMIdsMapping = new HashMap<>();
         List<Serializable> ids = rows.stream().map(r -> (Serializable) r.get(ModelConstant.ID)).collect(Collectors.toList());
         Set<String> fields = Sets.newHashSet(ModelConstant.ID, metaField.getRelatedField(), metaField.getInverseLinkField());
-        FlexQuery previousFlexQuery = new FlexQuery(fields, Filters.of(metaField.getRelatedField(), Operator.IN, ids));
-        List<Map<String, Object>> previousMToMRows = ReflectTool.searchList(metaField.getRelatedModel(), previousFlexQuery);
+        FlexQuery previousFlexQuery = new FlexQuery(fields).where(new Filters().in(metaField.getRelatedField(), ids));
+        List<Map<String, Object>> previousMToMRows = ReflectTool.searchList(metaField.getMiddleModel(), previousFlexQuery);
         previousMToMRows.forEach(row -> {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Serializable relatedId = (Serializable) row.get(metaField.getRelatedField());
@@ -194,7 +193,7 @@ public class ManyToManyProcessor extends BaseProcessor {
                 return;
             }
             // Expand the middle model rows, according to the `subQuery` object.
-            List<Map<String, Object>> expandedMiddleRows = expandMiddleRowsWithAssociatedData(middleRows);
+            List<Map<String, Object>> expandedMiddleRows = expandMiddleRowsWithRightModelData(middleRows);
             // Group by `relatedField` of the middle model, which stores the main model id.
             groupedValues = groupMiddleRows(expandedMiddleRows);
         }
@@ -222,34 +221,33 @@ public class ManyToManyProcessor extends BaseProcessor {
         Filters middleFilters = Filters.of(relatedField, Operator.IN, mainModelIds);
         Set<String> middleFields = Sets.newHashSet(relatedField, inverseLinkField);
         FlexQuery middleFlexQuery = new FlexQuery(middleFields, middleFilters);
-        return ReflectTool.searchList(metaField.getRelatedModel(), middleFlexQuery);
+        return ReflectTool.searchList(metaField.getMiddleModel(), middleFlexQuery);
     }
 
     /**
-     * Query the middle model and associated model according to the mainModelIds.
+     * Query the middle model and right model according to the mainModelIds.
      * By default, the `inverseLinkField` value is converted to ModelReference object.
      *
      * @param middleRows Middle model rows
-     * @return Middle model rows expanded with the associated model data: [{inverseLinkField: ModelReference}]
-     *      or [{inverseLinkField: {associated row}}]
+     * @return Middle model rows expanded with the right model data: [{inverseLinkField: ModelReference}]
+     *      or [{inverseLinkField: {right row}}]
      */
-    private List<Map<String, Object>> expandMiddleRowsWithAssociatedData(List<Map<String, Object>> middleRows) {
+    private List<Map<String, Object>> expandMiddleRowsWithRightModelData(List<Map<String, Object>> middleRows) {
         String inverseLinkField = metaField.getInverseLinkField();
-        List<Serializable> associatedIds = middleRows.stream()
+        List<Serializable> rightIds = middleRows.stream()
                 .map(value -> (Serializable) value.get(inverseLinkField))
                 .distinct()
                 .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(associatedIds)) {
+        if (CollectionUtils.isEmpty(rightIds)) {
             return Collections.emptyList();
         }
-        String associatedModel = ModelManager.getModelField(metaField.getRelatedModel(), inverseLinkField).getRelatedModel();
-        // Execute subQuery on the associated model.
-        List<Map<String, Object>> associatedRows = this.getAssociatedRows(associatedModel, associatedIds);
-        // Group the associated model rows by id
-        Map<Serializable, Map<String, Object>> associatedRowMap = associatedRows.stream()
+        // Execute subQuery on the right model.
+        List<Map<String, Object>> rightRows = this.getRightRows(metaField.getRelatedModel(), rightIds);
+        // Group the right model rows by id
+        Map<Serializable, Map<String, Object>> rightRowMap = rightRows.stream()
                 .collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.ID), row -> row));
         // Update the `inverseLinkField` value of the middle model row, to {inverseLinkField: {associated row}}
-        middleRows.forEach(r -> r.put(inverseLinkField, associatedRowMap.get((Serializable) r.get(inverseLinkField))));
+        middleRows.forEach(r -> r.put(inverseLinkField, rightRowMap.get((Serializable) r.get(inverseLinkField))));
         return middleRows;
     }
 
@@ -265,43 +263,43 @@ public class ManyToManyProcessor extends BaseProcessor {
         filters.and(subQuery.getFilters());
         // count subQuery on the middle model
         List<String> fields = new ArrayList<>(List.of(metaField.getRelatedField()));
-        FlexQuery relatedFlexQuery = new FlexQuery(fields, filters);
+        FlexQuery middleFlexQuery = new FlexQuery(fields, filters);
         // Count is automatically added during the groupBy operation
-        relatedFlexQuery.setGroupBy(metaField.getRelatedField());
-        return ReflectTool.searchList(metaField.getRelatedModel(), relatedFlexQuery);
+        middleFlexQuery.setGroupBy(metaField.getRelatedField());
+        return ReflectTool.searchList(metaField.getMiddleModel(), middleFlexQuery);
     }
 
     /**
-     * Perform a subQuery on the associated model
+     * Perform a subQuery on the right model
      *
-     * @param associatedModel Associated model
-     * @param ids Associated model ids
-     * @return Associated model rows
+     * @param rightModel right model
+     * @param ids right model ids
+     * @return right model rows
      */
-    private List<Map<String, Object>> getAssociatedRows(String associatedModel, List<Serializable> ids) {
+    private List<Map<String, Object>> getRightRows(String rightModel, List<Serializable> ids) {
         Filters filters = new Filters().in(ModelConstant.ID, ids);
-        FlexQuery relatedFlexQuery;
+        FlexQuery rightFlexQuery;
         if (subQuery == null) {
-            relatedFlexQuery = new FlexQuery(Collections.emptyList(), filters);
+            rightFlexQuery = new FlexQuery(Collections.emptyList(), filters);
         } else {
             // When there is a subQuery filters, merge them with `AND` logic
             filters.and(subQuery.getFilters());
-            relatedFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
+            rightFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
             if (!CollectionUtils.isEmpty(subQuery.getFields())) {
-                relatedFlexQuery.getFields().add(ModelConstant.ID);
+                rightFlexQuery.getFields().add(ModelConstant.ID);
             }
         }
-        relatedFlexQuery.setConvertType(flexQuery.getConvertType());
-        return ReflectTool.searchList(associatedModel, relatedFlexQuery);
+        rightFlexQuery.setConvertType(flexQuery.getConvertType());
+        return ReflectTool.searchList(rightModel, rightFlexQuery);
     }
 
     /**
      * Group the expanded middle model rows by the `relatedField` attribute of the ManyToMany field,
      * which stores the main model id.
      *
-     * @param expandedMiddleRows middle model rows, expanded with associated model data
+     * @param expandedMiddleRows middle model rows, expanded with right model data
      * @return Grouped middle model data: {mainModelId: [ModelReference, ...]}
-     *      or {mainModelId: [{associated row}, ...]
+     *      or {mainModelId: [{right row}, ...]
      */
     private Map<Serializable, List<Object>> groupMiddleRows(List<Map<String, Object>> expandedMiddleRows) {
         String relatedField = metaField.getRelatedField();

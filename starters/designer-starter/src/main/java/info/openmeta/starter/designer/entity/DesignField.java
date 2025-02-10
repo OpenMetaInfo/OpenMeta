@@ -60,6 +60,9 @@ public class DesignField extends BaseModel {
     @Schema(description = "Related Model")
     private String relatedModel;
 
+    @Schema(description = "Middle Model")
+    private String middleModel;
+
     @Schema(description = "Related Field")
     private String relatedField;
 
