@@ -213,7 +213,7 @@ public class OneToManyProcessor extends BaseProcessor {
                     && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
                 // When the `relatedField` appears in the fields and defined as a ManyToOne field,
                 // fill in the displayName of it.
-                fillManyToOneDisplayName(relatedField, row, subRows);
+                fillManyToOneDisplayName(row, subRows);
             }
             row.put(fieldName, subRows);
         });
@@ -223,13 +223,12 @@ public class OneToManyProcessor extends BaseProcessor {
      * When the `relatedField` defined in related model is ManyToOne field, it does not need to
      * query the main model again to get the displayNames, fill in the displayName using the main model rows directly.
      *
-     * @param manyToOneField ManyToOne field object corresponding to the OneToMany field
      * @param mainRow Main model row
      * @param subRows OneToMany field, multiple related model rows corresponding to the single main model row
      */
-    private void fillManyToOneDisplayName(MetaField manyToOneField, Map<String, Object> mainRow, List<Map<String, Object>> subRows) {
+    private void fillManyToOneDisplayName(Map<String, Object> mainRow, List<Map<String, Object>> subRows) {
         // Filter out null or empty strings of displayNames
-        List<Object> displayValues =  ModelManager.getFieldDisplayName(manyToOneField).stream()
+        List<Object> displayValues =  ModelManager.getModelDisplayName(modelName).stream()
                 .map(mainRow::get)
                 .filter(v -> v != null && v != "")
                 .collect(Collectors.toList());

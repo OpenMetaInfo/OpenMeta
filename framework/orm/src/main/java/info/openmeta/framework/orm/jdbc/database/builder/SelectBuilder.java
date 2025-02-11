@@ -129,7 +129,8 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
             if (FieldType.TO_ONE_TYPES.contains(metaField.getFieldType())
                     && ModelManager.isTimelineModel(metaField.getRelatedModel())) {
                 // ManyToOne/OneToOne fields, the associated model is a timeline model
-                ModelManager.getFieldDisplayName(metaField).forEach(displayField -> cascadedFields.add(field + "." + displayField));
+                ModelManager.getModelDisplayName(metaField.getRelatedModel())
+                        .forEach(displayField -> cascadedFields.add(field + "." + displayField));
             } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                 // Get dynamic cascaded fields
                 String[] fieldArray = StringUtils.split(metaField.getCascadedField(), ".");

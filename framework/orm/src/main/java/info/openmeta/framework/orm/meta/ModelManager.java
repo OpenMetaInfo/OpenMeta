@@ -203,20 +203,6 @@ public class ModelManager {
     }
 
     /**
-     * Validate the field-level displayName, multiple display name fields are ordered.
-     *
-     * @param metaField field metadata object
-     */
-    private static void validateFieldDisplayName(MetaField metaField) {
-        List<String> displayName = metaField.getDisplayName();
-        if (!CollectionUtils.isEmpty(displayName)) {
-            Assert.isTrue(!displayName.contains(ModelConstant.DISPLAY_NAME),
-                    "The displayName if field {0} cannot contain the 'displayName' keyword itself!", metaField.getFieldName());
-            validateStoredFields(metaField.getRelatedModel(), displayName);
-        }
-    }
-
-    /**
      * Validate the searchName.
      * When the `searchName` is not defined, if there is a `name` field, it will be used as `searchName`.
      *
@@ -321,7 +307,6 @@ public class ModelManager {
         Assert.isTrue(MODEL_MAP.containsKey(relatedModel),
                 "The relatedModel {0} of the related field {1}:{2} does not exist in the model metadata!",
                 relatedModel, metaField.getModelName(), metaField.getFieldName());
-        validateFieldDisplayName(metaField);
     }
 
     /**
@@ -707,15 +692,13 @@ public class ModelManager {
     }
 
     /**
-     * Get the displayed fields of the related model by the relational field.
-     * If the field-level `displayName` is not defined, take the `displayName` of the related model.
+     * Get the displayed fields of the specified model.
      *
-     * @param metaField relational field object
-     * @return related model field list
+     * @param modelName model name
+     * @return displayed field list
      */
-    public static List<String> getFieldDisplayName(MetaField metaField){
-        return CollectionUtils.isEmpty(metaField.getDisplayName()) ?
-                MODEL_MAP.get(metaField.getRelatedModel()).getDisplayName() : metaField.getDisplayName();
+    public static List<String> getModelDisplayName(String modelName){
+        return getModel(modelName).getDisplayName();
     }
 
     /**

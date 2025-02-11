@@ -120,7 +120,7 @@ public class XToOneProcessor extends BaseProcessor {
      */
     private Map<Serializable, String> getDisplayNameMap(Map<Serializable, Map<String, Object>> relatedValueMap) {
         Map<Serializable, String> displayNameMap = new HashMap<>();
-        List<String> displayFields = ModelManager.getFieldDisplayName(metaField);
+        List<String> displayFields = ModelManager.getModelDisplayName(metaField.getRelatedModel());
         for (Map.Entry<Serializable, Map<String, Object>> value : relatedValueMap.entrySet()) {
             List<Object> displayValues = displayFields.stream().map(value.getValue()::get)
                     .filter(n -> n != null && n != "").collect(Collectors.toList());

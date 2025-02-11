@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.util.List;
 
 /**
  * SysField Model
@@ -65,9 +64,6 @@ public class SysField extends BaseModel {
 
     @Schema(description = "Cascaded Field")
     private String cascadedField;
-
-    @Schema(description = "Display Name")
-    private List<String> displayName;
 
     @Schema(description = "Filters")
     private String filters;

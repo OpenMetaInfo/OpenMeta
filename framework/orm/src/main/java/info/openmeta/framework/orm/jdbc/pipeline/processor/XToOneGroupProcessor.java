@@ -51,7 +51,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
         super(metaField, accessType);
         this.flexQuery = flexQuery;
         // For ManyToOne/OneToOne fields, get the displayName of the related model.
-        this.expandFields.addAll(ModelManager.getFieldDisplayName(metaField));
+        this.expandFields.addAll(ModelManager.getModelDisplayName(metaField.getRelatedModel()));
         if (flexQuery != null) {
             // When the flexQuery has subQuery base on the ManyToOne/OneToOne field,
             // expand the fields of the related model to be read.
@@ -175,7 +175,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
      * @param rows Data list
      */
     public void processRelatedTimeLineModelDisplayName(List<Map<String, Object>> rows) {
-        List<String> displayFields = ModelManager.getFieldDisplayName(metaField);
+        List<String> displayFields = ModelManager.getModelDisplayName(metaField.getRelatedModel());
         String xToOneFieldName = metaField.getFieldName();
         rows.forEach(row -> {
             Map<String, Object> relatedRow = new HashMap<>();
