@@ -8,7 +8,7 @@ import info.openmeta.framework.orm.changelog.message.dto.ChangeLog;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.domain.Page;
-import info.openmeta.framework.orm.domain.QueryParams;
+import info.openmeta.framework.web.vo.QueryParams;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaModel;
 import info.openmeta.framework.orm.meta.ModelManager;

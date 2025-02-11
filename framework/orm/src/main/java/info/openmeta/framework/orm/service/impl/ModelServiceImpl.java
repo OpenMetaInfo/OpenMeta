@@ -866,12 +866,34 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         // Append permission data range filters
         filters = permissionService.appendScopeAccessFilters(modelName, filters);
         flexQuery.setFilters(filters);
-        List<Map<String, Object>> result = jdbcService.selectByFilter(modelName, flexQuery);
-        if (result.size() > BaseConstant.MAX_BATCH_SIZE) {
+        List<Map<String, Object>> rows = jdbcService.selectByFilter(modelName, flexQuery);
+        if (rows.size() > BaseConstant.MAX_BATCH_SIZE) {
             log.error("Model {} `searchList` exceeds the limit of {}, please switch to `searchPage`: {}",
                     modelName, BaseConstant.MAX_BATCH_SIZE, flexQuery);
         }
-        return result;
+        return rows;
+    }
+
+    /**
+     * Performs a non-paginated query based on FlexQuery, intended for internal code use.
+     * <p>If the result set exceeds {@code MAX_BATCH_SIZE}, an error is logged but no exception is thrown.</p>
+     *
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @return a list of maps representing the matching rows
+     */
+    @Override
+    public List<Map<String, Object>> searchName(String modelName, FlexQuery flexQuery) {
+        List<Map<String, Object>> rows = searchList(modelName, flexQuery);
+        List<String> displayFields = ModelManager.getModel(modelName).getDisplayName();
+        for (Map<String, Object> row : rows) {
+            // Filter out field values for null or empty strings
+            List<Object> displayValues = displayFields.stream().map(row::get)
+                    .filter(v -> v != null && v != "").collect(Collectors.toList());
+            String name = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
+            row.put(ModelConstant.DISPLAY_NAME, name);
+        }
+        return rows;
     }
 
     /**

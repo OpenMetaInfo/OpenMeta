@@ -417,6 +417,16 @@ public interface ModelService<K extends Serializable> {
     List<Map<String, Object>> searchList(String modelName, FlexQuery flexQuery);
 
     /**
+     * Performs a non-paginated query based on FlexQuery.
+     * <p>If the result set exceeds {@code MAX_BATCH_SIZE}, an error is logged but no exception is thrown.</p>
+     *
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @return a list of maps representing the matching rows with displayName and ID
+     */
+    List<Map<String, Object>> searchName(String modelName, FlexQuery flexQuery);
+
+    /**
      * Performs a non-paginated query based on FlexQuery and maps the results
      * to the specified return class.
      * <p>If the result set exceeds {@code MAX_BATCH_SIZE}, an error is logged

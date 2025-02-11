@@ -1,7 +1,7 @@
 package info.openmeta.framework.web.controller;
 
-import info.openmeta.framework.web.controller.vo.ModelField;
-import info.openmeta.framework.web.controller.vo.ModelFields;
+import info.openmeta.framework.web.vo.ModelField;
+import info.openmeta.framework.web.vo.ModelFields;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.framework.web.service.ToolkitService;
 import io.swagger.v3.oas.annotations.Operation;

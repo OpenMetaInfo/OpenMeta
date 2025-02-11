@@ -49,7 +49,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     /**
-     * Export data by dynamic fields and QueryParams, without export template.
+     * Export data by dynamic fields and ExportParams, without export template.
      * The convertType should be set to DISPLAY to get the display values of the fields.
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
@@ -64,7 +64,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     /**
-     * Export multiple sheets of data by dynamic fields and QueryParams, without export template.
+     * Export multiple sheets of data by dynamic fields and ExportParams, without export template.
      * The convertType should be set to DISPLAY to get the display values of the fields.
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *

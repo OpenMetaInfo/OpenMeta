@@ -1,6 +1,9 @@
-package info.openmeta.framework.orm.domain;
+package info.openmeta.framework.web.vo;
 
+import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.context.ContextHolder;
+import info.openmeta.framework.base.utils.Assert;
+import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.enums.ConvertType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -11,9 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * General query parameters object specifically designed for API request parameter transmission.
- * This class encapsulates all necessary parameters for performing various types of API queries,
- * including aggregation functions, sorting, and sub-queries.
+ * SearchListParams for /searchList API.
  * <p>
  * It is intended solely for API endpoint consumption and is not suitable for internal service logic.
  * <p>
@@ -22,8 +23,8 @@ import java.util.Map;
  *      GroupBy: ["deptId"],
  */
 @Data
-@Schema(name = "QueryParams")
-public class QueryParams {
+@Schema(name = "SearchListParams")
+public class SearchListParams {
 
     @Schema(description = "Fields list to get, empty means all fields of the model.", example = "[\"id\", \"name\"]")
     private List<String> fields;
@@ -34,20 +35,14 @@ public class QueryParams {
 
     private AggFunctions aggFunctions;
 
-    @Schema(description = "Page number, start from 1, default 1.", example = "1")
-    private Integer pageNumber;
-
-    @Schema(description = "Page size, or limit size for searchList, default 50.", example = "50")
-    private Integer pageSize;
+    @Schema(description = "Limit size for searchList, default 50.", example = "50")
+    private Integer limit;
 
     @Schema(description = "Fields to group by, empty means no grouping.", example = "[]")
     private List<String> groupBy;
 
     @Schema(description = "Pivot split field list.", example = "[]")
     private List<String> splitBy;
-
-    @Schema(description = "Whether to return the summary result of numeric fields, default no summary.")
-    private Boolean summary;
 
     @Schema(description = "Effective date, default is `Today`.")
     private LocalDate effectiveDate;
@@ -57,28 +52,34 @@ public class QueryParams {
 
 
     /**
-     * Convert QueryParams to FlexQuery.
+     * Convert SearchListParams to FlexQuery.
      *
-     * @param queryParams QueryParams
+     * @param searchListParams SearchListParams
      * @return FlexQuery
      */
-    static public FlexQuery convertParamsToFlexQuery(QueryParams queryParams) {
-        if (queryParams == null) {
-            queryParams = new QueryParams();
+    static public FlexQuery convertParamsToFlexQuery(SearchListParams searchListParams) {
+        if (searchListParams == null) {
+            searchListParams = new SearchListParams();
         }
-        ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
-        flexQuery.setFields(queryParams.getFields());
+        FlexQuery flexQuery = new FlexQuery(searchListParams.getFilters(), searchListParams.getOrders());
+        flexQuery.setFields(searchListParams.getFields());
         flexQuery.setConvertType(ConvertType.REFERENCE);
-        flexQuery.setGroupBy(queryParams.getGroupBy());
+        flexQuery.setGroupBy(searchListParams.getGroupBy());
         // Set AggFunction parameters
-        flexQuery.setAggFunctions(queryParams.getAggFunctions());
+        flexQuery.setAggFunctions(searchListParams.getAggFunctions());
+        // Default limitSize for searchList.
+        Integer limitSize = searchListParams.getLimit();
+        limitSize = limitSize == null || limitSize < 1 ? BaseConstant.DEFAULT_PAGE_SIZE : limitSize;
+        Assert.isTrue(limitSize <= BaseConstant.MAX_BATCH_SIZE,
+                "API `searchList` cannot exceed the maximum limit of {0}.", BaseConstant.MAX_BATCH_SIZE);
+        flexQuery.setLimitSize(limitSize);
         // Set SubQuery parameters
-        if (!CollectionUtils.isEmpty(queryParams.getSubQueries())) {
+        if (!CollectionUtils.isEmpty(searchListParams.getSubQueries())) {
             SubQueries subQueries = new SubQueries();
-            subQueries.setQueryMap(queryParams.getSubQueries());
+            subQueries.setQueryMap(searchListParams.getSubQueries());
             flexQuery.setSubQueries(subQueries);
         }
+        ContextHolder.getContext().setEffectiveDate(searchListParams.getEffectiveDate());
         return flexQuery;
     }
 }

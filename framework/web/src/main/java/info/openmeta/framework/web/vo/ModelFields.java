@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.controller.vo;
+package info.openmeta.framework.web.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

@@ -8,6 +8,9 @@ import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.utils.IdUtils;
+import info.openmeta.framework.web.vo.QueryParams;
+import info.openmeta.framework.web.vo.SearchListParams;
+import info.openmeta.framework.web.vo.SearchNameParams;
 import info.openmeta.framework.web.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -479,18 +482,17 @@ public class ModelController<K extends Serializable> {
     public ApiResponse<Page<Map<String, Object>>> searchPage(@PathVariable String modelName,
                                                              @RequestBody(required = false) QueryParams queryParams) {
         FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
-        flexQuery.setSummary(Boolean.TRUE.equals(queryParams.getSummary()));
         Page<Map<String, Object>> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
         return ApiResponse.success(modelService.searchPage(modelName, flexQuery, page));
     }
 
     /**
-     * Query data list without pagination, the `limitSize` is default to DEFAULT_PAGE_SIZE.
+     * Query data list without pagination, the `limit` is default to DEFAULT_PAGE_SIZE.
      * The OneToOne/ManyToOne field value is the `displayName` of the related model.
      * Support SUM, AVG, MIN, MAX, COUNT aggregation queries.
      *
      * @param modelName model name
-     * @param queryParams  Aggregation query parameter
+     * @param searchListParams  Aggregation query parameter
      * @return data list
      */
     @PostMapping(value = "/searchList")
@@ -498,17 +500,28 @@ public class ModelController<K extends Serializable> {
             "aggFunctions, and subQueries. Default limit to 50.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> searchList(@PathVariable String modelName,
-                                                             @RequestBody(required = false) QueryParams queryParams) {
-        FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
-        // Default limitSize for searchList.
-        Integer limitSize = queryParams.getPageSize();
-        limitSize = limitSize == null || limitSize < 1 ? BaseConstant.DEFAULT_PAGE_SIZE : limitSize;
-        Assert.isTrue(limitSize <= BaseConstant.MAX_BATCH_SIZE,
-                "API `searchList` cannot exceed the maximum limit of {0}.", BaseConstant.MAX_BATCH_SIZE);
-        flexQuery.setLimitSize(limitSize);
+                                                             @RequestBody(required = false) SearchListParams searchListParams) {
+        FlexQuery flexQuery = SearchListParams.convertParamsToFlexQuery(searchListParams);
         return ApiResponse.success(modelService.searchList(modelName, flexQuery));
     }
 
+    /**
+     * Query the displayNames based on the match field, filters, orders, limitSize.
+     * Default limit to 10.
+     *
+     * @param modelName model name
+     * @param searchNameParams SearchNameParams
+     * @return List of data with displayName and additional fields
+     */
+    @PostMapping(value = "/searchName")
+    @Operation(description = "Query the displayNames based on the match field, filters, orders, limitSize. " +
+            "Default limit to 10.")
+    @DataMask
+    public ApiResponse<List<Map<String, Object>>> searchName(@PathVariable String modelName,
+                                                             @RequestBody(required = false) SearchNameParams searchNameParams) {
+        FlexQuery flexQuery = SearchNameParams.convertParamsToFlexQuery(searchNameParams);
+        return ApiResponse.success(modelService.searchName(modelName, flexQuery));
+    }
 
     /**
      * Simple aggregation query params by `filters` and `aggFunctions`.
