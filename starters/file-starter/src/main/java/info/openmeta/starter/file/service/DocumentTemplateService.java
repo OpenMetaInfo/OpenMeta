@@ -1,6 +1,6 @@
 package info.openmeta.starter.file.service;
 
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.entity.DocumentTemplate;
 import info.openmeta.framework.orm.service.EntityService;
 

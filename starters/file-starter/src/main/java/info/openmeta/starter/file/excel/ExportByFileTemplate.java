@@ -5,7 +5,7 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;

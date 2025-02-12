@@ -408,6 +408,8 @@ public class ModelManager {
     private static void verifyDynamicAttribute(MetaField metaField) {
         if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
             metaField.setDynamic(true);
+        } else if (FieldType.FILE.equals(metaField.getFieldType()) || FieldType.MULTI_FILE.equals(metaField.getFieldType())) {
+            metaField.setDynamic(true);
         }
     }
 

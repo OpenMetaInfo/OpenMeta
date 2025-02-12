@@ -4,7 +4,7 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.ExportTemplateDTO;
 import info.openmeta.starter.file.dto.SheetInfo;
 import info.openmeta.starter.file.entity.ExportTemplate;

@@ -12,7 +12,7 @@ import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.UploadFileDTO;
@@ -176,7 +176,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileRecord uploadFile(String modelName, MultipartFile file) {
-        return this.uploadFile(modelName, null, file);
+        return this.uploadFileWithSource(modelName, null, null, file);
     }
 
     /**
@@ -184,11 +184,11 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      *
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
      * @param file the file to be uploaded
      * @return fileRecord object
      */
-    @Override
-    public FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file) {
+    private FileRecord uploadFileWithSource(String modelName, Serializable rowId, String fieldName, MultipartFile file) {
         String fileName = FileUtils.getShortFileName(file);
         FileType fileType = FileUtils.getActualFileType(file);
         String fullFileName = getFullFileName(fileName, fileType);
@@ -203,6 +203,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         FileRecord fileRecord = new FileRecord();
         fileRecord.setModelName(modelName);
         fileRecord.setRowId(rowId == null ? null : rowId.toString());
+        fileRecord.setFieldName(fieldName);
         fileRecord.setFileName(fullFileName);
         fileRecord.setFileType(fileType);
         fileRecord.setOssKey(ossKey);
@@ -215,20 +216,51 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     }
 
     /**
+     * Upload a file to the OSS and create a corresponding FileRecord to associate with a business model and rowId.
+     *
+     * @param modelName the name of the corresponding business model
+     * @param rowId the ID of the corresponding business row data
+     * @param file the file to be uploaded
+     * @return fileRecord object
+     */
+    @Override
+    public FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file) {
+        return this.uploadFileWithSource(modelName, rowId, null, file);
+    }
+
+    /**
+     * Upload a file to the OSS and create a corresponding FileRecord to associate
+     * with a business model and rowId.
+     *
+     * @param modelName the name of the corresponding business model
+     * @param rowId     the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
+     * @param file      the file to be uploaded
+     * @return fileInfo object
+     */
+    @Override
+    public FileInfo uploadFile(String modelName, Serializable rowId, String fieldName, MultipartFile file) {
+        FileRecord fileRecord = this.uploadFileWithSource(modelName, rowId, fieldName, file);
+        return this.convertToFileInfo(fileRecord);
+    }
+
+    /**
      * Upload multiple files to the OSS and create corresponding FileRecord to associate with a business model and rowId.
      *
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
      * @param files the files to be uploaded
-     * @return a list of fileRecord objects
+     * @return a list of fileInfo objects
      */
     @Override
-    public List<FileRecord> uploadFiles(String modelName, Serializable rowId, MultipartFile[] files) {
-        List<FileRecord> fieldRecords = Lists.newArrayList();
+    public List<FileInfo> uploadFiles(String modelName, Serializable rowId, String fieldName, MultipartFile[] files) {
+        List<FileInfo> fieldInfos = Lists.newArrayList();
         for(MultipartFile file : files) {
-            fieldRecords.add(this.uploadFile(modelName, rowId, file));
+            FileInfo fileInfo = this.uploadFile(modelName, rowId, fieldName, file);
+            fieldInfos.add(fileInfo);
         }
-        return fieldRecords;
+        return fieldInfos;
     }
 
     /**

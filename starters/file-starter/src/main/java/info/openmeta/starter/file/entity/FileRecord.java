@@ -50,6 +50,9 @@ public class FileRecord extends BaseModel {
     @Schema(description = "Row ID")
     private String rowId;
 
+    @Schema(description = "Field Name")
+    private String fieldName;
+
     @Schema(description = "Source")
     private FileSource source;
 

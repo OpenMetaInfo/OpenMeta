@@ -1,4 +1,4 @@
-package info.openmeta.framework.web.dto;
+package info.openmeta.framework.orm.domain;
 
 import info.openmeta.framework.orm.enums.FileType;
 import io.swagger.v3.oas.annotations.media.Schema;

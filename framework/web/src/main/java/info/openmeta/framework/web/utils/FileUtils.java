@@ -5,7 +5,7 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.AssertBusiness;
 import info.openmeta.framework.orm.enums.FileType;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;

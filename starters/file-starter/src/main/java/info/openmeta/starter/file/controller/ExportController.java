@@ -1,7 +1,7 @@
 package info.openmeta.starter.file.controller;
 
 import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.starter.file.service.ExportService;
 import info.openmeta.starter.file.vo.ExportParams;

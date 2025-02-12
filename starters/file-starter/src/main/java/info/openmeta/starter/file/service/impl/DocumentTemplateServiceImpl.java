@@ -10,7 +10,7 @@ import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.DocumentTemplate;
 import info.openmeta.starter.file.service.DocumentTemplateService;
