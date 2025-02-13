@@ -1,8 +1,8 @@
 package info.openmeta.starter.file.controller;
 
 import info.openmeta.framework.base.utils.Assert;
-import info.openmeta.framework.web.controller.EntityController;
 import info.openmeta.framework.orm.domain.FileInfo;
+import info.openmeta.framework.web.controller.EntityController;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.starter.file.entity.FileRecord;
 import info.openmeta.starter.file.service.FileRecordService;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * FileRecordController
@@ -32,6 +33,19 @@ public class FileRecordController extends EntityController<FileRecordService, Fi
     public ApiResponse<FileInfo> getFileInfo(@RequestParam Long fileId) {
         Assert.notNull(fileId, "fileId cannot be null.");
         return ApiResponse.success(service.getFileInfo(fileId));
+    }
+
+    /**
+     * Get the fileInfo by modelName and rowId
+     */
+    @Operation(description = "Get the fileInfo by modelName and rowId")
+    @GetMapping(value = "/getFileInfo")
+    @Parameter(name = "fileId", description = "The id of the file object.")
+    public ApiResponse<List<FileInfo>> getFileInfo(@RequestParam String modelName,
+                                                   @RequestParam Serializable rowId) {
+        Assert.notBlank(modelName, "modelName cannot be empty.");
+        Assert.notNull(rowId, "rowId cannot be null.");
+        return ApiResponse.success(service.getFileInfo(modelName, rowId));
     }
 
     /**

@@ -4,15 +4,17 @@ import com.github.f4b6a3.tsid.TsidCreator;
 import com.google.common.collect.Lists;
 import info.openmeta.framework.base.config.TenantConfig;
 import info.openmeta.framework.base.context.ContextHolder;
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.enums.FileType;
+import info.openmeta.framework.orm.service.PermissionService;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
-import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.UploadFileDTO;
@@ -27,7 +29,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -43,6 +48,9 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
 
     @Autowired
     private OSSProperties ossProperties;
+
+    @Autowired
+    private PermissionService permissionService;
 
     /**
      * Generate an OSS key for the file
@@ -256,7 +264,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     @Override
     public List<FileInfo> uploadFiles(String modelName, Serializable rowId, String fieldName, MultipartFile[] files) {
         List<FileInfo> fieldInfos = Lists.newArrayList();
-        for(MultipartFile file : files) {
+        for (MultipartFile file : files) {
             FileInfo fileInfo = this.uploadFile(modelName, rowId, fieldName, file);
             fieldInfos.add(fileInfo);
         }
@@ -320,6 +328,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     @Override
     public List<FileInfo> getFileInfo(String modelName, Serializable rowId) {
         Assert.notNull(rowId, "RowId cannot be null.");
+        permissionService.checkIdAccess(modelName, rowId, AccessType.READ);
         Filters filters = new Filters().eq("modelName", modelName).eq("rowId", rowId.toString());
         List<FileRecord> fileRecords = this.searchList(filters);
         return fileRecords.stream().map(this::convertToFileInfo).toList();
