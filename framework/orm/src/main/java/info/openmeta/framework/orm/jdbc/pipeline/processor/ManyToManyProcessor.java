@@ -21,18 +21,18 @@ import java.util.stream.Collectors;
 /**
  * ManyToMany field value processing.
  * Structure of ManyToMany field:
- *      Main model --(ManyToMany)--> Associated model
+ *      Main model --(ManyToMany)--> Related model
  *      equals to:
- *      Main model --(OneToMany)--> Middle model --(ManyToOne)--> Associated model
- * The middle model is the mapping table of the ManyToMany field, configured in the `relatedModel` of ManyToMany
- * field metadata. The middle model contains the following key fields:
- *      id: Middle model id
- *      field1: Main model id (relatedField config in ManyToMany field metadata)
- *      field2: Associated model id (inverseLinkField config in ManyToMany field metadata)
+ *      Main model <--(jointLeft field)-- Joint model --(jointRight field)--> Associated model
+ * The joint model is the mapping table of the ManyToMany field, configured in the `relatedModel` of ManyToMany
+ * field metadata. The joint model contains the following key fields:
+ *      id: Joint model id
+ *      field1: Main model id (jointLeft config in ManyToMany field metadata)
+ *      field2: Related model id (jointRight config in ManyToMany field metadata)
  * <p>
  * The input parameters of ManyToMany field is the ids of associated model, that is: [id1, id2, id3],
- * which implies new mapping and deleted mapping maintained in the middle table. The new mapping and deleted mapping
- * are calculated by querying the middle table once, and comparing with the input ids.
+ * which implies new mapping and deleted mapping maintained in the joint model. The new mapping and deleted mapping
+ * are calculated by querying the joint model once, and comparing with the input ids.
  */
 @Slf4j
 public class ManyToManyProcessor extends BaseProcessor {
@@ -67,7 +67,7 @@ public class ManyToManyProcessor extends BaseProcessor {
     }
 
     /**
-     * Batch CREATE mapping relationships, which is to create new rows in the middle table directly.
+     * Batch CREATE mapping relationships, which is to create new rows in the joint model directly.
      *
      * @param rows Data list
      */
@@ -77,40 +77,40 @@ public class ManyToManyProcessor extends BaseProcessor {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Object value = row.get(fieldName);
             if (value instanceof List<?> valueList && !valueList.isEmpty()) {
-                List<Serializable> rightIds = IdUtils.formatIds(metaField.getMiddleModel(), metaField.getInverseLinkField(), valueList);
+                List<Serializable> rightIds = IdUtils.formatIds(metaField.getJointModel(), metaField.getJointRight(), valueList);
                 rightIds.forEach(i -> mappingRows.add(
-                        new HashMap<>(Map.of(metaField.getRelatedField(), id, metaField.getInverseLinkField(), i))
+                        new HashMap<>(Map.of(metaField.getJointLeft(), id, metaField.getJointRight(), i))
                 ));
             }
         });
         if (!CollectionUtils.isEmpty(mappingRows)) {
             changed = true;
-            ReflectTool.createList(metaField.getMiddleModel(), mappingRows);
+            ReflectTool.createList(metaField.getJointModel(), mappingRows);
         }
     }
 
     /**
      * Batch UPDATE mapping relationships.
-     * The new mapping and deleted mapping are calculated by querying the middle table once,
+     * The new mapping and deleted mapping are calculated by querying the joint model once,
      * and comparing with the input ids of the ManyToMany field.
      *
      * @param rows Data list
      */
     private void batchUpdateMappingRows(List<Map<String, Object>> rows) {
-        // Map<mainModelId, Map<associatedModelId, middleTableId>>: get the existing mapping relationships.
+        // Map<mainModelId, Map<associatedModelId, jointModelId>>: get the existing mapping relationships.
         Map<Serializable, Map<Serializable, Serializable>> mToMIdsMapping = getPreviousManyToManyRows(rows);
-        // Extract the new mapping rows: newMToMRows, and the middle table ids to be deleted: deleteMiddleIds
+        // Extract the new mapping rows: newMToMRows, and the joint model ids to be deleted: deleteJointIds
         List<Map<String, Object>> newMToMRows = new ArrayList<>();
-        List<Serializable> deleteMiddleIds = new ArrayList<>();
+        List<Serializable> deleteJointIds = new ArrayList<>();
         rows.forEach(row -> {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Object value = row.get(fieldName);
             if (value instanceof List<?> valueList) {
                 if (valueList.isEmpty() && mToMIdsMapping.containsKey(id)) {
                     // When the ManyToMany field value is an empty list, it means to clear the mapping table data
-                    deleteMiddleIds.addAll(mToMIdsMapping.get(id).values());
+                    deleteJointIds.addAll(mToMIdsMapping.get(id).values());
                 } else {
-                    List<Serializable> rightIds = IdUtils.formatIds(metaField.getMiddleModel(), metaField.getInverseLinkField(), valueList);
+                    List<Serializable> rightIds = IdUtils.formatIds(metaField.getJointModel(), metaField.getJointRight(), valueList);
                     if (mToMIdsMapping.containsKey(id)) {
                         // Remove the existing ids of the associated model to obtain the newLinkIds to be associated.
                         List<Serializable> newRightIds = new ArrayList<>(rightIds);
@@ -119,47 +119,47 @@ public class ManyToManyProcessor extends BaseProcessor {
                         List<Serializable> unlinkRightIds = new ArrayList<>(mToMIdsMapping.get(id).keySet());
                         unlinkRightIds.removeAll(rightIds);
                         if (!unlinkRightIds.isEmpty()) {
-                            unlinkRightIds.forEach(i -> deleteMiddleIds.add(mToMIdsMapping.get(id).get(i)));
+                            unlinkRightIds.forEach(i -> deleteJointIds.add(mToMIdsMapping.get(id).get(i)));
                         }
                         rightIds = newRightIds;
                     }
                     rightIds.forEach(i -> newMToMRows.add(
-                            new HashMap<>(Map.of(metaField.getRelatedField(), id, metaField.getInverseLinkField(), i))
+                            new HashMap<>(Map.of(metaField.getJointLeft(), id, metaField.getJointRight(), i))
                     ));
                 }
             }
         });
-        if (!CollectionUtils.isEmpty(newMToMRows) || !CollectionUtils.isEmpty(deleteMiddleIds)) {
+        if (!CollectionUtils.isEmpty(newMToMRows) || !CollectionUtils.isEmpty(deleteJointIds)) {
             changed = true;
-            // Create middle table rows
-            ReflectTool.createList(metaField.getMiddleModel(), newMToMRows);
-            // Delete middle table rows
-            ReflectTool.deleteList(metaField.getMiddleModel(), deleteMiddleIds);
+            // Create joint model rows
+            ReflectTool.createList(metaField.getJointModel(), newMToMRows);
+            // Delete joint model rows
+            ReflectTool.deleteList(metaField.getJointModel(), deleteJointIds);
         }
     }
 
     /**
-     * Query original data from the middle table and grouped by the main model id.
+     * Query original data from the joint model and grouped by the main model id.
      *
      * @param rows Input data list
-     * @return mToMIdsMapping, `Map<mainModelId, Map<associatedModelId, middleTableId>>`,
-     *      which is used to find the id of the middle table through relatedField (mainModelId)
-     *      and inverseLinkField (associatedModelId) to delete the middle table rows.
+     * @return mToMIdsMapping, `Map<mainModelId, Map<relatedModelId, jointModelId>>`,
+     *      which is used to find the id of the joint model through jointLeft (mainModelId)
+     *      and jointRight (relatedModelId) to delete the joint model rows.
      */
     private Map<Serializable, Map<Serializable, Serializable>> getPreviousManyToManyRows(Collection<Map<String, Object>> rows) {
         Map<Serializable, Map<Serializable, Serializable>> mToMIdsMapping = new HashMap<>();
         List<Serializable> ids = rows.stream().map(r -> (Serializable) r.get(ModelConstant.ID)).collect(Collectors.toList());
-        Set<String> fields = Sets.newHashSet(ModelConstant.ID, metaField.getRelatedField(), metaField.getInverseLinkField());
-        FlexQuery previousFlexQuery = new FlexQuery(fields).where(new Filters().in(metaField.getRelatedField(), ids));
-        List<Map<String, Object>> previousMToMRows = ReflectTool.searchList(metaField.getMiddleModel(), previousFlexQuery);
+        Set<String> fields = Sets.newHashSet(ModelConstant.ID, metaField.getJointLeft(), metaField.getJointRight());
+        FlexQuery previousFlexQuery = new FlexQuery(fields).where(new Filters().in(metaField.getJointLeft(), ids));
+        List<Map<String, Object>> previousMToMRows = ReflectTool.searchList(metaField.getJointModel(), previousFlexQuery);
         previousMToMRows.forEach(row -> {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
-            Serializable relatedId = (Serializable) row.get(metaField.getRelatedField());
-            Serializable linkId = (Serializable) row.get(metaField.getInverseLinkField());
-            if (mToMIdsMapping.containsKey(relatedId)) {
-                mToMIdsMapping.get(relatedId).put(linkId, id);
+            Serializable leftId = (Serializable) row.get(metaField.getJointLeft());
+            Serializable rightId = (Serializable) row.get(metaField.getJointRight());
+            if (mToMIdsMapping.containsKey(leftId)) {
+                mToMIdsMapping.get(leftId).put(rightId, id);
             } else {
-                mToMIdsMapping.put(relatedId, new HashMap<>(Map.of(linkId, id)));
+                mToMIdsMapping.put(leftId, new HashMap<>(Map.of(rightId, id)));
             }
         });
         return mToMIdsMapping;
@@ -175,27 +175,27 @@ public class ManyToManyProcessor extends BaseProcessor {
         List<Serializable> mainModelIds = rows.stream()
                 .map(row -> (Serializable) row.get(ModelConstant.ID))
                 .collect(Collectors.toList());
-        List<Map<String, Object>> middleRows;
+        List<Map<String, Object>> jointRows;
         Map<Serializable, List<Object>> groupedValues;
         if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
             groupedValues = new HashMap<>();
-            middleRows = getMiddleCount(mainModelIds);
-            for (Map<String, Object> row : middleRows) {
-                Serializable id = (Serializable) row.get(metaField.getRelatedField());
-                row.remove(metaField.getRelatedField());
+            jointRows = getJointModelCount(mainModelIds);
+            for (Map<String, Object> row : jointRows) {
+                Serializable id = (Serializable) row.get(metaField.getJointLeft());
+                row.remove(metaField.getJointLeft());
                 List<Object> value = Collections.singletonList(row);
                 groupedValues.put(id, value);
             }
         } else {
-            middleRows = getMiddleRows(mainModelIds);
-            if (CollectionUtils.isEmpty(middleRows)) {
+            jointRows = getJointRows(mainModelIds);
+            if (CollectionUtils.isEmpty(jointRows)) {
                 rows.forEach(row -> row.put(fieldName, Collections.emptyList()));
                 return;
             }
-            // Expand the middle model rows, according to the `subQuery` object.
-            List<Map<String, Object>> expandedMiddleRows = expandMiddleRowsWithRightModelData(middleRows);
-            // Group by `relatedField` of the middle model, which stores the main model id.
-            groupedValues = groupMiddleRows(expandedMiddleRows);
+            // Expand the joint model rows, according to the `subQuery` object.
+            List<Map<String, Object>> expandedJointRows = expandJointRowsWithRightModelData(jointRows);
+            // Group by `jointLeft` of the joint model, which stores the main model id.
+            groupedValues = groupJointRows(expandedJointRows);
         }
         rows.forEach(row -> {
             List<Object> associatedRows = groupedValues.get((Serializable) row.get(ModelConstant.ID));
@@ -208,34 +208,34 @@ public class ManyToManyProcessor extends BaseProcessor {
     }
 
     /**
-     * Query the middle model according to the mainModelIds.
-     * Since `relatedField` and `inverseLinkField` are both ManyToOne fields, this query directly get the id values
+     * Query the joint model according to the mainModelIds.
+     * Since `jointLeft` and `jointRight` are both foreign key fields, this query directly get the id values
      * of the two fields in the database.
      *
      * @param mainModelIds Main model ids
-     * @return Middle model rows: [[id, relatedField, inverseLinkField], ...]
+     * @return Joint model rows: [[id, jointLeft, jointRight], ...]
      */
-    private List<Map<String, Object>> getMiddleRows(List<Serializable> mainModelIds) {
-        String relatedField = metaField.getRelatedField();
-        String inverseLinkField = metaField.getInverseLinkField();
-        Filters middleFilters = Filters.of(relatedField, Operator.IN, mainModelIds);
-        Set<String> middleFields = Sets.newHashSet(relatedField, inverseLinkField);
-        FlexQuery middleFlexQuery = new FlexQuery(middleFields, middleFilters);
-        return ReflectTool.searchList(metaField.getMiddleModel(), middleFlexQuery);
+    private List<Map<String, Object>> getJointRows(List<Serializable> mainModelIds) {
+        String jointLeft = metaField.getJointLeft();
+        String jointRight = metaField.getJointRight();
+        Filters jointFilters = Filters.of(jointLeft, Operator.IN, mainModelIds);
+        Set<String> jointModelFields = Sets.newHashSet(jointLeft, jointRight);
+        FlexQuery jointModelFlexQuery = new FlexQuery(jointModelFields, jointFilters);
+        return ReflectTool.searchList(metaField.getJointModel(), jointModelFlexQuery);
     }
 
     /**
-     * Query the middle model and right model according to the mainModelIds.
-     * By default, the `inverseLinkField` value is converted to ModelReference object.
+     * Query the joint model and right model according to the mainModelIds.
+     * By default, the `jointRight` value is converted to ModelReference object.
      *
-     * @param middleRows Middle model rows
-     * @return Middle model rows expanded with the right model data: [{inverseLinkField: ModelReference}]
-     *      or [{inverseLinkField: {right row}}]
+     * @param jointRows Joint model rows
+     * @return Joint model rows expanded with the right model data: [{jointRight: ModelReference}]
+     *      or [{jointRight: {right row}}]
      */
-    private List<Map<String, Object>> expandMiddleRowsWithRightModelData(List<Map<String, Object>> middleRows) {
-        String inverseLinkField = metaField.getInverseLinkField();
-        List<Serializable> rightIds = middleRows.stream()
-                .map(value -> (Serializable) value.get(inverseLinkField))
+    private List<Map<String, Object>> expandJointRowsWithRightModelData(List<Map<String, Object>> jointRows) {
+        String jointRight = metaField.getJointRight();
+        List<Serializable> rightIds = jointRows.stream()
+                .map(value -> (Serializable) value.get(jointRight))
                 .distinct()
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(rightIds)) {
@@ -246,27 +246,27 @@ public class ManyToManyProcessor extends BaseProcessor {
         // Group the right model rows by id
         Map<Serializable, Map<String, Object>> rightRowMap = rightRows.stream()
                 .collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.ID), row -> row));
-        // Update the `inverseLinkField` value of the middle model row, to {inverseLinkField: {associated row}}
-        middleRows.forEach(r -> r.put(inverseLinkField, rightRowMap.get((Serializable) r.get(inverseLinkField))));
-        return middleRows;
+        // Update the `jointRight` value of the joint model row, to {jointRight: {right model row}}
+        jointRows.forEach(r -> r.put(jointRight, rightRowMap.get((Serializable) r.get(jointRight))));
+        return jointRows;
     }
 
     /**
-     * Count the number of related rows in the middle model.
+     * Count the number of related rows in the joint model.
      *
      * @param mainModelIds Main model ids
-     * @return Middle model count: [{relatedField, count}, ...]
+     * @return Joint model count: [{jointLeft, count}, ...]
      */
-    private List<Map<String, Object>> getMiddleCount(List<Serializable> mainModelIds) {
+    private List<Map<String, Object>> getJointModelCount(List<Serializable> mainModelIds) {
         Filters filters = new Filters().in(ModelConstant.ID, mainModelIds);
         // When there is a subQuery filters, merge them with `AND` logic
         filters.and(subQuery.getFilters());
-        // count subQuery on the middle model
-        List<String> fields = new ArrayList<>(List.of(metaField.getRelatedField()));
-        FlexQuery middleFlexQuery = new FlexQuery(fields, filters);
+        // count subQuery on the joint model
+        List<String> fields = new ArrayList<>(List.of(metaField.getJointLeft()));
+        FlexQuery jointModelFlexQuery = new FlexQuery(fields, filters);
         // Count is automatically added during the groupBy operation
-        middleFlexQuery.setGroupBy(metaField.getRelatedField());
-        return ReflectTool.searchList(metaField.getMiddleModel(), middleFlexQuery);
+        jointModelFlexQuery.setGroupBy(metaField.getJointLeft());
+        return ReflectTool.searchList(metaField.getJointModel(), jointModelFlexQuery);
     }
 
     /**
@@ -294,19 +294,19 @@ public class ManyToManyProcessor extends BaseProcessor {
     }
 
     /**
-     * Group the expanded middle model rows by the `relatedField` attribute of the ManyToMany field,
+     * Group the expanded joint model rows by the `jointLeft` attribute of the ManyToMany field,
      * which stores the main model id.
      *
-     * @param expandedMiddleRows middle model rows, expanded with right model data
-     * @return Grouped middle model data: {mainModelId: [ModelReference, ...]}
+     * @param expandedJointRows joint model rows, expanded with right model data
+     * @return Grouped joint model data: {mainModelId: [ModelReference, ...]}
      *      or {mainModelId: [{right row}, ...]
      */
-    private Map<Serializable, List<Object>> groupMiddleRows(List<Map<String, Object>> expandedMiddleRows) {
-        String relatedField = metaField.getRelatedField();
-        String inverseLinkField = metaField.getInverseLinkField();
-        return expandedMiddleRows.stream().collect(Collectors.groupingBy(
-                row -> (Serializable) row.get(relatedField),
-                Collectors.mapping(row -> row.get(inverseLinkField), Collectors.toList())
+    private Map<Serializable, List<Object>> groupJointRows(List<Map<String, Object>> expandedJointRows) {
+        String jointLeft = metaField.getJointLeft();
+        String jointRight = metaField.getJointRight();
+        return expandedJointRows.stream().collect(Collectors.groupingBy(
+                row -> (Serializable) row.get(jointLeft),
+                Collectors.mapping(row -> row.get(jointRight), Collectors.toList())
         ));
     }
 }

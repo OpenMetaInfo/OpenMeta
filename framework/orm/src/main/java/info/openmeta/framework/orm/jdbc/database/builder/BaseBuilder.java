@@ -31,7 +31,8 @@ public abstract class BaseBuilder {
 
     /**
      * Parse logic field, support OneToOne and ManyToOne cascade fields, such as deptId.managerId.name.
-     * The cascade level does not exceed 3 levels (BaseConstant.CASCADE_LEVEL)
+     * The cascade level does not exceed 3 levels (BaseConstant.CASCADE_LEVEL).
+     * Note: OneToMany and ManyToMany fields are not supported here.
      *
      * @param logicField logic field
      * @param isSelect   whether it is a select field

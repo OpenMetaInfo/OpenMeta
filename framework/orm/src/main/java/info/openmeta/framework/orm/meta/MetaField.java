@@ -40,12 +40,14 @@ public class MetaField implements Serializable {
     private String optionSetCode;
 
     private String relatedModel;
-    
-    private String middleModel;
 
     private String relatedField;
 
-    private String inverseLinkField;
+    private String jointModel;
+
+    private String jointLeft;
+
+    private String jointRight;
 
     private String cascadedField;
 

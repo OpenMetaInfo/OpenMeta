@@ -151,7 +151,7 @@ public class ModelManager {
                     "Model field {0}:{1} cannot use a virtual field name!", metaField.getModelName(), metaField.getFieldName());
             // Check if the related field is valid
             if (FieldType.RELATED_TYPES.contains(metaField.getFieldType())) {
-                validateRelatedField(metaField);
+                validateRelationalField(metaField);
             }
             // Check if the cascaded field is valid
             if (StringUtils.isNotBlank(metaField.getCascadedField())) {
@@ -295,18 +295,45 @@ public class ModelManager {
     }
 
     /**
-     * Check if the related field attributes are valid.
+     * Check if the relational field attributes are valid.
      *
      * @param metaField field metadata object
      */
-    private static void validateRelatedField(MetaField metaField) {
+    private static void validateRelationalField(MetaField metaField) {
         String relatedModel = metaField.getRelatedModel();
         Assert.isTrue(StringUtils.isNotBlank(relatedModel),
-                "The relatedModel of the related field {0}:{1} cannot be empty!",
+                "{0}:{1} field, the `relatedModel` cannot be empty!",
                 metaField.getModelName(), metaField.getFieldName());
         Assert.isTrue(MODEL_MAP.containsKey(relatedModel),
-                "The relatedModel {0} of the related field {1}:{2} does not exist in the model metadata!",
-                relatedModel, metaField.getModelName(), metaField.getFieldName());
+                "{0}:{1} field, the relatedModel `{2}` does not exist in the model metadata!",
+                metaField.getModelName(), metaField.getFieldName(), relatedModel);
+        if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
+            Assert.notBlank(metaField.getRelatedField(),
+                    "{0}:{1} is a OneToMany field, the `relatedField` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_FIELDS.get(relatedModel).containsKey(metaField.getRelatedField()),
+                    "{0}:{1} is a OneToMany field, the relatedModel `{2}` does not contain the related field `{3}`!",
+                    metaField.getModelName(), metaField.getFieldName(), relatedModel, metaField.getRelatedField());
+        } else if (FieldType.MANY_TO_MANY.equals(metaField.getFieldType())) {
+            Assert.notBlank(metaField.getJointModel(),
+                    "{0}:{1} is a ManyToMany field, the `jointModel` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_MAP.containsKey(metaField.getJointModel()),
+                    "{0}:{1} is a ManyToMany field, the jointModel `{2}` does not exist in the model metadata!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getJointModel());
+            Assert.notBlank(metaField.getJointLeft(),
+                    "{0}:{1} is a ManyToMany field, the `jointLeft` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_FIELDS.get(metaField.getJointModel()).containsKey(metaField.getJointLeft()),
+                    "{0}:{1} is a ManyToMany field, the jointModel `{2}` does not contain the jointLeft field `{3}`!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getJointModel(), metaField.getJointLeft());
+            Assert.notBlank(metaField.getJointRight(),
+                    "{0}:{1} is a ManyToMany field, the `jointRight` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_FIELDS.get(metaField.getJointModel()).containsKey(metaField.getJointRight()),
+                    "{0}:{1} is a ManyToMany field, the jointModel `{2}` does not contain the jointRight field `{3}`!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getJointModel(), metaField.getJointRight());
+        }
     }
 
     /**

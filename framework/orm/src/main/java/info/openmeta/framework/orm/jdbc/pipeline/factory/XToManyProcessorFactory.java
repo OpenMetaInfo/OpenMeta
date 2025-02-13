@@ -34,7 +34,7 @@ public class XToManyProcessorFactory implements FieldProcessorFactory {
             // Process the association table rows according to the ids of the main model.
             return new OneToManyProcessor(metaField, accessType, flexQuery);
         } else if (FieldType.MANY_TO_MANY.equals(fieldType)) {
-            // Process the middle table rows according to the ids of the main model.
+            // Process the joint model rows according to the ids of the main model.
             return new ManyToManyProcessor(metaField, accessType, flexQuery);
         }
         return null;

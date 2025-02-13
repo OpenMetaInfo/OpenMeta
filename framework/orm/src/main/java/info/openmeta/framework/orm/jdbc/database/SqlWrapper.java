@@ -126,7 +126,7 @@ public class SqlWrapper {
     /**
      * Generate join statement like: `LEFT JOIN table_name t1 ON t.job_id = t1.id`
      *
-     * @param metaField left table field object
+     * @param metaField left table field object, which is ManyToOne or OneToOne field
      * @param leftAlias left table alias
      * @param rightAlias right table alias
      * @param isAcrossTimeline whether to get all timeline slice data

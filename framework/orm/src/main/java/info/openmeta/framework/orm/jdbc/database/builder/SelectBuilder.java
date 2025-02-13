@@ -113,13 +113,13 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
     }
 
     /**
-     * When cross-timeline access, both the main model and associated model are timeline models,
+     * When cross-timeline access, both the main model and related model are timeline models,
      * and the ManyToOne/OneToOne field results need to be enhanced,
-     * add the displayNames of the associated model to the SELECT fields.
+     * add the displayNames of the related model to the SELECT fields.
      * And add aliases to these SELECT fields, such as: t1.name AS deptId.name
      *
      * @param selectFields field set to be SELECT
-     * @return field set of the associated timeline model to be SELECT and their aliases
+     * @return field set of the related timeline model to be SELECT and their aliases
      */
     private Set<String> appendTimelineModelFields(Collection<String> selectFields) {
         Set<String> timelineModelFields = new HashSet<>();
