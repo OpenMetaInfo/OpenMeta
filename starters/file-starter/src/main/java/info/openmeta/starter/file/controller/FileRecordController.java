@@ -38,10 +38,13 @@ public class FileRecordController extends EntityController<FileRecordService, Fi
     /**
      * Get the fileInfo by modelName and rowId
      */
-    @Operation(description = "Get the fileInfo by modelName and rowId")
-    @GetMapping(value = "/getFileInfo")
-    @Parameter(name = "fileId", description = "The id of the file object.")
-    public ApiResponse<List<FileInfo>> getFileInfo(@RequestParam String modelName,
+    @Operation(description = "Get the fileInfos by modelName and rowId")
+    @GetMapping(value = "/getDataFiles")
+    @Parameters({
+            @Parameter(name = "modelName", description = "The model name of the file belongs to"),
+            @Parameter(name = "rowId", description = "The row ID of the file belongs to")
+    })
+    public ApiResponse<List<FileInfo>> getDataFiles(@RequestParam String modelName,
                                                    @RequestParam Serializable rowId) {
         Assert.notBlank(modelName, "modelName cannot be empty.");
         Assert.notNull(rowId, "rowId cannot be null.");
@@ -57,12 +60,12 @@ public class FileRecordController extends EntityController<FileRecordService, Fi
      * @param file The file to be uploaded
      * @return The fileInfo of the uploaded file
      */
-    @Operation(summary = "uploadFile")
+    @Operation(description = "Upload a file to the specified model and row, and return the fileInfo.")
     @PostMapping("/uploadFile")
     @Parameters({
             @Parameter(name = "modelName", description = "The model name of the file belongs to"),
             @Parameter(name = "rowId", description = "The row ID of the file belongs to"),
-            @Parameter(name = "fieldName", description = "The field name of the file belongs to"),
+            @Parameter(name = "fieldName", description = "The optional field name of the file belongs to"),
             @Parameter(name = "file", description = "The file to be uploaded")
     })
     public ApiResponse<FileInfo> uploadPredefinedData(@RequestParam String modelName,

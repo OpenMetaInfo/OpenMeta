@@ -99,15 +99,21 @@ public abstract class ESServiceImpl<T> implements ESService<T> {
      * @return ES query criteria
      */
     private Criteria convertFilters(Filters filters) {
-        Criteria criteria = new Criteria();
+        Criteria criteria = null;
         if (FilterType.TREE.equals(filters.getType())) {
             if (LogicOperator.AND.equals(filters.getLogicOperator())) {
-                filters.getChildren().forEach(child -> criteria.and(convertFilters(child)));
+                criteria = new Criteria();
+                for (Filters child : filters.getChildren()) {
+                    criteria = criteria.and(convertFilters(child));
+                }
             } else if (LogicOperator.OR.equals(filters.getLogicOperator())) {
-                filters.getChildren().forEach(child -> criteria.or(convertFilters(child)));
+                criteria = new Criteria();
+                for (Filters child : filters.getChildren()) {
+                    criteria = criteria.or(convertFilters(child));
+                }
             }
         } else if (FilterType.LEAF.equals(filters.getType())) {
-            criteria.and(convertFilterUnit(filters.getFilterUnit()));
+            criteria = convertFilterUnit(filters.getFilterUnit());
         }
         return criteria;
     }
