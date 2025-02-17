@@ -291,21 +291,17 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
 
     /**
      * Get display names for the specified IDs, returning a map of {id -> displayName}.
-     * If no display fields are specified, uses the model's default 'displayName' configuration.
      *
      * @param modelName the name of the model
      * @param ids a list of row IDs
-     * @param displayFields an optional list of fields to be used for display name
      * @return a map of IDs to their resolved display names
      */
     @Override
-    public Map<K, String> getDisplayNames(String modelName, List<K> ids, List<String> displayFields) {
+    public Map<K, String> getDisplayNames(String modelName, List<K> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return new HashMap<>(0);
         }
-        if (CollectionUtils.isEmpty(displayFields)) {
-            displayFields = ModelManager.getModel(modelName).getDisplayName();
-        }
+        List<String> displayFields = ModelManager.getModelDisplayName(modelName);
         Set<String> getFields = new HashSet<>(displayFields);
         getFields.add(ModelConstant.ID);
         Filters filters = Filters.of(ModelConstant.ID, Operator.IN, ids);

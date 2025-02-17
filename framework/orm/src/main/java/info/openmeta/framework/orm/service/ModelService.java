@@ -143,14 +143,12 @@ public interface ModelService<K extends Serializable> {
 
     /**
      * Get display names for the specified IDs, returning a map of {id -> displayName}.
-     * If no display fields are specified, uses the model's default 'displayName' configuration.
      *
      * @param modelName the name of the model
      * @param ids a list of row IDs
-     * @param displayFields an optional list of fields to be used for display name
      * @return a map of IDs to their resolved display names
      */
-    Map<K, String> getDisplayNames(String modelName, List<K> ids, List<String> displayFields);
+    Map<K, String> getDisplayNames(String modelName, List<K> ids);
 
     /**
      * Get distinct values for the specified field, filtered by the given conditions.
