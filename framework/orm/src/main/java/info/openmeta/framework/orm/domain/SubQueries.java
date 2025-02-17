@@ -1,6 +1,8 @@
 package info.openmeta.framework.orm.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import info.openmeta.framework.base.utils.SFunction;
+import info.openmeta.framework.orm.domain.serializer.SubQueriesDeserializer;
 import info.openmeta.framework.orm.utils.LambdaUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -18,18 +20,17 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
-@Schema(example = "{\"jobId\": {}]",
-        description = """
-                Support multiple subQueries:
-                * {"jobId": {}}
-                * {"jobId": {"fields": ["id", "name"]}}
-                * {"jobId": {
-                    "fields": ["id", "name"],
-                    "orders": ["name": "DESC"]
-                    }
-                  }
-                """
-)
+@Schema(example = "{\"jobId\": {}]", description = """
+        Support multiple subQueries:
+        * {"jobId": {}}
+        * {"jobId": {"fields": ["id", "name"]}}
+        * {"jobId": {
+            "fields": ["id", "name"],
+            "orders": ["name": "DESC"]
+            }
+          }
+        """)
+@JsonDeserialize(using = SubQueriesDeserializer.class)
 public class SubQueries {
 
     // SubQuery map, key is the field name, value is the SubQuery object

@@ -311,6 +311,9 @@ public class ModelManager {
             Assert.notBlank(metaField.getRelatedField(),
                     "{0}:{1} is a OneToMany field, the `relatedField` cannot be empty!",
                     metaField.getModelName(), metaField.getFieldName());
+            Assert.notEqual(metaField.getRelatedField(), ModelConstant.ID,
+                    "{0}:{1} field, the `relatedField` cannot be `id`!",
+                    metaField.getModelName(), metaField.getFieldName());
             Assert.isTrue(MODEL_FIELDS.get(relatedModel).containsKey(metaField.getRelatedField()),
                     "{0}:{1} is a OneToMany field, the relatedModel `{2}` does not contain the related field `{3}`!",
                     metaField.getModelName(), metaField.getFieldName(), relatedModel, metaField.getRelatedField());
