@@ -18,7 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <openmeta.version>0.8.20</openmeta.version>
+        <openmeta.version>0.8.21</openmeta.version>
     </properties>
 
     <dependencies>

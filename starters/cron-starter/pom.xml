@@ -6,7 +6,7 @@
     <parent>
         <groupId>info.openmeta</groupId>
         <artifactId>starters</artifactId>
-        <version>0.8.20</version>
+        <version>0.8.21</version>
     </parent>
 
     <artifactId>cron-starter</artifactId>
