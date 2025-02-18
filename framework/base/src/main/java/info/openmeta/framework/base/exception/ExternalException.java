@@ -16,7 +16,7 @@ public class ExternalException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public ExternalException(String message, Object... args){
+    public ExternalException(String message, Object... args) {
         super(message, args);
     }
 

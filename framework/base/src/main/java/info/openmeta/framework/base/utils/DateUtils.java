@@ -16,7 +16,7 @@ public abstract class DateUtils {
     /**
      * Get current UTC instant.
      */
-    public static Instant getInstantNow(){
+    public static Instant getInstantNow() {
         return Instant.now();
     }
 
@@ -25,7 +25,7 @@ public abstract class DateUtils {
      * Used in datetime computation during multi-zone operations.
      * @return current zoned datetime
      */
-    public static ZonedDateTime getZonedDateTimeNow(String zoneId){
+    public static ZonedDateTime getZonedDateTimeNow(String zoneId) {
         return ZonedDateTime.now(ZoneId.of(zoneId));
     }
 
@@ -33,7 +33,7 @@ public abstract class DateUtils {
      * Get current zoned datetime in string format with the specified zone.
      * @return datetime string
      */
-    public static String getZonedDateTimeNowString(String zoneId){
+    public static String getZonedDateTimeNowString(String zoneId) {
         return getZonedDateTimeNow(zoneId).format(TimeConstant.DATETIME_FORMATTER);
     }
 
@@ -41,7 +41,7 @@ public abstract class DateUtils {
      * Get current date in string format with the specified zone.
      * @return datetime string
      */
-    public static String  getCurrentLocalDateString(String zoneId){
+    public static String  getCurrentLocalDateString(String zoneId) {
         return getZonedDateTimeNow(zoneId).format(TimeConstant.DATE_FORMATTER);
     }
 
@@ -49,7 +49,7 @@ public abstract class DateUtils {
      * Get current date in string format with the system default zone.
      * @return datetime string
      */
-    public static String getCurrentSimpleDateString(){
+    public static String getCurrentSimpleDateString() {
         return ZonedDateTime.now(TimeZone.getDefault().toZoneId()).format(TimeConstant.SIMPLE_DATE_FORMATTER);
     }
 
@@ -57,7 +57,7 @@ public abstract class DateUtils {
      * Get current time in string format with the specified zone.
      * @return datetime string
      */
-    public static String getCurrentLocalTimeString(String zoneId){
+    public static String getCurrentLocalTimeString(String zoneId) {
         return getZonedDateTimeNow(zoneId).format(TimeConstant.DATETIME_FORMATTER);
     }
 
@@ -85,7 +85,7 @@ public abstract class DateUtils {
     /**
      * Get current hour with the specified zone.
      */
-    public static long getCurrentSeconds(){
+    public static long getCurrentSeconds() {
         return Instant.now().getEpochSecond();
     }
 

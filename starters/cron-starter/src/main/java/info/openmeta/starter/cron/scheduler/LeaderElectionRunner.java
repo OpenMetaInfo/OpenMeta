@@ -49,7 +49,7 @@ public class LeaderElectionRunner implements CommandLineRunner {
             try {
                 if (tryAcquireLeaderLease()) {
                     setLeader(true);
-                } else if (isLeader){
+                } else if (isLeader) {
                     renewLeaderLease();
                 }
             } catch (Exception e) {

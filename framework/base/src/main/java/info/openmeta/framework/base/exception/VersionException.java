@@ -16,7 +16,7 @@ public class VersionException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public VersionException(String message, Object... args){
+    public VersionException(String message, Object... args) {
         super(message, args);
     }
 }

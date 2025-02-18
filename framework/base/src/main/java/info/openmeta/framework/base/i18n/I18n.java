@@ -34,7 +34,7 @@ public class I18n {
      * @param args optional arguments to format the translation
      * @return the translated text, or the original text if no translation is found
      */
-    public static String get(String original, Object... args){
+    public static String get(String original, Object... args) {
         String languageCode = ContextHolder.getContext().getLanguage().getCode();
         if (MESSAGE_TRANSLATIONS.containsKey(languageCode)) {
             return getByLanguage(languageCode, original, args);
@@ -53,7 +53,7 @@ public class I18n {
      * @param args optional arguments to format the translation
      * @return the translated text, or the original text if no translation is found
      */
-    public static String getByLanguage(String languageCode, String original, Object... args){
+    public static String getByLanguage(String languageCode, String original, Object... args) {
         if (StringUtils.isBlank(original)) {
             return StringUtils.EMPTY;
         }
@@ -70,7 +70,7 @@ public class I18n {
      * @param args optional arguments to format the translation
      * @return the translated text, or the original text if no translation is found
      */
-    public static String getByLanguage(Locale language, String original, Object... args){
+    public static String getByLanguage(Locale language, String original, Object... args) {
         return getByLanguage(language.getLanguage(), original, args);
     }
 

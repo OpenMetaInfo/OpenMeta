@@ -13,7 +13,7 @@ public class IntegrationException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public IntegrationException(String message, Object... args){
+    public IntegrationException(String message, Object... args) {
         super(message, args);
     }
 }

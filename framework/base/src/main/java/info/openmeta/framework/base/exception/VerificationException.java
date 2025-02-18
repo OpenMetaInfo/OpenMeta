@@ -18,7 +18,7 @@ public class VerificationException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public VerificationException(String message, Object... args){
+    public VerificationException(String message, Object... args) {
         super(message, args);
     }
 }

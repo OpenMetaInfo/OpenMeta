@@ -60,7 +60,7 @@ public class FieldProcessorFactoryChain {
                 if (field.contains(".") && processorFactory instanceof XToOneGroupProcessorFactory) {
                     MetaField metaField = this.createCustomCascadedField(field);
                     fieldProcessorChain.addProcessor(processorFactory.createProcessor(metaField, accessType));
-                } else if (!field.contains(".")){
+                } else if (!field.contains(".")) {
                     MetaField metaField = ModelManager.getModelField(modelName, field);
                     fieldProcessorChain.addProcessor(processorFactory.createProcessor(metaField, accessType));
                 }

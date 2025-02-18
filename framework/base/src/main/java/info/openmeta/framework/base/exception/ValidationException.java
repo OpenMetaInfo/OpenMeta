@@ -16,7 +16,7 @@ public class ValidationException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public ValidationException(String message, Object... args){
+    public ValidationException(String message, Object... args) {
         super(message, args);
     }
 }

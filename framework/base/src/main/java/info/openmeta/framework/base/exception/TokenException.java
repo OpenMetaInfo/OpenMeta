@@ -18,7 +18,7 @@ public class TokenException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public TokenException(String message, Object... args){
+    public TokenException(String message, Object... args) {
         super(message, args);
     }
 }

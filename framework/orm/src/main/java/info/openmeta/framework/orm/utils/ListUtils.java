@@ -125,7 +125,7 @@ public abstract class ListUtils {
                 if (targetValue.containsKey(originValue)) {
                     row.put(key, targetValue.get(originValue));
                 }
-            } else if (row.containsKey(key)){
+            } else if (row.containsKey(key)) {
                 row.put(key, defaultValue);
             }
         });

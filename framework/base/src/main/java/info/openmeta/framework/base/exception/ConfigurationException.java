@@ -13,7 +13,7 @@ public class ConfigurationException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public ConfigurationException(String message, Object... args){
+    public ConfigurationException(String message, Object... args) {
         super(message, args);
     }
 }
