@@ -54,6 +54,8 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
             // and add them to selectFields, which will be updated to flexQuery.fields later.
             Set<String> dependentFields = getSelectDependFields(selectFields);
             selectFields.addAll(dependentFields);
+            // Add the ID field by default
+            selectFields.add(ModelConstant.ID);
         }
         // When subQuery is specified, append the XToMany relationship fields in subQuery to selectFields.
         if (flexQuery.getSubQueries() != null) {
@@ -66,10 +68,6 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
         List<String> storedFields = selectFields.stream()
                 .filter(f -> ModelManager.existField(mainModelName, f) && ModelManager.isStored(mainModelName, f))
                 .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(storedFields)) {
-            // Get at least the ID field when all selectFields are non-stored fields
-            storedFields.add(ModelConstant.ID);
-        }
         sqlWrapper.select(this.parseStoredFields(storedFields, true));
         // When cross-timeline access, the main model is a timeline model, and the ManyToOne/OneToOne field results
         // need to be enhanced by join clause, add the displayNames of the associated timeline model to the SELECT fields.
@@ -86,7 +84,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
      * @param fieldNames field name set
      * @return set of dependent fields of dynamic cascaded and computed fields
      */
-    private Set<String> getSelectDependFields(Set<String> fieldNames){
+    private Set<String> getSelectDependFields(Set<String> fieldNames) {
         Set<String> dependentFields = new HashSet<>();
         fieldNames.forEach(field -> {
             if (field.contains(".")) {
@@ -103,9 +101,6 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                 } else if (metaField.isComputed() && metaField.isDynamic()) {
                     // The dependent fields of computed fields
                     dependentFields.addAll(metaField.getDependentFields());
-                } else if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
-                    // ManyToMany/OneToMany fields depend on the main table ID field
-                    dependentFields.add(ModelConstant.ID);
                 }
             }
         });
