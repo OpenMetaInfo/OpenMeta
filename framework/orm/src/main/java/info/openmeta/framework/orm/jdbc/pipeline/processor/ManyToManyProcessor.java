@@ -7,9 +7,11 @@ import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.SubQuery;
+import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
+import info.openmeta.framework.orm.vo.ModelReference;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -23,14 +25,14 @@ import java.util.stream.Collectors;
  * Structure of ManyToMany field:
  *      Main model --(ManyToMany)--> Related model
  *      equals to:
- *      Main model <--(jointLeft field)-- Joint model --(jointRight field)--> Associated model
+ *      Main model <--(jointLeft field)-- Joint model --(jointRight field)--> Related model
  * The joint model is the mapping table of the ManyToMany field, configured in the `relatedModel` of ManyToMany
  * field metadata. The joint model contains the following key fields:
  *      id: Joint model id
  *      field1: Main model id (jointLeft config in ManyToMany field metadata)
  *      field2: Related model id (jointRight config in ManyToMany field metadata)
  * <p>
- * The input parameters of ManyToMany field is the ids of associated model, that is: [id1, id2, id3],
+ * The input parameters of ManyToMany field is the ids of related model, that is: [id1, id2, id3],
  * which implies new mapping and deleted mapping maintained in the joint model. The new mapping and deleted mapping
  * are calculated by querying the joint model once, and comparing with the input ids.
  */
@@ -97,7 +99,7 @@ public class ManyToManyProcessor extends BaseProcessor {
      * @param rows Data list
      */
     private void batchUpdateMappingRows(List<Map<String, Object>> rows) {
-        // Map<mainModelId, Map<associatedModelId, jointModelId>>: get the existing mapping relationships.
+        // Map<mainModelId, Map<relatedModelId, jointModelId>>: get the existing mapping relationships.
         Map<Serializable, Map<Serializable, Serializable>> mToMIdsMapping = getPreviousManyToManyRows(rows);
         // Extract the new mapping rows: newMToMRows, and the joint model ids to be deleted: deleteJointIds
         List<Map<String, Object>> newMToMRows = new ArrayList<>();
@@ -112,7 +114,7 @@ public class ManyToManyProcessor extends BaseProcessor {
                 } else {
                     List<Serializable> rightIds = IdUtils.formatIds(metaField.getJointModel(), metaField.getJointRight(), valueList);
                     if (mToMIdsMapping.containsKey(id)) {
-                        // Remove the existing ids of the associated model to obtain the newLinkIds to be associated.
+                        // Remove the existing ids of the relatedModel to obtain the newRightIds to be jointed.
                         List<Serializable> newRightIds = new ArrayList<>(rightIds);
                         newRightIds.removeAll(mToMIdsMapping.get(id).keySet());
                         // The difference set means the relationship to be deleted.
@@ -177,7 +179,24 @@ public class ManyToManyProcessor extends BaseProcessor {
                 .collect(Collectors.toList());
         List<Map<String, Object>> jointRows;
         Map<Serializable, List<Object>> groupedValues;
-        if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
+        if (subQuery == null && ConvertType.REFERENCE.equals(flexQuery.getConvertType())) {
+            // Set the ManyToMany field value to Reference objects when the ManyToMany field is not expanded
+            jointRows = getJointRows(mainModelIds);
+            if (CollectionUtils.isEmpty(jointRows)) {
+                rows.forEach(row -> row.put(fieldName, Collections.emptyList()));
+                return;
+            }
+            List<Serializable> rightIds = jointRows.stream()
+                    .map(value -> (Serializable) value.get(metaField.getJointRight()))
+                    .distinct()
+                    .toList();
+            Map<Serializable, String> displayNames = ReflectTool.getDisplayNames(metaField.getRelatedModel(), rightIds);
+            jointRows.forEach(row -> {
+                Serializable rightId = (Serializable) row.get(metaField.getJointRight());
+                row.put(metaField.getJointRight(), ModelReference.of(rightId, displayNames.get(rightId)));
+            });
+            groupedValues = groupJointRows(jointRows);
+        } else if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
             groupedValues = new HashMap<>();
             jointRows = getJointModelCount(mainModelIds);
             for (Map<String, Object> row : jointRows) {
@@ -198,12 +217,12 @@ public class ManyToManyProcessor extends BaseProcessor {
             groupedValues = groupJointRows(expandedJointRows);
         }
         rows.forEach(row -> {
-            List<Object> associatedRows = groupedValues.get((Serializable) row.get(ModelConstant.ID));
-            if (associatedRows == null) {
-                associatedRows = Collections.emptyList();
+            List<Object> relatedRows = groupedValues.get((Serializable) row.get(ModelConstant.ID));
+            if (relatedRows == null) {
+                relatedRows = Collections.emptyList();
             }
-            // Update the ManyToMany field value with the associated model data
-            row.put(fieldName, associatedRows);
+            // Update the ManyToMany field value with the related model data
+            row.put(fieldName, relatedRows);
         });
     }
 
@@ -237,7 +256,7 @@ public class ManyToManyProcessor extends BaseProcessor {
         List<Serializable> rightIds = jointRows.stream()
                 .map(value -> (Serializable) value.get(jointRight))
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
         if (CollectionUtils.isEmpty(rightIds)) {
             return Collections.emptyList();
         }
