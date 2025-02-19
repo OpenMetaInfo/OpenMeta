@@ -111,10 +111,9 @@ public class ModelManager {
             // Check if the model name is valid, to avoid SQL injection.
             Assert.isTrue(StringTools.isModelName(metaModel.getModelName()),
                     "Model name `{0}` does not meet the specification!", metaModel.getModelName());
-            // Convert the model name to snake case as the table name, to avoid inject by modify the table name.
-            metaModel.setTableName(StringTools.toUnderscoreCase(metaModel.getModelName()));
-            // Assert.isTrue(StringTools.isSnakeNameValid(metaModel.getTableName()),
-            // "The table name for model `{0}` does not meet the specification!", metaModel.getModelName(), metaModel.getTableName());
+            Assert.isTrue(StringTools.isTableOrColumn(metaModel.getTableName()), 
+                "The table name `{0}` for model `{1}` does not meet the specification!",
+                metaModel.getTableName(), metaModel.getModelName());
 
             // Check if the soft delete model has a `disabled` field
             validateSoftDeleted(metaModel);
@@ -144,12 +143,14 @@ public class ModelManager {
         for (MetaField metaField : metaFields) {
             // Check if the field name is valid, to avoid SQL injection.
             Assert.isTrue(StringTools.isFieldName(metaField.getFieldName()),
-                    "{0}:{1}, the fieldName is invalid!", metaField.getModelName(), metaField.getFieldName());
-            // Convert the field name to snake case as the column name, to avoid inject by modify the column name.
-            metaField.setColumnName(StringTools.toUnderscoreCase(metaField.getFieldName()));
-            // Assert.isTrue(StringTools.isSnakeNameValid(metaField.getColumnName()), "{0}:{1}, the columnName {2} is invalid!", metaField.getModelName(), metaField.getFieldName(), metaField.getColumnName());
+                    "{0}:{1}, the fieldName is invalid!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(StringTools.isTableOrColumn(metaField.getColumnName()), 
+                    "{0}:{1}, the columnName {2} is invalid!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getColumnName());
             Assert.notTrue(ModelConstant.VIRTUAL_FIELDS.contains(metaField.getFieldName()),
-                    "Model field {0}:{1} cannot use a virtual field name!", metaField.getModelName(), metaField.getFieldName());
+                    "Model field {0}:{1} cannot use a virtual field name!",
+                    metaField.getModelName(), metaField.getFieldName());
             // Check if the related field is valid
             if (FieldType.RELATED_TYPES.contains(metaField.getFieldType())) {
                 validateRelationalField(metaField);
@@ -503,6 +504,16 @@ public class ModelManager {
     }
 
     /**
+     * Get the tableName by model name
+     * 
+     * @param modelName model name
+     * @return tableName
+     */
+    public static String getModelTable(String modelName) {
+        return getModel(modelName).getTableName();
+    }
+
+    /**
      * Get the model primary key field name, the physical primary key field of the timeline model is `sliceId`,
      * and the primary key field of other models is `id`.
      *
@@ -600,7 +611,7 @@ public class ModelManager {
      */
     public static String getTranslationTableName(String modelName) {
         String transModel = getTranslationModelName(modelName);
-        return StringTools.toUnderscoreCase(transModel);
+        return getModelTable(transModel);
     }
 
     /**

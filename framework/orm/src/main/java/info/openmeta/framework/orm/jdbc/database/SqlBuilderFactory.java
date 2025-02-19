@@ -3,6 +3,7 @@ package info.openmeta.framework.orm.jdbc.database;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Page;
 import info.openmeta.framework.orm.jdbc.database.builder.*;
+import info.openmeta.framework.orm.meta.ModelManager;
 
 /**
  * SQL Builder Factory
@@ -107,7 +108,9 @@ public class SqlBuilderFactory {
                 .addBuilder(new SelectBuilder(sqlWrapper, flexQuery))
                 .addBuilder(new OrderByBuilder(sqlWrapper, flexQuery));
         chain.build();
-        sqlWrapper.buildTopNSql(flexQuery.getGroupBy().getFirst(), flexQuery.getTopN());
+        String partitionField = flexQuery.getGroupBy().getFirst();
+        String partitionColumn = ModelManager.getModelFieldColumn(modelName, partitionField);
+        sqlWrapper.buildTopNSql(partitionColumn, flexQuery.getTopN());
         return sqlWrapper.getSqlParams();
     }
 }

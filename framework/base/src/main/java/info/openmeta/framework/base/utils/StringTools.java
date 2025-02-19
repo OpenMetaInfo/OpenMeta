@@ -251,20 +251,16 @@ public class StringTools {
     }
 
     /**
-     * Check whether the string is in underscore naming:
-     *      starting with a lowercase letter,
-     *      only contains lowercase letters, numbers, and underscores,
-     *      and the underscore cannot be continuous or at the end.
-     * Suitable for scenarios: database table name, database column name.
-     *
+     * Check whether the string is table name or column name.
+     * 
      * @param name name
      * @return true / false
      */
-    public static boolean isUnderscoreCaseValid(String name) {
+    public static boolean isTableOrColumn(String name) {
         if (name == null || name.endsWith("_") || name.contains("__")) {
             return false;
         }
-        String pattern = "^[a-z][a-z0-9_]*$";
+        String pattern = "^[a-zA-Z0-9_]*$";
         return Pattern.matches(pattern, name);
     }
 

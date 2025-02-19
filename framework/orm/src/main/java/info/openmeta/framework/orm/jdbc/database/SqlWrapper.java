@@ -294,12 +294,12 @@ public class SqlWrapper {
      * <p>
      * Build the `subQuery` first, and then wrap the `subQuery` with the `topNumber` condition.
      *
-     * @param partitionField partition field, relatedField attribute of OneToMany field
+     * @param partitionColumn partition column, which is the relatedField of OneToMany field
      *
      */
-    public void buildTopNSql(String partitionField, Integer topN) {
+    public void buildTopNSql(String partitionColumn, Integer topN) {
         String windowSql = " ROW_NUMBER() OVER(PARTITION BY " +
-                MAIN_TABLE_ALIAS + "." + StringTools.toUnderscoreCase(partitionField) +
+                MAIN_TABLE_ALIAS + "." + partitionColumn +
                 " ORDER BY " + StringTools.removeLastComma(orderByClause) + ") as topNumber ";
         StringBuilder subSql = new StringBuilder("SELECT ").append(selectClause)
                 .append(windowSql)
