@@ -176,46 +176,21 @@ public class ManyToManyProcessor extends BaseProcessor {
     public void batchProcessOutputRows(List<Map<String, Object>> rows) {
         List<Serializable> mainModelIds = rows.stream()
                 .map(row -> (Serializable) row.get(ModelConstant.ID))
-                .collect(Collectors.toList());
-        List<Map<String, Object>> jointRows;
-        Map<Serializable, List<Object>> groupedValues;
-        if (subQuery == null && ConvertType.REFERENCE.equals(flexQuery.getConvertType())) {
-            // Set the ManyToMany field value to Reference objects when the ManyToMany field is not expanded
-            jointRows = getJointRows(mainModelIds);
-            if (CollectionUtils.isEmpty(jointRows)) {
-                rows.forEach(row -> row.put(fieldName, Collections.emptyList()));
-                return;
-            }
-            List<Serializable> rightIds = jointRows.stream()
-                    .map(value -> (Serializable) value.get(metaField.getJointRight()))
-                    .distinct()
-                    .toList();
-            Map<Serializable, String> displayNames = ReflectTool.getDisplayNames(metaField.getRelatedModel(), rightIds);
-            jointRows.forEach(row -> {
-                Serializable rightId = (Serializable) row.get(metaField.getJointRight());
-                row.put(metaField.getJointRight(), ModelReference.of(rightId, displayNames.get(rightId)));
-            });
-            groupedValues = groupJointRows(jointRows);
-        } else if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
-            groupedValues = new HashMap<>();
-            jointRows = getJointModelCount(mainModelIds);
-            for (Map<String, Object> row : jointRows) {
-                Serializable id = (Serializable) row.get(metaField.getJointLeft());
-                row.remove(metaField.getJointLeft());
-                List<Object> value = Collections.singletonList(row);
-                groupedValues.put(id, value);
-            }
-        } else {
-            jointRows = getJointRows(mainModelIds);
-            if (CollectionUtils.isEmpty(jointRows)) {
-                rows.forEach(row -> row.put(fieldName, Collections.emptyList()));
-                return;
-            }
-            // Expand the joint model rows, according to the `subQuery` object.
-            List<Map<String, Object>> expandedJointRows = expandJointRowsWithRightModelData(jointRows);
-            // Group by `jointLeft` of the joint model, which stores the main model id.
-            groupedValues = groupJointRows(expandedJointRows);
+                .toList();
+        if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
+            expandRowsWithRightCount(mainModelIds, rows);
+            return;
         }
+        List<Map<String, Object>> jointRows;
+        if (subQuery == null && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
+            // Set the ManyToMany field value to displayNames when not expanded by default
+            jointRows = getJointRowsWithRightDisplayName(mainModelIds);
+        } else {
+            // Expand the joint model rows, according to the `subQuery` object.
+            jointRows = getJointRowsWithRightModelData(mainModelIds);
+        }
+        // Group by `jointLeft` of the joint model, which stores the main model id.
+        Map<Serializable, List<Object>> groupedValues = groupJointRows(jointRows);
         rows.forEach(row -> {
             List<Object> relatedRows = groupedValues.get((Serializable) row.get(ModelConstant.ID));
             if (relatedRows == null) {
@@ -224,6 +199,83 @@ public class ManyToManyProcessor extends BaseProcessor {
             // Update the ManyToMany field value with the related model data
             row.put(fieldName, relatedRows);
         });
+    }
+
+    /**
+     * Set the ManyToMany field value to the count of related records.
+     *
+     * @param mainModelIds Main model ids
+     * @param rows         Main model data list
+     */
+    private void expandRowsWithRightCount(List<Serializable> mainModelIds, List<Map<String, Object>> rows) {
+        Filters filters = new Filters().in(metaField.getJointLeft(), mainModelIds);
+        // When there is a subQuery filters, merge them with `AND` logic
+        filters.and(subQuery.getFilters());
+        // count subQuery on the joint model
+        FlexQuery jointModelFlexQuery = new FlexQuery(List.of(metaField.getJointLeft()), filters);
+        // Count is automatically added during the groupBy operation
+        jointModelFlexQuery.setGroupBy(metaField.getJointLeft());
+        List<Map<String, Object>> countRows = ReflectTool.searchList(metaField.getJointModel(), jointModelFlexQuery);
+        Map<Serializable, Integer> countMap = countRows.stream()
+                .collect(Collectors.toMap(
+                        row -> (Serializable) row.get(metaField.getJointLeft()),
+                        row -> (Integer) row.get(ModelConstant.COUNT)));
+        rows.forEach(row -> {
+            row.put(fieldName, countMap.get((Serializable) row.get(ModelConstant.ID)));
+        });
+    }
+
+    /**
+     * Expand the joint model rows with the right model displayName.
+     *
+     * @param mainModelIds Main model ids
+     * @return Joint model rows: [{id, jointLeft, jointRight:{}},...]
+     */
+    private List<Map<String, Object>> getJointRowsWithRightDisplayName(List<Serializable> mainModelIds) {
+        List<Map<String, Object>> jointRows = getJointRows(mainModelIds);
+        String jointRight = metaField.getJointRight();
+        List<Serializable> rightIds = jointRows.stream()
+                .map(value -> (Serializable) value.get(jointRight))
+                .distinct()
+                .toList();
+        Map<Serializable, String> displayNames = ReflectTool.getDisplayNames(metaField.getRelatedModel(), rightIds);
+        if (ConvertType.DISPLAY.equals(flexQuery.getConvertType())) {
+            jointRows.forEach(row -> {
+                Serializable rightId = (Serializable) row.get(jointRight);
+                row.put(jointRight, displayNames.get(rightId));
+            });
+        } else if (ConvertType.REFERENCE.equals(flexQuery.getConvertType())) {
+            jointRows.forEach(row -> {
+                Serializable rightId = (Serializable) row.get(jointRight);
+                row.put(jointRight, ModelReference.of(rightId, displayNames.get(rightId)));
+            });
+        }
+        return jointRows;
+    }
+
+    /**
+     * Query the joint model and right model according to the mainModelIds.
+     * By default, the `jointRight` value is converted to ModelReference object.
+     *
+     * @param mainModelIds Main model ids
+     * @return Joint model rows: [{id, jointLeft, jointRight:{}},...]
+     */
+    private List<Map<String, Object>> getJointRowsWithRightModelData(List<Serializable> mainModelIds) {
+        List<Map<String, Object>> jointRows = getJointRows(mainModelIds);
+        String jointRight = metaField.getJointRight();
+        List<Serializable> rightIds = jointRows.stream()
+                .map(value -> (Serializable) value.get(jointRight))
+                .distinct()
+                .toList();
+        // Execute subQuery on the right model.
+        List<Map<String, Object>> rightRows = this.getRightRows(metaField.getRelatedModel(), rightIds);
+        // Group the right model rows by id
+        Map<Serializable, Map<String, Object>> rightRowMap = rightRows.stream()
+                .collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.ID), row -> row));
+        // Update the `jointRight` value of the joint model row, to {jointRight: {right
+        // model row}}
+        jointRows.forEach(r -> r.put(jointRight, rightRowMap.get((Serializable) r.get(jointRight))));
+        return jointRows;
     }
 
     /**
@@ -240,51 +292,6 @@ public class ManyToManyProcessor extends BaseProcessor {
         Filters jointFilters = Filters.of(jointLeft, Operator.IN, mainModelIds);
         Set<String> jointModelFields = Sets.newHashSet(jointLeft, jointRight);
         FlexQuery jointModelFlexQuery = new FlexQuery(jointModelFields, jointFilters);
-        return ReflectTool.searchList(metaField.getJointModel(), jointModelFlexQuery);
-    }
-
-    /**
-     * Query the joint model and right model according to the mainModelIds.
-     * By default, the `jointRight` value is converted to ModelReference object.
-     *
-     * @param jointRows Joint model rows
-     * @return Joint model rows expanded with the right model data: [{jointRight: ModelReference}]
-     *      or [{jointRight: {right row}}]
-     */
-    private List<Map<String, Object>> expandJointRowsWithRightModelData(List<Map<String, Object>> jointRows) {
-        String jointRight = metaField.getJointRight();
-        List<Serializable> rightIds = jointRows.stream()
-                .map(value -> (Serializable) value.get(jointRight))
-                .distinct()
-                .toList();
-        if (CollectionUtils.isEmpty(rightIds)) {
-            return Collections.emptyList();
-        }
-        // Execute subQuery on the right model.
-        List<Map<String, Object>> rightRows = this.getRightRows(metaField.getRelatedModel(), rightIds);
-        // Group the right model rows by id
-        Map<Serializable, Map<String, Object>> rightRowMap = rightRows.stream()
-                .collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.ID), row -> row));
-        // Update the `jointRight` value of the joint model row, to {jointRight: {right model row}}
-        jointRows.forEach(r -> r.put(jointRight, rightRowMap.get((Serializable) r.get(jointRight))));
-        return jointRows;
-    }
-
-    /**
-     * Count the number of related rows in the joint model.
-     *
-     * @param mainModelIds Main model ids
-     * @return Joint model count: [{jointLeft, count}, ...]
-     */
-    private List<Map<String, Object>> getJointModelCount(List<Serializable> mainModelIds) {
-        Filters filters = new Filters().in(ModelConstant.ID, mainModelIds);
-        // When there is a subQuery filters, merge them with `AND` logic
-        filters.and(subQuery.getFilters());
-        // count subQuery on the joint model
-        List<String> fields = new ArrayList<>(List.of(metaField.getJointLeft()));
-        FlexQuery jointModelFlexQuery = new FlexQuery(fields, filters);
-        // Count is automatically added during the groupBy operation
-        jointModelFlexQuery.setGroupBy(metaField.getJointLeft());
         return ReflectTool.searchList(metaField.getJointModel(), jointModelFlexQuery);
     }
 
@@ -325,7 +332,6 @@ public class ManyToManyProcessor extends BaseProcessor {
         String jointRight = metaField.getJointRight();
         return expandedJointRows.stream().collect(Collectors.groupingBy(
                 row -> (Serializable) row.get(jointLeft),
-                Collectors.mapping(row -> row.get(jointRight), Collectors.toList())
-        ));
+                Collectors.mapping(row -> row.get(jointRight), Collectors.toList())));
     }
 }

@@ -301,10 +301,21 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (CollectionUtils.isEmpty(ids)) {
             return new HashMap<>(0);
         }
+        Filters filters = Filters.of(ModelConstant.ID, Operator.IN, ids);
+        return this.getDisplayNames(modelName, filters);
+    }
+
+    /**
+     * Get display names for the specified filters, returning a map of {id -> displayName}.
+     *
+     * @param modelName the name of the model
+     * @param filters   the filters to apply
+     * @return a map of IDs to their resolved display names
+     */
+    @Override
+    public Map<K, String> getDisplayNames(String modelName, Filters filters) {
         List<String> displayFields = ModelManager.getModelDisplayName(modelName);
         Set<String> getFields = new HashSet<>(displayFields);
-        getFields.add(ModelConstant.ID);
-        Filters filters = Filters.of(ModelConstant.ID, Operator.IN, ids);
         FlexQuery flexQuery = new FlexQuery(getFields, filters);
         // If the `displayName` config consists of an Option field or a ManyToOne/OneToOne field,
         // get the optionItemName or cascaded displayName value as its field value.
@@ -313,7 +324,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         Map<K, String> displayNames = new HashMap<>();
         for (Map<String, Object> row : rows) {
             // Filter out field values for null or empty strings
-            List<Object> displayValues = displayFields.stream().map(row::get).filter(v -> v != null && v != "").collect(Collectors.toList());
+            List<Object> displayValues = displayFields.stream()
+                    .map(row::get).filter(v -> v != null && v != "")
+                    .toList();
             String name = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
             displayNames.put(Cast.of(row.get(ModelConstant.ID)), name);
         }
@@ -880,8 +893,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     public List<Map<String, Object>> searchName(String modelName, FlexQuery flexQuery) {
+        List<String> displayFields = ModelManager.getModelDisplayName(modelName);
+        flexQuery.select(displayFields);
         List<Map<String, Object>> rows = searchList(modelName, flexQuery);
-        List<String> displayFields = ModelManager.getModel(modelName).getDisplayName();
         for (Map<String, Object> row : rows) {
             // Filter out field values for null or empty strings
             List<Object> displayValues = displayFields.stream().map(row::get)

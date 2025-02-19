@@ -78,6 +78,18 @@ public abstract class ReflectTool {
     }
 
     /**
+     * Get display names for the specified filters, returning a map of {id ->
+     * displayName}.
+     *
+     * @param modelName the name of the model
+     * @param filters   the filters to apply
+     * @return a map of IDs to their resolved display names
+     */
+    public static Map<Serializable, String> getDisplayNames(String modelName, Filters filters) {
+        return getModelService().getDisplayNames(modelName, filters);
+    }
+
+    /**
      * Create data list
      *
      * @param rows data list

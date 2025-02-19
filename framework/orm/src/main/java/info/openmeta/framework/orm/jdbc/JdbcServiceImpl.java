@@ -124,6 +124,7 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
             fields = ModelManager.getModelStoredFields(modelName);
         } else if (!fields.contains(primaryKey)) {
             fields.add(primaryKey);
+            fields.add(ModelConstant.ID);
         }
         SqlParams sqlParams = StaticSqlBuilder.getSelectSql(modelName, fields, ids);
         List<Map<String, Object>> rows = jdbcProxy.queryForList(modelName, sqlParams);

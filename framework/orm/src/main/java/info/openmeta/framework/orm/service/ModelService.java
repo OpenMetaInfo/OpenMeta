@@ -151,6 +151,15 @@ public interface ModelService<K extends Serializable> {
     Map<K, String> getDisplayNames(String modelName, List<K> ids);
 
     /**
+     * Get display names for the specified filters, returning a map of {id -> displayName}.
+     *
+     * @param modelName the name of the model
+     * @param filters   the filters to apply
+     * @return a map of IDs to their resolved display names
+     */
+    Map<K, String> getDisplayNames(String modelName, Filters filters);
+
+    /**
      * Get distinct values for the specified field, filtered by the given conditions.
      *
      * @param <V> the type of the field's value
