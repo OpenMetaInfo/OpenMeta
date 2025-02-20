@@ -12,4 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BranchGatewayParams implements NodeParams {
 
+    @Schema(description = "Whether the gateway is a serial gateway, default is parallel gateway.")
+    private Boolean serialGateway;
+
 }

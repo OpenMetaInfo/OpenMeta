@@ -64,6 +64,18 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     /**
+     * Model data permission check
+     *
+     * @param model      model name
+     * @param id         data ID
+     * @param accessType operation type, default is READ
+     */
+    @Override
+    public void checkIdAccess(String model, Serializable id, AccessType accessType) {
+
+    }
+
+    /**
      * Ids data range permission check.
      * When checking the ids operation permission, first query according to the permission,
      * and check whether the ids exist in the database when there is no permission.

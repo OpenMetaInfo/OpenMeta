@@ -4,6 +4,10 @@ package info.openmeta.starter.file.constant;
  * Constants for file processing.
  */
 public interface FileConstant {
+
+    // the default subfolder for the file storage.
+    String DEFAULT_SUBFOLDER = "default";
+
     // Label for the failed data.
     String FAILED_DATA = "Failed Data";
 

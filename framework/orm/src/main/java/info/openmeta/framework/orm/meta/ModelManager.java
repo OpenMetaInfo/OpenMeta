@@ -60,6 +60,7 @@ public class ModelManager {
 
     /**
      * Initialize model data: MODEL_MAP, MODEL_FIELDS
+     *
      * @param models model metadata
      */
     private void initModels(List<MetaModel> models) {
@@ -105,15 +106,14 @@ public class ModelManager {
      *
      * @param metaModels model metadata list
      */
-    public void validateModelAttributes(List<MetaModel> metaModels){
+    public void validateModelAttributes(List<MetaModel> metaModels) {
         for (MetaModel metaModel : metaModels) {
-            // Check if the model name is valid.
+            // Check if the model name is valid, to avoid SQL injection.
             Assert.isTrue(StringTools.isModelName(metaModel.getModelName()),
                     "Model name `{0}` does not meet the specification!", metaModel.getModelName());
-            // TODO: Assert validation after changing the `tableName` to computed field.
-            metaModel.setTableName(StringTools.toUnderscoreCase(metaModel.getModelName()));
-            // Assert.isTrue(StringTools.isSnakeNameValid(metaModel.getTableName()),
-            // "The table name for model `{0}` does not meet the specification!", metaModel.getModelName(), metaModel.getTableName());
+            Assert.isTrue(StringTools.isTableOrColumn(metaModel.getTableName()), 
+                "The table name `{0}` for model `{1}` does not meet the specification!",
+                metaModel.getTableName(), metaModel.getModelName());
 
             // Check if the soft delete model has a `disabled` field
             validateSoftDeleted(metaModel);
@@ -139,18 +139,21 @@ public class ModelManager {
      *
      * @param metaFields field metadata list
      */
-    public void validateFieldAttributes(List<MetaField> metaFields){
+    public void validateFieldAttributes(List<MetaField> metaFields) {
         for (MetaField metaField : metaFields) {
+            // Check if the field name is valid, to avoid SQL injection.
             Assert.isTrue(StringTools.isFieldName(metaField.getFieldName()),
-                    "{0}:{1}, the fieldName is invalid!", metaField.getModelName(), metaField.getFieldName());
-            // TODO: remove `set` after changing the `columnName` to computed field.
-            metaField.setColumnName(StringTools.toUnderscoreCase(metaField.getFieldName()));
-            // Assert.isTrue(StringTools.isSnakeNameValid(metaField.getColumnName()), "{0}:{1}, the columnName {2} is invalid!", metaField.getModelName(), metaField.getFieldName(), metaField.getColumnName());
+                    "{0}:{1}, the fieldName is invalid!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(StringTools.isTableOrColumn(metaField.getColumnName()), 
+                    "{0}:{1}, the columnName {2} is invalid!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getColumnName());
             Assert.notTrue(ModelConstant.VIRTUAL_FIELDS.contains(metaField.getFieldName()),
-                    "Model field {0}:{1} cannot use a virtual field name!", metaField.getModelName(), metaField.getFieldName());
+                    "Model field {0}:{1} cannot use a virtual field name!",
+                    metaField.getModelName(), metaField.getFieldName());
             // Check if the related field is valid
             if (FieldType.RELATED_TYPES.contains(metaField.getFieldType())) {
-                validateRelatedField(metaField);
+                validateRelationalField(metaField);
             }
             // Check if the cascaded field is valid
             if (StringUtils.isNotBlank(metaField.getCascadedField())) {
@@ -198,20 +201,6 @@ public class ModelManager {
             metaModel.setDisplayName(Collections.singletonList("name"));
         } else {
             metaModel.setDisplayName(Collections.singletonList(ModelConstant.ID));
-        }
-    }
-
-    /**
-     * Validate the field-level displayName, multiple display name fields are ordered.
-     *
-     * @param metaField field metadata object
-     */
-    private static void validateFieldDisplayName(MetaField metaField) {
-        List<String> displayName = metaField.getDisplayName();
-        if (!CollectionUtils.isEmpty(displayName)) {
-            Assert.isTrue(!displayName.contains(ModelConstant.DISPLAY_NAME),
-                    "The displayName if field {0} cannot contain the 'displayName' keyword itself!", metaField.getFieldName());
-            validateStoredFields(metaField.getRelatedModel(), displayName);
         }
     }
 
@@ -293,6 +282,7 @@ public class ModelManager {
 
     /**
      * Check if the fields exists in the model
+     *
      * @param metaModel model metadata object
      */
     private static void validateBusinessKey(MetaModel metaModel) {
@@ -308,19 +298,48 @@ public class ModelManager {
     }
 
     /**
-     * Check if the related field attributes are valid.
+     * Check if the relational field attributes are valid.
      *
      * @param metaField field metadata object
      */
-    private static void validateRelatedField(MetaField metaField) {
+    private static void validateRelationalField(MetaField metaField) {
         String relatedModel = metaField.getRelatedModel();
         Assert.isTrue(StringUtils.isNotBlank(relatedModel),
-                "The relatedModel of the related field {0}:{1} cannot be empty!",
+                "{0}:{1} field, the `relatedModel` cannot be empty!",
                 metaField.getModelName(), metaField.getFieldName());
         Assert.isTrue(MODEL_MAP.containsKey(relatedModel),
-                "The relatedModel {0} of the related field {1}:{2} does not exist in the model metadata!",
-                relatedModel, metaField.getModelName(), metaField.getFieldName());
-        validateFieldDisplayName(metaField);
+                "{0}:{1} field, the relatedModel `{2}` does not exist in the model metadata!",
+                metaField.getModelName(), metaField.getFieldName(), relatedModel);
+        if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
+            Assert.notBlank(metaField.getRelatedField(),
+                    "{0}:{1} is a OneToMany field, the `relatedField` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.notEqual(metaField.getRelatedField(), ModelConstant.ID,
+                    "{0}:{1} field, the `relatedField` cannot be `id`!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_FIELDS.get(relatedModel).containsKey(metaField.getRelatedField()),
+                    "{0}:{1} is a OneToMany field, the relatedModel `{2}` does not contain the related field `{3}`!",
+                    metaField.getModelName(), metaField.getFieldName(), relatedModel, metaField.getRelatedField());
+        } else if (FieldType.MANY_TO_MANY.equals(metaField.getFieldType())) {
+            Assert.notBlank(metaField.getJointModel(),
+                    "{0}:{1} is a ManyToMany field, the `jointModel` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_MAP.containsKey(metaField.getJointModel()),
+                    "{0}:{1} is a ManyToMany field, the jointModel `{2}` does not exist in the model metadata!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getJointModel());
+            Assert.notBlank(metaField.getJointLeft(),
+                    "{0}:{1} is a ManyToMany field, the `jointLeft` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_FIELDS.get(metaField.getJointModel()).containsKey(metaField.getJointLeft()),
+                    "{0}:{1} is a ManyToMany field, the jointModel `{2}` does not contain the jointLeft field `{3}`!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getJointModel(), metaField.getJointLeft());
+            Assert.notBlank(metaField.getJointRight(),
+                    "{0}:{1} is a ManyToMany field, the `jointRight` cannot be empty!",
+                    metaField.getModelName(), metaField.getFieldName());
+            Assert.isTrue(MODEL_FIELDS.get(metaField.getJointModel()).containsKey(metaField.getJointRight()),
+                    "{0}:{1} is a ManyToMany field, the jointModel `{2}` does not contain the jointRight field `{3}`!",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getJointModel(), metaField.getJointRight());
+        }
     }
 
     /**
@@ -422,6 +441,8 @@ public class ModelManager {
     private static void verifyDynamicAttribute(MetaField metaField) {
         if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
             metaField.setDynamic(true);
+        } else if (FieldType.FILE.equals(metaField.getFieldType()) || FieldType.MULTI_FILE.equals(metaField.getFieldType())) {
+            metaField.setDynamic(true);
         }
     }
 
@@ -431,7 +452,7 @@ public class ModelManager {
      * @param modelName model name
      * @return true or false
      */
-    public static boolean existModel(String modelName){
+    public static boolean existModel(String modelName) {
         return MODEL_MAP.containsKey(modelName);
     }
 
@@ -439,7 +460,8 @@ public class ModelManager {
      * Check if the model exists, if not, throw an exception
      * @param modelName model name
      */
-    public static void validateModel(String modelName){
+    public static void validateModel(String modelName) {
+        Assert.notBlank(modelName, "Model name cannot be empty!");
         Assert.isTrue(existModel(modelName), "Model {0} does not exist in the model metadata!", modelName);
     }
 
@@ -448,7 +470,7 @@ public class ModelManager {
      * @param modelName model name
      * @param fieldName field name
      */
-    public static void validateModelField(String modelName, String fieldName){
+    public static void validateModelField(String modelName, String fieldName) {
         validateModel(modelName);
         Assert.isTrue(MODEL_FIELDS.get(modelName).containsKey(fieldName),
                 "Model {0} does not exist field {1}!", modelName, fieldName);
@@ -460,7 +482,7 @@ public class ModelManager {
      * @param modelName model name
      * @param fields field name list
      */
-    public static void validateModelFields(String modelName, Collection<String> fields){
+    public static void validateModelFields(String modelName, Collection<String> fields) {
         validateModel(modelName);
         if (CollectionUtils.isEmpty(fields)) {
             return;
@@ -476,9 +498,19 @@ public class ModelManager {
      * @param modelName model name
      * @return model metadata object
      */
-    public static MetaModel getModel(String modelName){
+    public static MetaModel getModel(String modelName) {
         validateModel(modelName);
         return MODEL_MAP.get(modelName);
+    }
+
+    /**
+     * Get the tableName by model name
+     * 
+     * @param modelName model name
+     * @return tableName
+     */
+    public static String getModelTable(String modelName) {
+        return getModel(modelName).getTableName();
     }
 
     /**
@@ -509,7 +541,7 @@ public class ModelManager {
      * @param modelName model name
      * @return MetaField object collection
      */
-    public static List<MetaField> getModelFields(String modelName){
+    public static List<MetaField> getModelFields(String modelName) {
         validateModel(modelName);
         return List.copyOf(MODEL_FIELDS.get(modelName).values());
     }
@@ -541,7 +573,7 @@ public class ModelManager {
      * @param fieldName field name
      * @return MetaField object
      */
-    public static MetaField getModelField(String modelName, String fieldName){
+    public static MetaField getModelField(String modelName, String fieldName) {
         validateModelField(modelName, fieldName);
         return MODEL_FIELDS.get(modelName).get(fieldName);
     }
@@ -553,7 +585,7 @@ public class ModelManager {
      * @param fieldName field name
      * @return Column column name
      */
-    public static String getModelFieldColumn(String modelName, String fieldName){
+    public static String getModelFieldColumn(String modelName, String fieldName) {
         validateModelField(modelName, fieldName);
         return MODEL_FIELDS.get(modelName).get(fieldName).getColumnName();
     }
@@ -579,7 +611,7 @@ public class ModelManager {
      */
     public static String getTranslationTableName(String modelName) {
         String transModel = getTranslationModelName(modelName);
-        return StringTools.toUnderscoreCase(transModel);
+        return getModelTable(transModel);
     }
 
     /**
@@ -589,7 +621,7 @@ public class ModelManager {
      * @param dynamic dynamic attribute
      * @return cascaded fields
      */
-    public static List<MetaField> getModelCascadedFields(String modelName, Boolean dynamic){
+    public static List<MetaField> getModelCascadedFields(String modelName, Boolean dynamic) {
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> StringUtils.isNotBlank(metaField.getCascadedField())
                         && Objects.equals(metaField.isDynamic(), dynamic))
@@ -603,7 +635,7 @@ public class ModelManager {
      * @param dynamic dynamic attribute
      * @return computed fields
      */
-    public static List<MetaField> getModelComputedFields(String modelName, Boolean dynamic){
+    public static List<MetaField> getModelComputedFields(String modelName, Boolean dynamic) {
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> metaField.isComputed() && Objects.equals(metaField.isDynamic(), dynamic))
                 .collect(Collectors.toList());
@@ -616,7 +648,7 @@ public class ModelManager {
      * @param modelName model name
      * @return encrypted fields
      */
-    public static Set<String> getModelEncryptedFields(String modelName){
+    public static Set<String> getModelEncryptedFields(String modelName) {
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> metaField.isEncrypted() && metaField.getFieldType().equals(FieldType.STRING))
                 .map(MetaField::getFieldName).collect(Collectors.toSet());
@@ -629,25 +661,11 @@ public class ModelManager {
      * @param modelName model name
      * @return masking fields
      */
-    public static Set<MetaField> getModelMaskingFields(String modelName){
+    public static Set<MetaField> getModelMaskingFields(String modelName) {
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> metaField.getMaskingType() != null
                         && metaField.getFieldType().equals(FieldType.STRING))
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Get the fields of the model that are read by default, excluding OneToMany/ManyToMany fields.
-     * To get OneToMany/ManyToMany fields, the client needs to specify the fields parameter or use SubQuery.
-     *
-     * @param modelName model name
-     * @return fields collection
-     */
-    public static Set<String> getModelDefaultReadFields(String modelName){
-        validateModel(modelName);
-        return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> !FieldType.TO_MANY_TYPES.contains(metaField.getFieldType()))
-                .map(MetaField::getFieldName).collect(Collectors.toSet());
     }
 
     /**
@@ -656,7 +674,7 @@ public class ModelManager {
      * @param modelName model name
      * @return normal fields collection
      */
-    public static Set<String> getModelFieldsWithoutXToMany(String modelName){
+    public static Set<String> getModelFieldsWithoutXToMany(String modelName) {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> !FieldType.TO_MANY_TYPES.contains(metaField.getFieldType()))
@@ -669,7 +687,7 @@ public class ModelManager {
      * @param modelName model name
      * @return stored field collection
      */
-    public static Set<String> getModelUpdatableFieldsWithoutXToMany(String modelName){
+    public static Set<String> getModelUpdatableFieldsWithoutXToMany(String modelName) {
         validateModel(modelName);
         return getModelFieldsWithoutXToMany(modelName).stream()
                 .filter(field -> !getModelField(modelName, field).isReadonly())
@@ -683,7 +701,7 @@ public class ModelManager {
      * @param modelName model name
      * @return updatable field set
      */
-    public static Set<String> getModelUpdatableFields(String modelName){
+    public static Set<String> getModelUpdatableFields(String modelName) {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> !metaField.isReadonly())
@@ -697,7 +715,7 @@ public class ModelManager {
      * @param modelName model name
      * @return stored field list
      */
-    public static List<String> getModelStoredFields(String modelName){
+    public static List<String> getModelStoredFields(String modelName) {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(metaField -> !metaField.isDynamic())
@@ -711,7 +729,7 @@ public class ModelManager {
      * @param fieldType field data type
      * @return field object set
      */
-    public static Set<MetaField> getModelFieldsWithType(String modelName, FieldType fieldType){
+    public static Set<MetaField> getModelFieldsWithType(String modelName, FieldType fieldType) {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(field -> fieldType.equals(field.getFieldType()))
@@ -719,15 +737,13 @@ public class ModelManager {
     }
 
     /**
-     * Get the displayed fields of the related model by the relational field.
-     * If the field-level `displayName` is not defined, take the `displayName` of the related model.
+     * Get the displayed fields of the specified model.
      *
-     * @param metaField relational field object
-     * @return related model field list
+     * @param modelName model name
+     * @return displayed field list
      */
-    public static List<String> getFieldDisplayName(MetaField metaField){
-        return CollectionUtils.isEmpty(metaField.getDisplayName()) ?
-                MODEL_MAP.get(metaField.getRelatedModel()).getDisplayName() : metaField.getDisplayName();
+    public static List<String> getModelDisplayName(String modelName) {
+        return getModel(modelName).getDisplayName();
     }
 
     /**
@@ -736,7 +752,7 @@ public class ModelManager {
      * @param modelName model name
      * @return numeric field set
      */
-    public static Set<String> getModelNumericFields(String modelName){
+    public static Set<String> getModelNumericFields(String modelName) {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(f -> FieldType.NUMERIC_TYPES.contains(f.getFieldType())
@@ -750,7 +766,7 @@ public class ModelManager {
      * @param modelName model name
      * @return stored numeric field set
      */
-    public static Set<String> getModelStoredNumericFields(String modelName){
+    public static Set<String> getModelStoredNumericFields(String modelName) {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).values().stream()
                 .filter(f -> FieldType.NUMERIC_TYPES.contains(f.getFieldType())
@@ -797,7 +813,7 @@ public class ModelManager {
      * @param fieldName field name
      * @return true or false
      */
-    public static boolean existField(String modelName, String fieldName){
+    public static boolean existField(String modelName, String fieldName) {
         validateModel(modelName);
         return MODEL_FIELDS.get(modelName).containsKey(fieldName);
     }
@@ -810,7 +826,7 @@ public class ModelManager {
      * @param fieldName field name
      * @return true or false
      */
-    public static boolean isStored(String modelName, String fieldName){
+    public static boolean isStored(String modelName, String fieldName) {
         validateModelField(modelName, fieldName);
         MetaField metaField = MODEL_FIELDS.get(modelName).get(fieldName);
         return !metaField.isDynamic();

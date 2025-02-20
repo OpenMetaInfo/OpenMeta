@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * FlowConfig Model Service Interface
  */
-public interface FlowConfigService extends EntityService<FlowConfig, Long> {
+public interface FlowConfigService extends EntityService<FlowConfig, String> {
 
     /**
      * Get the flow list by model name.
@@ -27,7 +27,7 @@ public interface FlowConfigService extends EntityService<FlowConfig, Long> {
      * @param flowId flow ID
      * @return flowConfig object with nodes and edges
      */
-    Optional<FlowConfig> getFlowById(Long flowId);
+    Optional<FlowConfig> getFlowById(String flowId);
 
     /**
      * Execute a non-transactional flow according to the FlowEventMessage.

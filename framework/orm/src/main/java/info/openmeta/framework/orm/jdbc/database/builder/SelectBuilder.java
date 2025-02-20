@@ -47,13 +47,15 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
         Set<String> selectFields;
         if (CollectionUtils.isEmpty(flexQuery.getFields())) {
             // When the fields are not specified, use all fields of the main model by default.
-            selectFields = ModelManager.getModelDefaultReadFields(mainModelName);
+            selectFields = ModelManager.getModelFieldsWithoutXToMany(mainModelName);
         } else {
             selectFields = new HashSet<>(flexQuery.getFields());
             // Get the dependent fields of the dynamic calculation and cascaded fields in selectFields,
             // and add them to selectFields, which will be updated to flexQuery.fields later.
             Set<String> dependentFields = getSelectDependFields(selectFields);
             selectFields.addAll(dependentFields);
+            // Add the ID field by default
+            selectFields.add(ModelConstant.ID);
         }
         // When subQuery is specified, append the XToMany relationship fields in subQuery to selectFields.
         if (flexQuery.getSubQueries() != null) {
@@ -66,13 +68,9 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
         List<String> storedFields = selectFields.stream()
                 .filter(f -> ModelManager.existField(mainModelName, f) && ModelManager.isStored(mainModelName, f))
                 .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(storedFields)) {
-            // Get at least the ID field when all selectFields are non-stored fields
-            storedFields.add(ModelConstant.ID);
-        }
-        sqlWrapper.select(this.parseLogicFields(storedFields));
+        sqlWrapper.select(this.parseStoredFields(storedFields, true));
         // When cross-timeline access, the main model is a timeline model, and the ManyToOne/OneToOne field results
-        // need to be enhanced, add the displayNames of the associated timeline model to the SELECT fields.
+        // need to be enhanced by join clause, add the displayNames of the associated timeline model to the SELECT fields.
         if (flexQuery.isAcrossTimeline()
                 && ModelManager.isTimelineModel(mainModelName)
                 && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
@@ -86,7 +84,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
      * @param fieldNames field name set
      * @return set of dependent fields of dynamic cascaded and computed fields
      */
-    private Set<String> getSelectDependFields(Set<String> fieldNames){
+    private Set<String> getSelectDependFields(Set<String> fieldNames) {
         Set<String> dependentFields = new HashSet<>();
         fieldNames.forEach(field -> {
             if (field.contains(".")) {
@@ -103,9 +101,6 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                 } else if (metaField.isComputed() && metaField.isDynamic()) {
                     // The dependent fields of computed fields
                     dependentFields.addAll(metaField.getDependentFields());
-                } else if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
-                    // ManyToMany/OneToMany fields depend on the main table ID field
-                    dependentFields.add(ModelConstant.ID);
                 }
             }
         });
@@ -113,13 +108,13 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
     }
 
     /**
-     * When cross-timeline access, both the main model and associated model are timeline models,
+     * When cross-timeline access, both the main model and related model are timeline models,
      * and the ManyToOne/OneToOne field results need to be enhanced,
-     * add the displayNames of the associated model to the SELECT fields.
+     * add the displayNames of the related model to the SELECT fields.
      * And add aliases to these SELECT fields, such as: t1.name AS deptId.name
      *
      * @param selectFields field set to be SELECT
-     * @return field set of the associated timeline model to be SELECT and their aliases
+     * @return field set of the related timeline model to be SELECT and their aliases
      */
     private Set<String> appendTimelineModelFields(Collection<String> selectFields) {
         Set<String> timelineModelFields = new HashSet<>();
@@ -129,7 +124,8 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
             if (FieldType.TO_ONE_TYPES.contains(metaField.getFieldType())
                     && ModelManager.isTimelineModel(metaField.getRelatedModel())) {
                 // ManyToOne/OneToOne fields, the associated model is a timeline model
-                ModelManager.getFieldDisplayName(metaField).forEach(displayField -> cascadedFields.add(field + "." + displayField));
+                ModelManager.getModelDisplayName(metaField.getRelatedModel())
+                        .forEach(displayField -> cascadedFields.add(field + "." + displayField));
             } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                 // Get dynamic cascaded fields
                 String[] fieldArray = StringUtils.split(metaField.getCascadedField(), ".");
@@ -139,7 +135,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                 }
             }
             cascadedFields.forEach(cascadedField -> {
-                String fieldAlias = parseLogicField(cascadedField) + " AS " + cascadedField;
+                String fieldAlias = parseLogicField(cascadedField, false) + " AS " + cascadedField;
                 timelineModelFields.add(fieldAlias);
             });
         });

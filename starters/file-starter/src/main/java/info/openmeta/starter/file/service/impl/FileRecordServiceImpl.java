@@ -4,27 +4,35 @@ import com.github.f4b6a3.tsid.TsidCreator;
 import com.google.common.collect.Lists;
 import info.openmeta.framework.base.config.TenantConfig;
 import info.openmeta.framework.base.context.ContextHolder;
+import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.enums.FileType;
+import info.openmeta.framework.orm.service.PermissionService;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
-import info.openmeta.framework.web.dto.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
+import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.FileRecord;
 import info.openmeta.starter.file.enums.FileSource;
+import info.openmeta.starter.file.oss.OSSProperties;
 import info.openmeta.starter.file.oss.OssClientService;
 import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -38,6 +46,12 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private OssClientService ossClientService;
 
+    @Autowired
+    private OSSProperties ossProperties;
+
+    @Autowired
+    private PermissionService permissionService;
+
     /**
      * Generate an OSS key for the file
      * ModelName is used as the prefix of the OSS key, to store files in different directories
@@ -48,14 +62,27 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      * @return the generated OSS key
      */
     public String generateOssKey(String modelName, String fileName) {
-        String key = modelName + "/" + TsidCreator.getTsid() + "/" + fileName;
+        StringBuilder key = new StringBuilder();
+        // Set the subdirectory
+        if (StringUtils.hasText(ossProperties.getSubDir())) {
+            key.append(ossProperties.getSubDir()).append("/");
+        }
+        // Add tenantId as a subdirectory if multi-tenancy is enabled
         if (TenantConfig.isEnableMultiTenancy()) {
             Long tenantId = ContextHolder.getContext().getTenantId();
             if (tenantId != null) {
-                key = tenantId + "/" + key;
+                key.append(tenantId).append("/");
             }
         }
-        return key;
+        // Set the model name as a subdirectory if it is not null
+        if (StringUtils.hasText(modelName)) {
+            key.append(modelName).append("/");
+        } else {
+            key.append(FileConstant.DEFAULT_SUBFOLDER).append("/");
+        }
+        // Set the TSID as a part of the OSS key
+        key.append(TsidCreator.getTsid()).append("/").append(fileName);
+        return key.toString();
     }
 
     /**
@@ -117,7 +144,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         String fileName = uploadFileDTO.getFileName();
         FileType fileType = uploadFileDTO.getFileType();
         String fullFileName = getFullFileName(fileName, fileType);
-        String ossKey = this.generateOssKey(modelName, fullFileName);
+        String ossKey = this.generateOssKey(uploadFileDTO.getModelName(), fullFileName);
         String checksum = ossClientService.uploadStreamToOSS(ossKey, uploadFileDTO.getInputStream(), fileName);
         // Create file record
         FileRecord fileRecord = new FileRecord();
@@ -127,6 +154,8 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileRecord.setSource(uploadFileDTO.getFileSource());
         fileRecord.setChecksum(checksum);
         fileRecord.setFileSize(uploadFileDTO.getFileSize() / 1024);
+        fileRecord.setModelName(uploadFileDTO.getModelName());
+        fileRecord.setRowId(uploadFileDTO.getRowId() == null ? null : uploadFileDTO.getRowId().toString());
         Long id = this.createOne(fileRecord);
         fileRecord.setId(id);
         return fileRecord;
@@ -155,7 +184,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      */
     @Override
     public FileRecord uploadFile(String modelName, MultipartFile file) {
-        return this.uploadFile(modelName, null, file);
+        return this.uploadFileWithSource(modelName, null, null, file);
     }
 
     /**
@@ -163,11 +192,11 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
      *
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
      * @param file the file to be uploaded
      * @return fileRecord object
      */
-    @Override
-    public FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file) {
+    private FileRecord uploadFileWithSource(String modelName, Serializable rowId, String fieldName, MultipartFile file) {
         String fileName = FileUtils.getShortFileName(file);
         FileType fileType = FileUtils.getActualFileType(file);
         String fullFileName = getFullFileName(fileName, fileType);
@@ -182,6 +211,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         FileRecord fileRecord = new FileRecord();
         fileRecord.setModelName(modelName);
         fileRecord.setRowId(rowId == null ? null : rowId.toString());
+        fileRecord.setFieldName(fieldName);
         fileRecord.setFileName(fullFileName);
         fileRecord.setFileType(fileType);
         fileRecord.setOssKey(ossKey);
@@ -194,20 +224,51 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     }
 
     /**
+     * Upload a file to the OSS and create a corresponding FileRecord to associate with a business model and rowId.
+     *
+     * @param modelName the name of the corresponding business model
+     * @param rowId the ID of the corresponding business row data
+     * @param file the file to be uploaded
+     * @return fileRecord object
+     */
+    @Override
+    public FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file) {
+        return this.uploadFileWithSource(modelName, rowId, null, file);
+    }
+
+    /**
+     * Upload a file to the OSS and create a corresponding FileRecord to associate
+     * with a business model and rowId.
+     *
+     * @param modelName the name of the corresponding business model
+     * @param rowId     the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
+     * @param file      the file to be uploaded
+     * @return fileInfo object
+     */
+    @Override
+    public FileInfo uploadFile(String modelName, Serializable rowId, String fieldName, MultipartFile file) {
+        FileRecord fileRecord = this.uploadFileWithSource(modelName, rowId, fieldName, file);
+        return this.convertToFileInfo(fileRecord);
+    }
+
+    /**
      * Upload multiple files to the OSS and create corresponding FileRecord to associate with a business model and rowId.
      *
      * @param modelName the name of the corresponding business model
      * @param rowId the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
      * @param files the files to be uploaded
-     * @return a list of fileRecord objects
+     * @return a list of fileInfo objects
      */
     @Override
-    public List<FileRecord> uploadFiles(String modelName, Serializable rowId, MultipartFile[] files) {
-        List<FileRecord> fieldRecords = Lists.newArrayList();
-        for(MultipartFile file : files) {
-            fieldRecords.add(this.uploadFile(modelName, rowId, file));
+    public List<FileInfo> uploadFiles(String modelName, Serializable rowId, String fieldName, MultipartFile[] files) {
+        List<FileInfo> fieldInfos = Lists.newArrayList();
+        for (MultipartFile file : files) {
+            FileInfo fileInfo = this.uploadFile(modelName, rowId, fieldName, file);
+            fieldInfos.add(fileInfo);
         }
-        return fieldRecords;
+        return fieldInfos;
     }
 
     /**
@@ -267,6 +328,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
     @Override
     public List<FileInfo> getFileInfo(String modelName, Serializable rowId) {
         Assert.notNull(rowId, "RowId cannot be null.");
+        permissionService.checkIdAccess(modelName, rowId, AccessType.READ);
         Filters filters = new Filters().eq("modelName", modelName).eq("rowId", rowId.toString());
         List<FileRecord> fileRecords = this.searchList(filters);
         return fileRecords.stream().map(this::convertToFileInfo).toList();

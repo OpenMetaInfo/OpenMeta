@@ -93,8 +93,10 @@ public class VersionDdlImpl implements VersionDdl {
         StringBuilder ddl = new StringBuilder();
         if (!deletedModels.isEmpty()) {
             ddl.append("-- Delete tables:\n");
-            deletedModels.forEach(model ->
-                    ddl.append(DDLFactory.getInstance().dropTableDDL(StringTools.toUnderscoreCase(model))));
+            deletedModels.forEach(model -> {
+                String tableName = StringTools.toUnderscoreCase(model);
+                ddl.append(DDLFactory.getInstance().dropTableDDL(tableName));
+            });
         }
         return ddl;
     }

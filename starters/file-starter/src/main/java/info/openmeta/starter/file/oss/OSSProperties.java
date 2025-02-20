@@ -27,5 +27,8 @@ public class OSSProperties {
     @NotBlank(message = "The bucket name of OSS must be specified.")
     private String bucketName;
 
+    // The optional subdirectory for storing files.
+    private String subDir;
+
     private Integer urlExpireSeconds;
 }

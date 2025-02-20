@@ -9,6 +9,7 @@ import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.web.response.ApiResponse;
+import info.openmeta.framework.web.vo.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -72,7 +73,8 @@ public class ModelController<K extends Serializable> {
     @PostMapping(value = "/createOne")
     @Operation(description = "Create one row and return the id.")
     @DataMask
-    public ApiResponse<K> createOne(@PathVariable String modelName, @RequestBody Map<String, Object> row) {
+    public ApiResponse<K> createOne(@PathVariable String modelName,
+                                    @RequestBody Map<String, Object> row) {
         return ApiResponse.success(modelService.createOne(modelName, row));
     }
 
@@ -131,29 +133,23 @@ public class ModelController<K extends Serializable> {
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName     model name
-     * @param id            data id
-     * @param fields        field list to read, if not specified, all visible fields as the default
-     * @param subQueries    subQuery parameters for relational fields
-     * @param effectiveDate effective date of timeline data
+     * @param getByIdParams Get one row by ID parameters
      * @return data row
      */
-    @GetMapping(value = "/getById")
+    @PostMapping(value = "/getById")
     @Operation(description = "Get one row by ID.")
-    @Parameters({
-            @Parameter(name = "id", description = "Data ID, number or string type.", schema = @Schema(type = "number")),
-            @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
-            @Parameter(name = "subQueries", description = "SubQuery parameters for relational fields."),
-            @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
-    })
     @DataMask
     public ApiResponse<Map<String, Object>> getById(@PathVariable String modelName,
-                                                    @RequestParam K id,
-                                                    @RequestParam(required = false) List<String> fields,
-                                                    @RequestParam(required = false) SubQueries subQueries,
-                                                    @RequestParam(required = false) LocalDate effectiveDate) {
-        ContextHolder.getContext().setEffectiveDate(effectiveDate);
-        id = IdUtils.formatId(modelName, id);
-        Optional<Map<String, Object>> row = modelService.getById(modelName, id, fields, subQueries, ConvertType.REFERENCE);
+                                                    @RequestBody GetByIdParams getByIdParams) {
+        ContextHolder.getContext().setEffectiveDate(getByIdParams.getEffectiveDate());
+        Assert.notNull(getByIdParams.getId(), "The ID of the data to be read cannot be null!");
+        K id = IdUtils.formatId(modelName, getByIdParams.getId());
+        SubQueries subQueries = new SubQueries();
+        if (!CollectionUtils.isEmpty(getByIdParams.getSubQueries())) {
+            subQueries.setQueryMap(getByIdParams.getSubQueries());
+        }
+        Optional<Map<String, Object>> row = modelService.getById(modelName, id,
+                getByIdParams.getFields(), subQueries, ConvertType.REFERENCE);
         return ApiResponse.success(row.orElse(null));
     }
 
@@ -163,30 +159,23 @@ public class ModelController<K extends Serializable> {
      * Set `convertType = REFERENCE` to get the reference object of expandable fields.
      *
      * @param modelName     model name
-     * @param ids           List of data ids
-     * @param fields        Field list to read
-     * @param subQueries    subQuery parameters for relational fields
-     * @param effectiveDate effective date of timeline data
+     * @param getByIdsParams Get multiple rows by IDs parameters
      * @return List<Map> of multiple data
      */
-    @GetMapping(value = "/getByIds")
+    @PostMapping(value = "/getByIds")
     @Operation(description = "Get multiple rows by IDs.")
-    @Parameters({
-            @Parameter(name = "ids", description = "Data IDs to be read."),
-            @Parameter(name = "fields", description = "A list of field names to be read. If not specified, it defaults to all visible fields."),
-            @Parameter(name = "subQueries", description = "SubQuery parameters for relational fields."),
-            @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
-    })
     @DataMask
     public ApiResponse<List<Map<String, Object>>> getByIds(@PathVariable String modelName,
-                                                           @RequestParam List<K> ids,
-                                                           @RequestParam(required = false) List<String> fields,
-                                                           @RequestParam(required = false) SubQueries subQueries,
-                                                           @RequestParam(required = false) LocalDate effectiveDate) {
-        ContextHolder.getContext().setEffectiveDate(effectiveDate);
+                                                           @RequestBody GetByIdsParams getByIdsParams) {
+        ContextHolder.getContext().setEffectiveDate(getByIdsParams.getEffectiveDate());
+        List<K> ids = IdUtils.formatIds(modelName, getByIdsParams.getIds());
         this.validateIds(ids);
-        ids = IdUtils.formatIds(modelName, ids);
-        return ApiResponse.success(modelService.getByIds(modelName, ids, fields, subQueries, ConvertType.REFERENCE));
+        SubQueries subQueries = new SubQueries();
+        if (!CollectionUtils.isEmpty(getByIdsParams.getSubQueries())) {
+            subQueries.setQueryMap(getByIdsParams.getSubQueries());
+        }
+        return ApiResponse.success(modelService.getByIds(modelName, ids,
+                getByIdsParams.getFields(), subQueries, ConvertType.REFERENCE));
     }
 
     /**
@@ -319,7 +308,7 @@ public class ModelController<K extends Serializable> {
     @Operation(description = "Update multiple rows by ID, and fetch the latest values from database.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> updateListAndFetch(@PathVariable String modelName,
-                                                                      @RequestBody List<Map<String, Object>> rows) {
+                                                                     @RequestBody List<Map<String, Object>> rows) {
         Assert.notEmpty(rows, "The data to be updated cannot be empty!");
         this.validateBatchSize(rows.size());
         IdUtils.formatMapIds(modelName, rows);
@@ -327,23 +316,20 @@ public class ModelController<K extends Serializable> {
     }
 
     /**
-     * Batch edit data based on the filters, according to the specified field values map.
+     * Bulk update data based on the filters, according to the specified field values map.
      *
      * @param modelName model name
-     * @param filters   filters, if not specified, all visible data of the current user will be updated.
-     * @param value     field values to be updated
+     * @param bulkUpdateParams bulk update parameters
      * @return number of affected rows
      */
     @PostMapping(value = "/updateByFilter")
     @Operation(description = "Batch update data according to the filters, within the current user's permission scope.")
-    @Parameters({
-            @Parameter(name = "filters", description = "Data filter to update.", schema = @Schema(type = "array")),
-    })
     public ApiResponse<Integer> updateByFilter(@PathVariable String modelName,
-                                               @RequestParam(required = false) Filters filters,
-                                               @RequestBody Map<String, Object> value) {
-        Assert.notEmpty(value, "The data to be updated cannot be empty!");
-        Integer count = modelService.updateByFilter(modelName, filters, value);
+                                               @RequestBody BulkUpdateParams bulkUpdateParams) {
+        Map<String, Object> values = bulkUpdateParams.getValues();
+        Assert.notEmpty(values, "The updated data cannot be empty!");
+        ContextHolder.getContext().setEffectiveDate(bulkUpdateParams.getEffectiveDate());
+        Integer count = modelService.updateByFilter(modelName, bulkUpdateParams.getFilters(), values);
         return ApiResponse.success(count);
     }
 
@@ -478,19 +464,21 @@ public class ModelController<K extends Serializable> {
     @DataMask
     public ApiResponse<Page<Map<String, Object>>> searchPage(@PathVariable String modelName,
                                                              @RequestBody(required = false) QueryParams queryParams) {
+        if (queryParams == null) {
+            queryParams = new QueryParams();
+        }
         FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
-        flexQuery.setSummary(Boolean.TRUE.equals(queryParams.getSummary()));
         Page<Map<String, Object>> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
         return ApiResponse.success(modelService.searchPage(modelName, flexQuery, page));
     }
 
     /**
-     * Query data list without pagination, the `limitSize` is default to DEFAULT_PAGE_SIZE.
+     * Query data list without pagination, the `limit` is default to DEFAULT_PAGE_SIZE.
      * The OneToOne/ManyToOne field value is the `displayName` of the related model.
      * Support SUM, AVG, MIN, MAX, COUNT aggregation queries.
      *
      * @param modelName model name
-     * @param queryParams  Aggregation query parameter
+     * @param searchListParams  Aggregation query parameter
      * @return data list
      */
     @PostMapping(value = "/searchList")
@@ -498,17 +486,28 @@ public class ModelController<K extends Serializable> {
             "aggFunctions, and subQueries. Default limit to 50.")
     @DataMask
     public ApiResponse<List<Map<String, Object>>> searchList(@PathVariable String modelName,
-                                                             @RequestBody(required = false) QueryParams queryParams) {
-        FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
-        // Default limitSize for searchList.
-        Integer limitSize = queryParams.getPageSize();
-        limitSize = limitSize == null || limitSize < 1 ? BaseConstant.DEFAULT_PAGE_SIZE : limitSize;
-        Assert.isTrue(limitSize <= BaseConstant.MAX_BATCH_SIZE,
-                "API `searchList` cannot exceed the maximum limit of {0}.", BaseConstant.MAX_BATCH_SIZE);
-        flexQuery.setLimitSize(limitSize);
+                                                             @RequestBody(required = false) SearchListParams searchListParams) {
+        FlexQuery flexQuery = SearchListParams.convertParamsToFlexQuery(searchListParams);
         return ApiResponse.success(modelService.searchList(modelName, flexQuery));
     }
 
+    /**
+     * Query the displayNames based on the match field, filters, orders, limitSize.
+     * Default limit to 10.
+     *
+     * @param modelName model name
+     * @param searchNameParams SearchNameParams
+     * @return List of data with displayName and additional fields
+     */
+    @PostMapping(value = "/searchName")
+    @Operation(description = "Query the displayNames based on the match field, filters, orders, limitSize. " +
+            "Default limit to 10.")
+    @DataMask
+    public ApiResponse<List<Map<String, Object>>> searchName(@PathVariable String modelName,
+                                                             @RequestBody(required = false) SearchNameParams searchNameParams) {
+        FlexQuery flexQuery = SearchNameParams.convertParamsToFlexQuery(searchNameParams);
+        return ApiResponse.success(modelService.searchName(modelName, flexQuery));
+    }
 
     /**
      * Simple aggregation query params by `filters` and `aggFunctions`.
@@ -517,7 +516,7 @@ public class ModelController<K extends Serializable> {
      * Use the searchPage interface when grouping or paging is needed.
      *
      * @param modelName model name
-     * @param simpleQueryParams Simple aggregation query parameters
+     * @param simpleAggParams Simple aggregation query parameters
      * @return Result map.
      */
     @PostMapping(value = "/searchSimpleAgg")
@@ -526,12 +525,12 @@ public class ModelController<K extends Serializable> {
             or `[["SUM", "amount"], [], ...]`, the return key is `sumAmount`.""")
     @DataMask
     public ApiResponse<Map<String, Object>> searchSimpleAgg(@PathVariable String modelName,
-                                                            @RequestBody SimpleQueryParams simpleQueryParams) {
-        ContextHolder.getContext().setEffectiveDate(simpleQueryParams.getEffectiveDate());
-        FlexQuery flexQuery = new FlexQuery(simpleQueryParams.getFilters());
-        Assert.notTrue(AggFunctions.isEmpty(simpleQueryParams.getAggFunctions()), "`aggFunctions` cannot be null!");
+                                                            @RequestBody SimpleAggParams simpleAggParams) {
+        ContextHolder.getContext().setEffectiveDate(simpleAggParams.getEffectiveDate());
+        FlexQuery flexQuery = new FlexQuery(simpleAggParams.getFilters());
+        Assert.notTrue(AggFunctions.isEmpty(simpleAggParams.getAggFunctions()), "`aggFunctions` cannot be null!");
         // Set AggFunction parameters
-        flexQuery.setAggFunctions(simpleQueryParams.getAggFunctions());
+        flexQuery.setAggFunctions(simpleAggParams.getAggFunctions());
         return ApiResponse.success(modelService.searchOne(modelName, flexQuery));
     }
 
@@ -546,7 +545,10 @@ public class ModelController<K extends Serializable> {
     @Operation(description = "Get the pivot table data based on the specified fields, filters, orders, groupBy, splitBy.")
     @DataMask
     public ApiResponse<PivotTable> searchPivot(@PathVariable String modelName,
-                                               @RequestBody QueryParams queryParams) {
+                                               @RequestBody(required = false) QueryParams queryParams) {
+        if (queryParams == null) {
+            queryParams = new QueryParams();
+        }
         FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
         flexQuery.setSplitBy(queryParams.getSplitBy());
         return ApiResponse.success(modelService.searchPivot(modelName, flexQuery));
@@ -558,36 +560,29 @@ public class ModelController<K extends Serializable> {
      * `groupBy=name,code,sequence & orders=sequence`, the actual SQL statement is:
      * `SELECT name, code, sequence, count(*) AS count FROM table_name GROUP BY name, code, sequence ORDER BY sequence`
      *
-     * @param filters filters
-     * @param groupBy group by fields. Return the total count if not specified.
-     * @param orders  orders of the grouped results, usually only one field is specified, such as sequence.
-     * @param effectiveDate Effective date of the timeline.
+     * @param modelName model name
+     * @param countParams CountParams
      * @return Group counting results.
      */
-    @GetMapping(value = "/count")
+    @PostMapping(value = "/count")
     @Operation(description = "Returns a count or group counting based on the specified `filter`, `groupBy`, and `orders`.")
-    @Parameters({
-            @Parameter(name = "filters", description = "Filters for data to be counted.", schema = @Schema(type = "array")),
-            @Parameter(name = "groupBy", description = "Fields for group counts, Return the total count if not specified."),
-            @Parameter(name = "orders", description = "The field order of the grouped results", schema = @Schema(type = "array")),
-            @Parameter(name = "effectiveDate", description = "Effective date for timeline model.")
-    })
     @DataMask
     public ApiResponse<Object> count(@PathVariable String modelName,
-                                     @RequestParam(required = false) Filters filters,
-                                     @RequestParam(required = false) List<String> groupBy,
-                                     @RequestParam(required = false) Orders orders,
-                                     @RequestParam(required = false) LocalDate effectiveDate) {
-        ContextHolder.getContext().setEffectiveDate(effectiveDate);
+                                     @RequestBody(required = false) CountParams countParams) {
+        if (countParams == null) {
+            countParams = new CountParams();
+        }
+        ContextHolder.getContext().setEffectiveDate(countParams.getEffectiveDate());
+        List<String> groupBy = countParams.getGroupBy();
         if (!CollectionUtils.isEmpty(groupBy)) {
             Assert.allNotBlank(groupBy, "`groupBy` cannot contain empty value: {0}", groupBy);
-            FlexQuery flexQuery = new FlexQuery(filters, orders);
+            FlexQuery flexQuery = new FlexQuery(countParams.getFilters(), countParams.getOrders());
             flexQuery.setFields(new HashSet<>(groupBy));
             flexQuery.setGroupBy(groupBy);
             flexQuery.setConvertType(ConvertType.TYPE_CAST);
             return ApiResponse.success(modelService.searchList(modelName, flexQuery));
         } else {
-            return ApiResponse.success(modelService.count(modelName, filters));
+            return ApiResponse.success(modelService.count(modelName, countParams.getFilters()));
         }
     }
 

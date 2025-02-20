@@ -13,7 +13,7 @@ import java.util.Map;
 @Data
 public class FlowEventMessage {
 
-    private Long flowId;
+    private String flowId;
     private String flowNodeId;
     private Boolean rollbackOnFail;
     private String triggerId;

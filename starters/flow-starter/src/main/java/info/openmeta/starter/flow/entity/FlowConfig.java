@@ -23,7 +23,7 @@ public class FlowConfig extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    private Long id;
+    private String id;
 
     @Schema(description = "Flow Name")
     private String name;

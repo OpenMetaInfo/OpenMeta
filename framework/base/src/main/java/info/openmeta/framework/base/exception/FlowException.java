@@ -13,7 +13,7 @@ public class FlowException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public FlowException(String message, Object... args){
+    public FlowException(String message, Object... args) {
         super(message, args);
     }
 }

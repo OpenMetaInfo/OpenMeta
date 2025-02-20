@@ -9,6 +9,7 @@ import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.domain.Filters;
+import info.openmeta.framework.orm.entity.BaseModel;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
@@ -264,19 +265,21 @@ public class BeanTool {
      * Convert List to OneToMany object list.
      *
      * @param field the OneToMany field
-     * @param value the OneToMany map data list
+     * @param rows the OneToMany map data list
      * @param entityClass the entity class
      * @return object list
      * @param <T> the entity class type
      */
-    private static <T> List<?> formatListProperty(String field, List<Map<String, Object>> value, Class<T> entityClass) {
+    private static <T> List<?> formatListProperty(String field, List<Map<String, Object>> rows, Class<T> entityClass) {
         MetaField metaField = ModelManager.getModelField(entityClass.getSimpleName(), field);
-        if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
-            // OneToMany field type, need to convert to object list
-            Class<?> oneToManyClass = getElementClass(entityClass, field);
-            return mapListToObjects(value, oneToManyClass);
+        if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
+            // OneToMany or ManyToMany field type, need to convert to object list
+            Class<?> rightManyClass = getElementClass(entityClass, field);
+            if (BaseModel.class.isAssignableFrom(rightManyClass)) {
+                return mapListToObjects(rows, rightManyClass);
+            }
         }
-        return value;
+        return rows;
     }
 
     /**

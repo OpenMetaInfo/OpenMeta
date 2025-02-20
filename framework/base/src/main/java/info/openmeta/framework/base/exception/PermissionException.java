@@ -16,7 +16,7 @@ public class PermissionException extends BaseException {
     /**
      * Accepts variable arguments, optionally ending with a Throwable for enhanced error tracking.
      */
-    public PermissionException(String message, Object... args){
+    public PermissionException(String message, Object... args) {
         super(message, args);
     }
 }

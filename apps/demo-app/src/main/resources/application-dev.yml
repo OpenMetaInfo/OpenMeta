@@ -4,7 +4,7 @@ system:
   default-language: en-US
   enable-auth: false
   multi-tenancy:
-    enable: true
+    enable: false
 security:
   encryption:
     password: 12345678
@@ -93,3 +93,4 @@ oss:
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: demo-app
+  sub-dir:

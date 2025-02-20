@@ -1,7 +1,7 @@
 package info.openmeta.starter.file.service;
 
 import info.openmeta.framework.orm.service.EntityService;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.FileRecord;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,14 +72,28 @@ public interface FileRecordService extends EntityService<FileRecord, Long> {
     FileRecord uploadFile(String modelName, Serializable rowId, MultipartFile file);
 
     /**
-     * Upload multiple files to the OSS and create corresponding FileRecord to associate with a business model and rowId.
+     * Upload a file to the OSS and create a corresponding FileRecord to associate
+     * with a business model and rowId.
      *
      * @param modelName the name of the corresponding business model
-     * @param rowId the ID of the corresponding business row data
-     * @param files the files to be uploaded
-     * @return a list of fileRecord objects
+     * @param rowId     the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
+     * @param file      the file to be uploaded
+     * @return fileInfo object
      */
-    List<FileRecord> uploadFiles(String modelName, Serializable rowId, MultipartFile[] files);
+    FileInfo uploadFile(String modelName, Serializable rowId, String fieldName, MultipartFile file);
+
+    /**
+     * Upload multiple files to the OSS and create corresponding FileRecord to
+     * associate with a business model and rowId.
+     *
+     * @param modelName the name of the corresponding business model
+     * @param rowId     the ID of the corresponding business row data
+     * @param fieldName the name of the corresponding business field
+     * @param files     the files to be uploaded
+     * @return a list of fileInfo objects
+     */
+    List<FileInfo> uploadFiles(String modelName, Serializable rowId, String fieldName, MultipartFile[] files);
 
     /**
      * Convert FileRecord to FileInfo

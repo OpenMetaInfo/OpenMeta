@@ -57,7 +57,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public boolean validateOneTimeToken(String key, String token) {
         key = key + token;
-        if (cacheService.hasKey(key)){
+        if (cacheService.hasKey(key)) {
             cacheService.delete(key);
             return true;
         }

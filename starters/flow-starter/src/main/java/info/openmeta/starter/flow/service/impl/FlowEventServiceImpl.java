@@ -9,6 +9,6 @@ import info.openmeta.starter.flow.service.FlowEventService;
  * FlowEvent Model Service Implementation
  */
 @Service
-public class FlowEventServiceImpl extends EntityServiceImpl<FlowEvent, Long> implements FlowEventService {
+public class FlowEventServiceImpl extends EntityServiceImpl<FlowEvent, String> implements FlowEventService {
 
 }

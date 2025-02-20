@@ -43,7 +43,11 @@ public class MetaField implements Serializable {
 
     private String relatedField;
 
-    private String inverseLinkField;
+    private String jointModel;
+
+    private String jointLeft;
+
+    private String jointRight;
 
     private String cascadedField;
 

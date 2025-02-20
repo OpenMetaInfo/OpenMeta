@@ -1,0 +1,44 @@
+PUT /test_xxxx_changelog
+{
+    "mappings": {
+        "dynamic": "false",
+        "properties": {
+            "uuid": {
+                "type": "keyword"
+            },
+            "traceId": {
+                "type": "keyword"
+            },
+            "model": {
+                "type": "keyword"
+            },
+            "rowId": {
+                "type": "keyword"
+            },
+            "accessType": {
+                "type": "keyword"
+            },
+            "dataBeforeChange": {
+                "type": "object",
+                "enabled": false
+            },
+            "dataAfterChange": {
+                "type": "object",
+                "enabled": false
+            },
+            "tenantId": {
+                "type": "long"
+            },
+            "changedId": {
+                "type": "long"
+            },
+            "changedBy": {
+                "type": "keyword"
+            },
+            "changedTime": {
+                "type": "date",
+                "format": "yyyy-MM-dd HH:mm:ss"
+            }
+        }
+    }
+}

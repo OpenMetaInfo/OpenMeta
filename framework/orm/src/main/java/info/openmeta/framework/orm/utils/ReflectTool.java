@@ -71,11 +71,22 @@ public abstract class ReflectTool {
      *
      * @param modelName model name
      * @param ids id list
-     * @param displayFields specified display field list, if not specified, use the default displayName configuration of the model.
      * @return displayNames Map
      */
-    public static Map<Serializable, String> getDisplayNames(String modelName, List<Serializable> ids, List<String> displayFields) {
-        return getModelService().getDisplayNames(modelName, ids, displayFields);
+    public static Map<Serializable, String> getDisplayNames(String modelName, List<Serializable> ids) {
+        return getModelService().getDisplayNames(modelName, ids);
+    }
+
+    /**
+     * Get display names for the specified filters, returning a map of {id ->
+     * displayName}.
+     *
+     * @param modelName the name of the model
+     * @param filters   the filters to apply
+     * @return a map of IDs to their resolved display names
+     */
+    public static Map<Serializable, String> getDisplayNames(String modelName, Filters filters) {
+        return getModelService().getDisplayNames(modelName, filters);
     }
 
     /**
@@ -131,6 +142,17 @@ public abstract class ReflectTool {
      */
     public static List<Map<String, Object>> searchList(String modelName, FlexQuery flexQuery) {
         return getModelService().searchList(modelName, flexQuery);
+    }
+
+    /**
+     * Call the searchName method of the specified model
+     *
+     * @param modelName model name
+     * @param flexQuery flexQuery
+     * @return Search result
+     */
+    public static List<Map<String, Object>> searchName(String modelName, FlexQuery flexQuery) {
+        return getModelService().searchName(modelName, flexQuery);
     }
 
     /**

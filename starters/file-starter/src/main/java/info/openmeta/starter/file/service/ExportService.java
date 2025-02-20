@@ -1,7 +1,7 @@
 package info.openmeta.starter.file.service;
 
 import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.ExportTemplateDTO;
 import info.openmeta.starter.file.dto.SheetInfo;
 
@@ -10,7 +10,7 @@ import java.util.List;
 public interface ExportService {
 
     /**
-     * Export data by dynamic fields and QueryParams, without export template.
+     * Export data by dynamic fields and ExportParams, without export template.
      * The convertType should be set to DISPLAY to get the display values of the fields.
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *
@@ -23,7 +23,7 @@ public interface ExportService {
     FileInfo dynamicExport(String modelName, String fileName, String sheetName, FlexQuery flexQuery);
 
     /**
-     * Export multiple sheets of data by dynamic fields and QueryParams, without export template.
+     * Export multiple sheets of data by dynamic fields and ExportParams, without export template.
      * The convertType should be set to DISPLAY to get the display values of the fields.
      * Such as displayName for ManyToOne/OneToOne fields, and itemName for Option fields.
      *

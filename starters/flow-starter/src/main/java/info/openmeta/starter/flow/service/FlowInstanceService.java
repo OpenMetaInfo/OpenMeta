@@ -6,6 +6,6 @@ import info.openmeta.framework.orm.service.EntityService;
 /**
  * FlowInstance Model Service Interface
  */
-public interface FlowInstanceService extends EntityService<FlowInstance, Long> {
+public interface FlowInstanceService extends EntityService<FlowInstance, String> {
 
 }

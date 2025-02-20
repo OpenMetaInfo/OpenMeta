@@ -20,10 +20,10 @@ public class FlowEvent extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    private Long id;
+    private String id;
 
     @Schema(description = "Flow ID")
-    private Long flowId;
+    private String flowId;
 
     @Schema(description = "Node ID")
     private String nodeId;

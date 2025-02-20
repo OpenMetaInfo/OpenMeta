@@ -12,455 +12,510 @@ import java.util.Optional;
 
 /**
  * Common Model Service Interface.
- * The basic CRUD operations for the model.
+ * The generic CRUD and query operations for a specified model.
  *
  * @param <K> id class
  */
 public interface ModelService<K extends Serializable> {
 
     /**
-     * Create a single row and return the id.
+     * Creates a new row in the specified model and returns its ID.
      *
-     * @param modelName model name
-     * @param row data row to be created
-     * @return id
+     * @param modelName the name of the model
+     * @param row the data to create
+     * @return the ID of the newly created row
      */
     K createOne(String modelName, Map<String, Object> row);
 
     /**
-     * Create a single row, fetch the row data after creation.
+     * Creates a new row in the specified model and returns the created data,
+     * including any auto-generated fields, with the specified convert type.
      *
-     * @param modelName model name
-     * @param row data row to be created
-     * @param convertType data convert type of the return value.
-     * @return row data with latest field values
+     * @param modelName the name of the model
+     * @param row the data to create
+     * @param convertType the conversion type applied to the result
+     * @return a map containing the newly created row with updated field values
      */
     Map<String, Object> createOneAndFetch(String modelName, Map<String, Object> row, ConvertType convertType);
 
     /**
-     * Create multiple rows and return the id list.
+     * Creates multiple rows and returns a list of their IDs.
      *
-     * @param modelName model name
-     * @param rows data rows to be created
-     * @return id list
+     * @param modelName the name of the model
+     * @param rows the list of data rows to create
+     * @return a list of IDs corresponding to the newly created rows
      */
     List<K> createList(String modelName, List<Map<String, Object>> rows);
 
     /**
-     * Create multiple rows, fetch the rows after creation.
+     * Creates multiple rows, returning the newly created data with any
+     * auto-generated fields, and applying the specified convert type.
      *
-     * @param modelName model name
-     * @param rows data rows to be created
-     * @param convertType data convert type of the return value.
-     * @return row data list with id and other latest field values
+     * @param modelName the name of the model
+     * @param rows the list of data rows to create
+     * @param convertType the conversion type applied to the results
+     * @return a list of maps containing the newly created rows and their field values
      */
     List<Map<String, Object>> createListAndFetch(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
 
     /**
-     * Get one row by id, default to read all fields.
-     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     * Get a row by its ID. By default, all accessible fields are returned.
+     * ManyToOne, OneToOne, Option, and MultiOption fields remain in their original form.
      *
-     * @param id data id
-     * @return Optional data row
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @return an {@link Optional} containing the row if found; otherwise empty
      */
     Optional<Map<String, Object>> getById(String modelName, K id);
 
     /**
-     * Get one row by id, default to read all fields.
-     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     * Get a row by its ID with all fields by default, optionally expanding relational fields via subQueries.
+     * ManyToOne, OneToOne, Option, and MultiOption fields remain in their original form.
      *
-     * @param id data id
-     * @param subQueries subQueries for relational fields
-     * @return Optional data row
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @param subQueries a {@link SubQueries} object describing how to expand relational fields
+     * @return an {@link Optional} containing the row if found; otherwise empty
      */
     Optional<Map<String, Object>> getById(String modelName, K id, SubQueries subQueries);
 
     /**
-     * Get one row by id.
-     * If the fields is not specified, all accessible fields as the default.
-     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     * Get a row by its ID, optionally specifying which fields to return.
+     * If no fields are specified, all accessible fields are returned by default.
+     * ManyToOne, OneToOne, Option, and MultiOption fields remain in their original form.
      *
-     * @param id data id
-     * @param fields field list to get value
-     * @return Optional data row
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @param fields the set of fields to retrieve
+     * @return an {@link Optional} containing the row if found; otherwise empty
      */
     Optional<Map<String, Object>> getById(String modelName, K id, Collection<String> fields);
 
     /**
-     * Get one row by id.
-     * If the fields is not specified, all accessible fields as the default.
+     * Get a row by its ID, specifying fields to return,
+     * optionally expanding relational fields via subQueries, and applying a convert type.
      *
-     * @param id data id
-     * @param fields field list to get value
-     * @param subQueries subQueries for relational fields
-     * @param convertType data convert type of the return value.
-     * @return Optional data row
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @param fields the set of fields to retrieve; if null/empty, returns all accessible fields
+     * @param subQueries a {@link SubQueries} object describing how to expand relational fields
+     * @param convertType the conversion type applied to the result
+     * @return an {@link Optional} containing the row if found; otherwise empty
      */
     Optional<Map<String, Object>> getById(String modelName, K id, Collection<String> fields,
                                 SubQueries subQueries, ConvertType convertType);
 
     /**
-     * Get multiple rows by ids.
-     * If the fields is not specified, all accessible fields as the default.
-     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     * Get multiple rows by their IDs, optionally specifying which fields to return.
+     * If no fields are specified, all accessible fields are returned by default.
+     * ManyToOne, OneToOne, Option, and MultiOption fields remain in their original form.
      *
-     * @param ids List of data ids
-     * @param fields Field list to get value
-     * @return List<Map> of multiple data
+     * @param modelName the name of the model
+     * @param ids a list of row IDs
+     * @param fields the set of fields to retrieve
+     * @return a list of maps representing the retrieved rows
      */
     List<Map<String, Object>> getByIds(String modelName, List<K> ids, Collection<String> fields);
 
     /**
-     * Get multiple rows by ids.
-     * If the fields is not specified, all accessible fields as the default.
+     * Get multiple rows by their IDs, optionally specifying which fields to return,
+     * expanding relational fields via subQueries, and applying a convert type.
      *
-     * @param ids List of data ids
-     * @param fields Field list to get value
-     * @param subQueries subQueries for relational fields
-     * @param convertType data convert type of the return value.
-     * @return List<Map> of multiple data
+     * @param modelName the name of the model
+     * @param ids a list of row IDs
+     * @param fields the set of fields to retrieve; if null/empty, returns all accessible fields
+     * @param subQueries a {@link SubQueries} object describing how to expand relational fields
+     * @param convertType the conversion type applied to the result
+     * @return a list of maps representing the retrieved rows
      */
     List<Map<String, Object>> getByIds(String modelName, @NotNull List<K> ids, Collection<String> fields,
                                        SubQueries subQueries, ConvertType convertType);
 
     /**
-     * Get the copyable fields value by ID, no data inserted.
+     * Get all copyable fields from a row, identified by its ID,
+     * without inserting any new data.
      *
-     * @param modelName model name
-     * @param id source data id
-     * @return map of copyable field values
+     * @param modelName the name of the model
+     * @param id the ID of the source row
+     * @return a map containing values of all copyable fields
      */
     Map<String, Object> getCopyableFields(String modelName, K id);
 
     /**
-     * Get the `displayNames` of the specified ids, returning map of {id: displayName}.
-     * If the `displayFields` is not specified, use the `displayName` configuration of the model.
+     * Get display names for the specified IDs, returning a map of {id -> displayName}.
      *
-     * @param modelName model name
-     * @param ids id list
-     * @param displayFields specified display field list.
-     * @return displayNames Map
+     * @param modelName the name of the model
+     * @param ids a list of row IDs
+     * @return a map of IDs to their resolved display names
      */
-    Map<K, String> getDisplayNames(String modelName, List<K> ids, List<String> displayFields);
+    Map<K, String> getDisplayNames(String modelName, List<K> ids);
 
     /**
-     * Get the distinct field value list based on the filters.
+     * Get display names for the specified filters, returning a map of {id -> displayName}.
      *
-     * @param modelName model name
-     * @param field field name to read and distinct
-     * @param filters filters
-     * @return distinct field value list
+     * @param modelName the name of the model
+     * @param filters   the filters to apply
+     * @return a map of IDs to their resolved display names
      */
-    List<Object> getDistinctFieldValue(String modelName, String field, Filters filters);
+    Map<K, String> getDisplayNames(String modelName, Filters filters);
 
     /**
-     * Get the specified field value based on id.
-     * The ManyToOne/OneToOne/Option/MultiOption fields are original values.
+     * Get distinct values for the specified field, filtered by the given conditions.
      *
-     * @param id data id
-     * @param field field name to get value
-     * @return field value
+     * @param <V> the type of the field's value
+     * @param modelName the name of the model
+     * @param field the field name for which to retrieve distinct values
+     * @param filters optional filtering conditions
+     * @return a list of distinct field values
+     */
+    <V extends Serializable> List<V> getDistinctFieldValue(String modelName, String field, Filters filters);
+
+    /**
+     * Get the value of a specified field from a row identified by its ID.
+     * ManyToOne, OneToOne, Option, and MultiOption fields remain in their original form.
+     *
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @param field the field name whose value to retrieve
+     * @param <V> the type of the field's value
+     * @return the field's value
      */
     <V extends Serializable> V getFieldValue(String modelName, K id, String field);
 
     /**
-     * Get the ids based on the filters.
+     * Get a list of IDs matching the given filters.
      *
-     * @param modelName model name
-     * @param filters filter conditions
-     * @return ids list
+     * @param modelName the name of the model
+     * @param filters filtering conditions
+     * @return a list of matching IDs
      */
     List<K> getIds(String modelName, Filters filters);
 
     /**
-     * Get the ids for ManyToOne/OneToOne relational field.
+     * Get a distinct list of IDs for a ManyToOne/OneToOne relationship field
+     * based on the given filters.
      *
-     * @param modelName model name
-     * @param filters filters
-     * @param fieldName relational field name
-     * @return distinct ids for relational field
+     * @param <EK> the type of the related entity's ID
+     * @param modelName the name of the model
+     * @param filters filtering conditions
+     * @param fieldName the name of the relationship field
+     * @return a distinct list of related entity IDs
      */
     <EK extends Serializable> List<EK> getRelatedIds(String modelName, Filters filters, String fieldName);
 
     /**
-     * Get the unmasked field value based on the id and field name.
+     * Get the unmasked value of a specified field from a row identified by its ID.
      *
-     * @param modelName model name
-     * @param id data id
-     * @param fieldName masking field name
-     * @return unmasked field value
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @param fieldName the name of the masked field
+     * @return the unmasked field value
      */
     String getUnmaskedField(String modelName, K id, String fieldName);
 
     /**
-     * Get multiple unmasked field values based on the id and field names.
+     * Get multiple unmasked field values from a row identified by its ID.
      *
-     * @param modelName model name
-     * @param id data id
-     * @param fields masking field names
-     * @return unmasked field values map, fieldName -> fieldValue
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @param fields a list of masked fields to retrieve
+     * @return a map of fieldName to unmasked value
      */
     Map<String, Object> getUnmaskedFields(String modelName, K id, List<String> fields);
 
     /**
-     * Update one row by id.
+     * Updates an existing row by its ID.
      *
-     * @param row data row to be updated
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param row the data containing updates
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean updateOne(String modelName, Map<String, Object> row);
 
     /**
-     * Update one row by id, and fetch the updated row from database.
+     * Updates an existing row by its ID, then fetches the updated row from the database.
      *
-     * @param modelName model name
-     * @param row data row to be updated
-     * @param convertType data convert type of the return value.
-     * @return map of updated row data with the latest field values
+     * @param modelName the name of the model
+     * @param row the data containing updates
+     * @param convertType the conversion type applied to the result
+     * @return a map representing the updated row with the latest field values
      */
     Map<String, Object> updateOneAndFetch(String modelName, Map<String, Object> row, ConvertType convertType);
 
     /**
-     * Update multiple rows by id. Each row in the list can have different fields.
+     * Updates multiple rows by their IDs.
+     * Each row in the list can specify different fields for update.
      *
-     * @param rows data rows to be updated
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param rows a list of data rows to update
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean updateList(String modelName, List<Map<String, Object>> rows);
 
     /**
-     * Update multiple rows by ids. Each row in the list can have different fields.
-     * And fetch the updated rows fetched from the database, with the latest field values.
+     * Updates multiple rows by their IDs and then fetches them from the database.
+     * Each row in the list can specify different fields for update.
      *
-     * @param modelName model name
-     * @param rows data rows to be updated
-     * @param convertType data convert type of the return value.
-     * @return updated rows with the latest field values
+     * @param modelName the name of the model
+     * @param rows a list of data rows to update
+     * @param convertType the conversion type applied to the results
+     * @return a list of updated rows with the latest field values
      */
     List<Map<String, Object>> updateListAndFetch(String modelName, List<Map<String, Object>> rows, ConvertType convertType);
 
     /**
-     * Update one row by businessKey.
+     * Updates a single row identified by its business key.
      *
-     * @param row row data to be updated
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param row the data containing updates, including business key fields
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean updateByBusinessKey(String modelName, Map<String, Object> row);
 
     /**
-     * Update multiple rows by externalIds. Each row in the list can have different fields.
+     * Updates multiple rows identified by external IDs.
+     * Each row in the list can specify different fields for update.
      *
-     * @param rows data rows to be updated
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param rows a list of data rows to update, including external IDs
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean updateByExternalId(String modelName, List<Map<String, Object>> rows);
 
     /**
-     * Batch edit data based on the filters, according to the specified field values map.
+     * Performs a batch update of rows that match the provided filters,
+     * updating the fields specified in the value map.
+     * <p>If no filters are specified, all data visible to the current user might be updated.</p>
      *
-     * @param filters filters, if not specified, all visible data of the current user will be updated.
-     * @param value field values to be updated
-     * @return number of affected rows
+     * @param modelName the name of the model
+     * @param filters optional filter criteria
+     * @param value a map of field-value pairs to update
+     * @return the number of rows affected
      */
     Integer updateByFilter(String modelName, Filters filters, Map<String, Object> value);
 
     /**
-     * Delete one row by id.
-     * All the slices related to this `id` will be deleted if the model is a timeline model.
+     * Deletes a single row by its ID.
+     * If the model is a timeline model, all slices related to this ID are also deleted.
      *
-     * @param id data id
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean deleteById(String modelName, K id);
 
     /**
-     * Delete a slice of timeline model by `sliceId`, the primary key of timeline model.
+     * Deletes a single slice of a timeline model, identified by sliceId (the model's primary key).
      *
-     * @param modelName model name
-     * @param sliceId data id
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param sliceId the slice's unique ID
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean deleteBySliceId(String modelName, Long sliceId);
 
     /**
-     * Delete multiple rows by ids.
+     * Deletes multiple rows by their IDs.
      *
-     * @param ids data ids
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param ids a list of unique IDs for the rows to delete
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean deleteByIds(String modelName, List<K> ids);
 
     /**
-     * Delete one row by business key.
+     * Deletes a single row identified by its business key.
      *
-     * @param modelName model name
-     * @param row row data with businessKey fields
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param row the data containing the business key fields
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean deleteByBusinessKey(String modelName, Map<String, Object> row);
 
+
     /**
-     * Delete one row by externalId.
+     * Deletes a single row identified by its external ID.
      *
-     * @param externalId externalId
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param externalId the external ID
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean deleteByExternalId(String modelName, Serializable externalId);
 
     /**
-     * Delete multiple rows by externalIds.
+     * Deletes multiple rows identified by their external IDs.
      *
-     * @param externalIds externalId List
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param externalIds a list of external IDs
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean deleteByExternalIds(String modelName, List<Serializable> externalIds);
 
     /**
-     * Delete rows by specified filters.
+     * Deletes rows matching the specified filters.
      *
-     * @param modelName model name
-     * @param filters filters
-     * @return true / Exception
+     * @param modelName the name of the model
+     * @param filters filtering conditions
+     * @return {@code true} if successful; otherwise an exception is thrown
      */
     boolean deleteByFilters(String modelName, Filters filters);
 
     /**
-     * Copy a single row based on id, and return the new id of the new row.
-     * Currently, read and create permissions are checked separately
+     * Copies a single row identified by its ID, returning the ID of the newly created copy.
+     * <p>Read and create permissions are evaluated separately.</p>
      *
-     * @param modelName model name
-     * @param id source data id
-     * @return id of the new data
+     * @param modelName the name of the model
+     * @param id the source row's ID
+     * @return the ID of the newly created copy
      */
     K copyById(String modelName, K id);
 
     /**
-     * Copy a single row based on id, and fetch the new row.
-     * Currently, read and create permissions are checked separately
+     * Copies a single row identified by its ID and returns the newly created data,
+     * with the specified convert type applied.
+     * <p>Read and create permissions are evaluated separately.</p>
      *
-     * @param modelName model name
-     * @param id source data id
-     * @param convertType data convert type of the return value.
-     * @return new row data
+     * @param modelName the name of the model
+     * @param id the source row's ID
+     * @param convertType the conversion type applied to the result
+     * @return a map representing the newly created row
      */
     Map<String, Object> copyByIdAndFetch(String modelName, K id, ConvertType convertType);
 
     /**
-     * Copy multiple rows based on ids, and return the ids of the new rows.
-     * Currently, read and create permissions are checked separately
+     * Copies multiple rows based on their IDs and returns the IDs of the new copies.
+     * <p>Read and create permissions are evaluated separately.</p>
      *
-     * @param modelName model name
-     * @param ids source data ids
-     * @return ids of the new data
+     * @param modelName the name of the model
+     * @param ids a list of source row IDs
+     * @return a list of IDs corresponding to the newly created copies
      */
     List<K> copyByIds(String modelName, List<K> ids);
 
     /**
-     * Copy multiple rows based on ids, and fetch the new rows.
-     * Currently, read and create permissions are checked separately
+     * Copies multiple rows based on their IDs and returns the newly created data,
+     * with the specified convert type applied.
+     * <p>Read and create permissions are evaluated separately.</p>
      *
-     * @param modelName model name
-     * @param ids source data ids
-     * @param convertType data convert type of the return value.
-     * @return new row data list
+     * @param modelName the name of the model
+     * @param ids a list of source row IDs
+     * @param convertType the conversion type applied to the result
+     * @return a list of maps representing the newly created rows
      */
     List<Map<String, Object>> copyByIdsAndFetch(String modelName, List<K> ids, ConvertType convertType);
 
     /**
-     * Query single row data based on filters. Only for code use.
-     * Throw an exception when there are multiple objects.
+     * Queries exactly one row matching the specified FlexQuery.
+     * <p>If multiple rows match, an exception is thrown. This method is intended for internal code use.</p>
      *
-     * @param modelName model name
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @return single row data
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @return a map representing the single matched row
      */
     Map<String, Object> searchOne(String modelName, FlexQuery flexQuery);
 
     /**
-     * Query data list based on FlexQuery without pagination, only for code use.
-     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     * Performs a non-paginated query based on FlexQuery, intended for internal code use.
+     * <p>If the result set exceeds {@code MAX_BATCH_SIZE}, an error is logged but no exception is thrown.</p>
      *
-     * @param modelName model name
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @return data list
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @return a list of maps representing the matching rows
      */
     List<Map<String, Object>> searchList(String modelName, FlexQuery flexQuery);
 
     /**
-     * Searches for objects based on the provided FlexQuery and maps them to the specified return class.
-     * If the result exceeds the MAX_BATCH_SIZE, an error log is recorded, but no exception is thrown.
+     * Performs a non-paginated query based on FlexQuery.
+     * <p>If the result set exceeds {@code MAX_BATCH_SIZE}, an error is logged but no exception is thrown.</p>
      *
-     * @param <R> the type of the return class
-     * @param modelName model name
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param returnClass the class of the objects to be returned
-     * @return object list of the specified return class
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @return a list of maps representing the matching rows with displayName and ID
+     */
+    List<Map<String, Object>> searchName(String modelName, FlexQuery flexQuery);
+
+    /**
+     * Performs a non-paginated query based on FlexQuery and maps the results
+     * to the specified return class.
+     * <p>If the result set exceeds {@code MAX_BATCH_SIZE}, an error is logged
+     * but no exception is thrown.</p>
+     *
+     * @param <R> the generic type of the result
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @param returnClass the class to map each row to
+     * @return a list of objects mapped to the specified class
      */
     <R> List<R> searchList(String modelName, FlexQuery flexQuery, Class<R> returnClass);
 
     /**
-     * Query data list based on FlexQuery with pagination.
-     * The page size cannot exceed the MAX_BATCH_SIZE.
+     * Performs a paginated query based on FlexQuery, returning a {@link Page} of results.
+     * <p>The page size must not exceed {@code MAX_BATCH_SIZE}.</p>
      *
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page the Page object containing pagination information
-     * @return a Page object containing the Map data list
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @param page the {@link Page} containing pagination parameters
+     * @return a {@link Page} of maps representing the queried rows
      */
     Page<Map<String, Object>> searchPage(String modelName, FlexQuery flexQuery, Page<Map<String, Object>> page);
 
     /**
-     * Query objects based on FlexQuery with pagination.
-     * The page size cannot exceed the MAX_BATCH_SIZE.
+     * Performs a paginated query based on FlexQuery, mapping each row to the specified return class.
+     * <p>The page size must not exceed {@code MAX_BATCH_SIZE}.</p>
      *
-     * @param <R> the type of the return class
-     * @param modelName model name
-     * @param flexQuery FlexQuery object, can set fields, filters, orders, etc.
-     * @param page the Page object containing pagination information
-     * @param returnClass the class of the objects to be returned
-     * @return a Page object containing the queried objects
+     * @param <R> the generic type of the result
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @param page the {@link Page} containing pagination parameters
+     * @param returnClass the class to map each row to
+     * @return a {@link Page} of mapped objects
      */
     <R> Page<R> searchPage(String modelName, FlexQuery flexQuery, Page<R> page, Class<R> returnClass);
 
     /**
-     * Return data in a tree structure.
+     * Queries data in a tree structure based on the specified FlexQuery.
      *
-     * @param flexQuery search conditions, can set fields, filters, orders, etc.
-     * @return Tree structure data list
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, etc.
+     * @return a list of maps representing the data in a hierarchical tree structure
      */
     List<Map<String, Object>> searchTree(String modelName, FlexQuery flexQuery);
 
     /**
-     * Query the PivotTable, without pagination, the data is limited to no more than DEFAULT_BATCH_SIZE records.
+     * Executes a PivotTable query based on the specified FlexQuery, returning up to
+     * {@code DEFAULT_BATCH_SIZE} rows without pagination.
      *
-     * @param flexQuery search conditions, can set fields, filters, orders, groupBy, splitBy, summary, etc.
-     * @return PivotTable object
+     * @param modelName the name of the model
+     * @param flexQuery a {@link FlexQuery} object defining fields, filters, sorting, grouping, splitting, summary, etc.
+     * @return a {@link PivotTable} object encapsulating the pivot results
      */
     PivotTable searchPivot(String modelName, FlexQuery flexQuery);
 
     /**
-     * Count the number of records based on the filter conditions.
+     * Counts the number of rows matching the given filters.
      *
-     * @param modelName model name
-     * @param filters filter conditions
-     * @return count result
+     * @param modelName the name of the model
+     * @param filters filtering conditions
+     * @return the total count of matching rows
      */
     Long count(String modelName, Filters filters);
 
     /**
-     * Determine if the id physically exists, without permission check.
+     * Checks if a row with the specified ID physically exists in the underlying data store,
+     * without performing any permission checks.
      *
-     * @param modelName Model name
-     * @param id Data id
-     * @return true or false
+     * @param modelName the name of the model
+     * @param id the unique ID of the row
+     * @return {@code true} if the row physically exists; otherwise false
      */
     boolean exist(String modelName, K id);
 
     /**
-     * Filter the set that exist in the database from ids, without permission check.
+     * Filters the provided list of IDs, returning only those that physically exist
+     * in the data store, without performing any permission checks.
      *
-     * @param modelName Model name
-     * @param ids Data ids
-     * @return ids that exist in the database
+     * @param modelName the name of the model
+     * @param ids the collection of IDs to check
+     * @return a list of IDs that exist
      */
     List<K> filterExistIds(String modelName, Collection<K> ids);
 }

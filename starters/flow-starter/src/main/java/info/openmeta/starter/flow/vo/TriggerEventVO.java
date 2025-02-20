@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Trigger Event VO
  */
-@Schema(name = "Trigger Event Body Params")
+@Schema(name = "Trigger Event Params")
 @Data
 public class TriggerEventVO {
 

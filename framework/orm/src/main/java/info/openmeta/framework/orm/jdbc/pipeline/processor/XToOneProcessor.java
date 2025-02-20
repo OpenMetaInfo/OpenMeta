@@ -65,7 +65,7 @@ public class XToOneProcessor extends BaseProcessor {
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
             row.put(fieldName, metaField.getDefaultValueObject());
-        } else if (row.containsKey(fieldName)){
+        } else if (row.containsKey(fieldName)) {
             checkRequired(row);
             row.put(fieldName, getFieldTypeDefaultValue());
         }
@@ -113,14 +113,14 @@ public class XToOneProcessor extends BaseProcessor {
     }
 
     /**
-     * Get the displayName map of the associated model: {id: displayName}
+     * Get the displayName map of the related model: {id: displayName}
      *
-     * @param relatedValueMap Field values of the associated model {id: {fieldName: Value}}
+     * @param relatedValueMap Field values of the related model {id: {fieldName: Value}}
      * @return displayNameMap {id: displayName}
      */
     private Map<Serializable, String> getDisplayNameMap(Map<Serializable, Map<String, Object>> relatedValueMap) {
         Map<Serializable, String> displayNameMap = new HashMap<>();
-        List<String> displayFields = ModelManager.getFieldDisplayName(metaField);
+        List<String> displayFields = ModelManager.getModelDisplayName(metaField.getRelatedModel());
         for (Map.Entry<Serializable, Map<String, Object>> value : relatedValueMap.entrySet()) {
             List<Object> displayValues = displayFields.stream().map(value.getValue()::get)
                     .filter(n -> n != null && n != "").collect(Collectors.toList());

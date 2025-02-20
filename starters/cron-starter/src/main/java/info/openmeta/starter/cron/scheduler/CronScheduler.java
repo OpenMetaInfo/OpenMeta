@@ -71,7 +71,7 @@ public class CronScheduler {
         if (!Boolean.TRUE.equals(sysCron.getLimitExecution())) {
             // Cron with unlimited execution times
             scheduleRepeatedTask(sysCron, executionTime);
-        } else if (sysCron.getRemainingCount() > 0){
+        } else if (sysCron.getRemainingCount() > 0) {
             // Cron with limited execution times, and there are remaining execution times.
             AtomicInteger remainingCount = new AtomicInteger(sysCron.getRemainingCount());
             scheduleLimitedTask(sysCron, executionTime, remainingCount);

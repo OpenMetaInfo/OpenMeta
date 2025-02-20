@@ -18,7 +18,7 @@ import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.LambdaUtils;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.metadata.entity.SysPreData;
 import info.openmeta.starter.metadata.service.SysPreDataService;

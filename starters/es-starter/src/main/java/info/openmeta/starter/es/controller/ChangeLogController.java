@@ -8,11 +8,10 @@ import info.openmeta.framework.orm.changelog.message.dto.ChangeLog;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.domain.Page;
-import info.openmeta.framework.orm.domain.QueryParams;
-import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaModel;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.web.response.ApiResponse;
+import info.openmeta.framework.web.vo.QueryParams;
 import info.openmeta.starter.es.service.ChangeLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -144,10 +143,12 @@ public class ChangeLogController {
     @PostMapping(value = "/searchPageByModel")
     @Parameter(name = "modelName", description = "Model name")
     @RequireRole(SystemRole.SYSTEM_ROLE_ADMIN)
-    public ApiResponse<Page<ChangeLog>> searchPageByModel(@RequestParam String modelName, @RequestBody QueryParams queryParams) {
-        ContextHolder.getContext().setEffectiveDate(queryParams.getEffectiveDate());
+    public ApiResponse<Page<ChangeLog>> searchPageByModel(@RequestParam String modelName,
+                                                          @RequestBody(required = false) QueryParams queryParams) {
+        if (queryParams == null) {
+            queryParams = new QueryParams();
+        }
         FlexQuery flexQuery = QueryParams.convertParamsToFlexQuery(queryParams);
-        flexQuery.setConvertType(ConvertType.REFERENCE);
         Page<ChangeLog> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
         return ApiResponse.success(changeLogService.searchPageByModel(modelName, flexQuery, page, true));
     }
@@ -161,9 +162,9 @@ public class ChangeLogController {
     @Operation(description = """
             Return paginated data based on the specified filters, sorting conditions, page number, page size.
             If not provided, using the backend default values.""")
-    @PostMapping(value = "/searchChangeLogPage")
+    @PostMapping(value = "/searchPage")
     @RequireRole(SystemRole.SYSTEM_ROLE_ADMIN)
-    public ApiResponse<Page<ChangeLog>> searchChangeLogPage(@RequestBody QueryParams queryParams) {
+    public ApiResponse<Page<ChangeLog>> searchPage(@RequestBody QueryParams queryParams) {
         Page<ChangeLog> page = Page.of(queryParams.getPageNumber(), queryParams.getPageSize());
         return ApiResponse.success(changeLogService.searchPage(queryParams.getFilters(), queryParams.getOrders(), page, true));
     }

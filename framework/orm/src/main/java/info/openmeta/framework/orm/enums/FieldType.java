@@ -49,13 +49,18 @@ public enum FieldType {
     DATE("Date", "Date", null, LocalDate.class, Types.DATE),
     DATE_TIME("DateTime", "DateTime", null, LocalDateTime.class, Types.TIMESTAMP),
 
-    // OptionList, MultiOption, MultiString, JSON, Filter
+    // OptionList, MultiOption, MultiString, JSON, Filters, Orders
     OPTION("Option", "Single Option", "", String.class, Types.VARCHAR),
-    MULTI_OPTION("MultiOption", "Multi-Option", new ArrayList<>(0), List.class, Types.VARCHAR),
-    MULTI_STRING("MultiString", "Multi-String", new ArrayList<>(0), List.class, Types.VARCHAR),
+    MULTI_OPTION("MultiOption", "MultiOption", new ArrayList<>(0), List.class, Types.VARCHAR),
+    MULTI_STRING("MultiString", "MultiString", new ArrayList<>(0), List.class, Types.VARCHAR),
     JSON("JSON", "JSON", null, JsonNode.class, Types.LONGVARCHAR),
-    FILTERS("Filters", "Filter", null, Filters.class, Types.VARCHAR),
+    FILTERS("Filters", "Filters", null, Filters.class, Types.VARCHAR),
     ORDERS("Orders", "Orders", null, Orders.class, Types.VARCHAR),
+
+    // File, MultiFile, abstract fields, not stored in the business model, but
+    // stored in the FileRecord model
+    FILE("File", "File", null, null, Types.NULL),
+    MULTI_FILE("MultiFile", "MultiFile", null, null, Types.NULL),
 
     // Relational fields
     ONE_TO_ONE("OneToOne", "OneToOne", null, null, Types.BIGINT),

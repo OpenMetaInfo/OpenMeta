@@ -41,7 +41,7 @@ public class NumericProcessor extends BaseProcessor {
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
             row.put(fieldName, metaField.getDefaultValueObject());
-        } else if (row.containsKey(fieldName)){
+        } else if (row.containsKey(fieldName)) {
             checkRequired(row);
             row.put(fieldName, getFieldTypeDefaultValue());
         }

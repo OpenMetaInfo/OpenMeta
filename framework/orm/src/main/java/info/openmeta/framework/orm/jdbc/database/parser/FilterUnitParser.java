@@ -26,7 +26,13 @@ public class FilterUnitParser {
      * @param filterUnit filterUnit
      */
     public static StringBuilder parse(SqlWrapper sqlWrapper, String tableAlias, MetaField metaField, FilterUnit filterUnit) {
-        StringBuilder fieldAlias = new StringBuilder(tableAlias).append(".").append(metaField.getColumnName());
+        String fieldAlias;
+        if (metaField.isTranslatable()) {
+            // Replace the field name with the translated field name in WHERE clause
+            fieldAlias = sqlWrapper.filterTranslatableField(tableAlias, metaField);
+        } else {
+            fieldAlias = tableAlias + "." + metaField.getColumnName();
+        }
         StringBuilder condition = new StringBuilder(fieldAlias);
         Operator operator = filterUnit.getOperator();
         Object value = filterUnit.getValue();
@@ -52,7 +58,6 @@ public class FilterUnitParser {
             case CONTAINS:
             case NOT_CONTAINS:
                 condition.append(" ").append(DBUtil.getPredicate(operator)).append(" ?");
-                value = "%" + value + "%";
                 sqlWrapper.addArgValue("%" + value + "%");
                 break;
             case START_WITH:
@@ -142,7 +147,7 @@ public class FilterUnitParser {
      * @param idPaths idPaths
      * @return SQL condition
      */
-    private static StringBuilder parseChildOf(SqlWrapper sqlWrapper, StringBuilder fieldAlias, Operator operator, Collection<?> idPaths) {
+    private static StringBuilder parseChildOf(SqlWrapper sqlWrapper, String fieldAlias, Operator operator, Collection<?> idPaths) {
         StringBuilder condition;
         int size = idPaths.size();
         if (size == 1) {
@@ -171,7 +176,7 @@ public class FilterUnitParser {
      * @param operator operator
      * @param idPath idPath
      */
-    private static StringBuilder buildStartWithCondition(SqlWrapper sqlWrapper, StringBuilder fieldAlias, Operator operator, String idPath) {
+    private static StringBuilder buildStartWithCondition(SqlWrapper sqlWrapper, String fieldAlias, Operator operator, String idPath) {
         StringBuilder condition = new StringBuilder(fieldAlias).append(" ").append(DBUtil.getPredicate(operator)).append(" ?");
         idPath = idPath + "%";
         sqlWrapper.addArgValue(idPath);

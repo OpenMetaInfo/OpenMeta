@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.util.List;
 
 /**
  * DesignField Model
@@ -63,14 +62,17 @@ public class DesignField extends BaseModel {
     @Schema(description = "Related Field")
     private String relatedField;
 
-    @Schema(description = "Inverse Link Field")
-    private String inverseLinkField;
+    @Schema(description = "Joint Model")
+    private String jointModel;
+
+    @Schema(description = "Joint Model Left Field")
+    private String jointLeft;
+
+    @Schema(description = "Joint Model Left Field")
+    private String jointRight;
 
     @Schema(description = "Cascaded Field")
     private String cascadedField;
-
-    @Schema(description = "Display Name")
-    private List<String> displayName;
 
     @Schema(description = "Filters")
     private String filters;

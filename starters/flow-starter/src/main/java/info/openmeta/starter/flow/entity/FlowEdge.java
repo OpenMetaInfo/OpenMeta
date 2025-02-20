@@ -22,7 +22,7 @@ public class FlowEdge extends BaseModel {
     private String id;
 
     @Schema(description = "Flow ID")
-    private Long flowId;
+    private String flowId;
 
     @Schema(description = "Edge Label")
     private String label;

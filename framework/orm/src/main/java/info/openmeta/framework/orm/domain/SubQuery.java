@@ -41,7 +41,7 @@ public class SubQuery {
 
     private Orders orders;
 
-    @Schema(description = "Only count the sub records, true/false")
+    @Schema(description = "Only return the count of related records, true/false")
     private Boolean count;
 
     @Schema(description = "TopN query on OneToMany field, using with `orders`.", example = "3")

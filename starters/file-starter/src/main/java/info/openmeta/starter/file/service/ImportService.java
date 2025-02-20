@@ -1,6 +1,6 @@
 package info.openmeta.starter.file.service;
 
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.ImportTemplateDTO;
 import info.openmeta.starter.file.entity.ImportHistory;
 import info.openmeta.starter.file.vo.ImportWizard;

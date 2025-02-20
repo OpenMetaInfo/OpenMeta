@@ -141,7 +141,8 @@ public class MySQLDDL implements DDLInterface {
         Map<String, List<DesignModelIndex>> deletedIndexMap = deletedIndexes.stream().collect(Collectors.groupingBy(DesignModelIndex::getModelName));
         Map<String, List<DesignModelIndex>> createdIndexMap = createdIndexes.stream().collect(Collectors.groupingBy(DesignModelIndex::getModelName));
         deletedIndexMap.forEach((modelName, deletedModelIndexes) -> {
-            ddl.append("ALTER TABLE ").append(StringTools.toUnderscoreCase(modelName)).append("\n");
+            String tableName = StringTools.toUnderscoreCase(modelName);
+            ddl.append("ALTER TABLE ").append(tableName).append("\n");
             for (DesignModelIndex designModelIndex : deletedModelIndexes) {
                 ddl.append("    DROP INDEX ").append(designModelIndex.getIndexName()).append(",\n");
             }
@@ -154,7 +155,8 @@ public class MySQLDDL implements DDLInterface {
         // Models with only created indexes
         createdIndexMap.forEach((modelName, createdModelIndexes) -> {
             if (!deletedIndexMap.containsKey(modelName)) {
-                ddl.append("ALTER TABLE ").append(StringTools.toUnderscoreCase(modelName)).append("\n");
+                String tableName = StringTools.toUnderscoreCase(modelName);
+                ddl.append("ALTER TABLE ").append(tableName).append("\n");
                 ddl.append(addIndexDDL(createdModelIndexes));
                 addBlankLine(ddl);
             }

@@ -8,7 +8,7 @@ import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.web.dto.FileInfo;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.ExcelDataDTO;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.excel.handler.CustomExportStyleHandler;

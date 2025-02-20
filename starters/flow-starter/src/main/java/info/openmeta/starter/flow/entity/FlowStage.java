@@ -19,10 +19,10 @@ public class FlowStage extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    private Long id;
+    private String id;
 
     @Schema(description = "Flow ID")
-    private Long flowId;
+    private String flowId;
 
     @Schema(description = "Stage Name")
     private String name;

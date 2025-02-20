@@ -1,7 +1,6 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
 import com.google.common.collect.Sets;
-import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.enums.Operator;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
@@ -12,15 +11,11 @@ import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.SubQuery;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
-import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
-import info.openmeta.framework.orm.vo.ModelReference;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
@@ -197,51 +192,68 @@ public class OneToManyProcessor extends BaseProcessor {
      */
     @Override
     public void batchProcessOutputRows(List<Map<String, Object>> rows) {
-        List<Serializable> ids = rows.stream().map(row -> (Serializable) row.get(ModelConstant.ID)).collect(Collectors.toList());
-        List<Map<String, Object>> relatedModelRows = getRelatedModelRows(ids);
+        List<Serializable> mainModelIds = rows.stream()
+                .map(row -> (Serializable) row.get(ModelConstant.ID))
+                .toList();
+        if (subQuery != null && Boolean.TRUE.equals(subQuery.getCount())) {
+            expandRowsWithRelatedCount(mainModelIds, rows);
+            return;
+        }
+        List<Map<String, Object>> relatedModelRows;
+        if (subQuery == null && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
+            // Set the OneToMany field value to displayNames when not expanded by default.
+            relatedModelRows = getRelatedRowsWithDisplayName(mainModelIds);
+        } else {
+            relatedModelRows = getRelatedModelRows(mainModelIds);
+        }
         // {mainModelId: List<relatedModelRow>}, grouped related model rows by main model id
         Map<Serializable, List<Map<String, Object>>> groupedValues = groupByMainModelId(relatedModelRows);
-        MetaField relatedField = ModelManager.getModelField(metaField.getRelatedModel(), metaField.getRelatedField());
         rows.forEach(row -> {
             List<Map<String, Object>> subRows = groupedValues.get((Serializable) row.get(ModelConstant.ID));
             if (CollectionUtils.isEmpty(subRows)) {
-                subRows = new ArrayList<>(0);
-            } else if (!flexQuery.getFields().contains(relatedField.getFieldName())) {
-                // Remove the relatedField field used for `groupBy` when it is not in the fields list.
-                subRows.forEach(subRow -> subRow.remove(relatedField.getFieldName()));
-            } else if (FieldType.TO_ONE_TYPES.contains(relatedField.getFieldType())
-                    && ConvertType.EXPAND_TYPES.contains(flexQuery.getConvertType())) {
-                // When the `relatedField` appears in the fields and defined as a ManyToOne field,
-                // fill in the displayName of it.
-                fillManyToOneDisplayName(relatedField, row, subRows);
+                subRows = Collections.emptyList();
             }
             row.put(fieldName, subRows);
         });
     }
 
     /**
-     * When the `relatedField` defined in related model is ManyToOne field, it does not need to
-     * query the main model again to get the displayNames, fill in the displayName using the main model rows directly.
+     * Set the OneToMany field value to the count of related records.
      *
-     * @param manyToOneField ManyToOne field object corresponding to the OneToMany field
-     * @param mainRow Main model row
-     * @param subRows OneToMany field, multiple related model rows corresponding to the single main model row
+     * @param mainModelIds Main model ids
+     * @param rows         Main model data list
      */
-    private void fillManyToOneDisplayName(MetaField manyToOneField, Map<String, Object> mainRow, List<Map<String, Object>> subRows) {
-        // Filter out null or empty strings of displayNames
-        List<Object> displayValues =  ModelManager.getFieldDisplayName(manyToOneField).stream()
-                .map(mainRow::get)
-                .filter(v -> v != null && v != "")
-                .collect(Collectors.toList());
-        String displayName = StringUtils.join(displayValues, StringConstant.DISPLAY_NAME_SEPARATOR);
-        if (ConvertType.DISPLAY.equals(flexQuery.getConvertType())) {
-            subRows.forEach(r -> r.put(metaField.getRelatedField(), displayName));
-        } else if (ConvertType.REFERENCE.equals(flexQuery.getConvertType())){
-            subRows.forEach(r -> {
-                Serializable id = (Serializable) r.get(metaField.getRelatedField());
-                r.put(metaField.getRelatedField(), ModelReference.of(id, displayName));
-            });
-        }
+    private void expandRowsWithRelatedCount(List<Serializable> mainModelIds, List<Map<String, Object>> rows) {
+        Filters filters = new Filters().in(metaField.getRelatedField(), mainModelIds);
+        // When there is a subQuery filters, merge them with `AND` logic
+        filters.and(subQuery.getFilters());
+        // count subQuery on the joint model
+        FlexQuery relatedFlexQuery = new FlexQuery(List.of(metaField.getRelatedField()), filters);
+        // Count is automatically added during the groupBy operation
+        relatedFlexQuery.setGroupBy(metaField.getRelatedField());
+        List<Map<String, Object>> countRows = ReflectTool.searchList(metaField.getRelatedModel(), relatedFlexQuery);
+        Map<Serializable, Integer> relatedCountMap = countRows.stream()
+                .collect(Collectors.toMap(
+                        row -> (Serializable) row.get(metaField.getRelatedField()),
+                        row -> (Integer) row.get(ModelConstant.COUNT)));
+        rows.forEach(row -> {
+            row.put(fieldName, relatedCountMap.get((Serializable) row.get(ModelConstant.ID)));
+        });
+    }
+
+    /**
+     * Get the displayNames of related rows by the main model ids
+     *
+     * @param mainModelIds main model ids
+     * @return related model rows
+     */
+    private List<Map<String, Object>> getRelatedRowsWithDisplayName(List<Serializable> mainModelIds) {
+        FlexQuery relatedFlexQuery = new FlexQuery(new Filters().in(metaField.getRelatedField(), mainModelIds));
+        // Set the convert type to REFERENCE.
+        relatedFlexQuery.setConvertType(ConvertType.REFERENCE);
+        relatedFlexQuery.select(metaField.getRelatedField());
+        relatedFlexQuery.setKeepIdField(metaField.getRelatedField());
+        return ReflectTool.searchName(metaField.getRelatedModel(), relatedFlexQuery);
     }
 
     /**
@@ -258,24 +270,16 @@ public class OneToManyProcessor extends BaseProcessor {
         } else {
             // When there is a subQuery filters, merge them with `AND` logic
             filters.and(subQuery.getFilters());
-            // Simple processing for count subQuery
-            if (Boolean.TRUE.equals(subQuery.getCount())) {
-                List<String> fields = new ArrayList<>(List.of(metaField.getRelatedField()));
-                relatedFlexQuery = new FlexQuery(fields, filters);
-                // Count is automatically added during the groupBy operation
-                relatedFlexQuery.setGroupBy(metaField.getRelatedField());
-            } else {
-                relatedFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
-                if (!CollectionUtils.isEmpty(subQuery.getFields())) {
-                    relatedFlexQuery.getFields().add(metaField.getRelatedField());
-                }
-                if (subQuery.getTopN() != null && subQuery.getTopN() > 0) {
-                    Assert.notNull(subQuery.getOrders(), "TopN query must have orderBy fields!");
-                    relatedFlexQuery.setTopN(subQuery.getTopN());
-                    // the `relatedField` field as the partition field of the TopN query, without aggregation
-                    relatedFlexQuery.setGroupBy(Collections.singletonList(metaField.getRelatedField()));
-                    relatedFlexQuery.setAggregate(false);
-                }
+            relatedFlexQuery = new FlexQuery(subQuery.getFields(), filters, subQuery.getOrders());
+            if (!CollectionUtils.isEmpty(subQuery.getFields())) {
+                relatedFlexQuery.getFields().add(metaField.getRelatedField());
+            }
+            if (subQuery.getTopN() != null && subQuery.getTopN() > 0) {
+                Assert.notNull(subQuery.getOrders(), "TopN query must have orderBy fields!");
+                relatedFlexQuery.setTopN(subQuery.getTopN());
+                // the `relatedField` field as the partition field of the TopN query, without aggregation
+                relatedFlexQuery.setGroupBy(Collections.singletonList(metaField.getRelatedField()));
+                relatedFlexQuery.setAggregate(false);
             }
         }
         relatedFlexQuery.setConvertType(flexQuery.getConvertType());

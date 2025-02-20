@@ -88,9 +88,10 @@ public class SqlWrapper {
      *
      * @param metaField translatable field object of the left table
      * @param leftAlias left table alias
+     * @param isSelect whether to use in the SELECT statement, if true, add the AS column name
      * @return SQL segment of the translation field
      */
-    public String selectTranslatableField(MetaField metaField, String leftAlias) {
+    public String selectTranslatableField(MetaField metaField, String leftAlias, boolean isSelect) {
         String transAlias = tableAlias.getTransTableAlias(leftAlias);
         if (!StringUtils.hasLength(transAlias)) {
             transAlias = tableAlias.generateTransTableAlias(leftAlias);
@@ -98,13 +99,34 @@ public class SqlWrapper {
         }
         String columnName = metaField.getColumnName();
         String columnAlias = leftAlias + "." + columnName;
-        return "COALESCE(NULLIF(" + transAlias + "." + columnName + ", ''), " + columnAlias + ") AS " + columnName;
+        String selectSegment = "COALESCE(NULLIF(" + transAlias + "." + columnName + ", ''), " + columnAlias + ")";
+        if (isSelect) {
+            selectSegment += " AS " + columnName;
+        }
+        return selectSegment;
+    }
+
+    /**
+     * Replace the field name with the translation field name in the WHERE clause.
+     * For example, replace `t.name` with `trans1.name`
+     *
+     * @param leftAlias left table alias
+     * @param metaField translatable field object of the left table
+     * @return SQL segment of the translation field to be used in the WHERE clause
+     */
+    public String filterTranslatableField(String leftAlias, MetaField metaField) {
+        String transAlias = tableAlias.getTransTableAlias(leftAlias);
+        if (!StringUtils.hasLength(transAlias)) {
+            transAlias = tableAlias.generateTransTableAlias(leftAlias);
+            this.leftJoinTranslation(metaField, leftAlias, transAlias);
+        }
+        return transAlias + "." + metaField.getColumnName();
     }
 
     /**
      * Generate join statement like: `LEFT JOIN table_name t1 ON t.job_id = t1.id`
      *
-     * @param metaField left table field object
+     * @param metaField left table field object, which is ManyToOne or OneToOne field
      * @param leftAlias left table alias
      * @param rightAlias right table alias
      * @param isAcrossTimeline whether to get all timeline slice data
@@ -272,12 +294,12 @@ public class SqlWrapper {
      * <p>
      * Build the `subQuery` first, and then wrap the `subQuery` with the `topNumber` condition.
      *
-     * @param partitionField partition field, relatedField attribute of OneToMany field
+     * @param partitionColumn partition column, which is the relatedField of OneToMany field
      *
      */
-    public void buildTopNSql(String partitionField, Integer topN) {
+    public void buildTopNSql(String partitionColumn, Integer topN) {
         String windowSql = " ROW_NUMBER() OVER(PARTITION BY " +
-                MAIN_TABLE_ALIAS + "." + StringTools.toUnderscoreCase(partitionField) +
+                MAIN_TABLE_ALIAS + "." + partitionColumn +
                 " ORDER BY " + StringTools.removeLastComma(orderByClause) + ") as topNumber ";
         StringBuilder subSql = new StringBuilder("SELECT ").append(selectClause)
                 .append(windowSql)
