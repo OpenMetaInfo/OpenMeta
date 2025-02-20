@@ -50,7 +50,6 @@ public class SearchListParams {
     @Schema(description = "Sub queries for relational fields: {fieldName: SubQuery}", example = "{}")
     private Map<String, SubQuery> subQueries;
 
-
     /**
      * Convert SearchListParams to FlexQuery.
      *

@@ -64,9 +64,6 @@ public class QueryParams {
      * @return FlexQuery
      */
     static public FlexQuery convertParamsToFlexQuery(QueryParams queryParams) {
-        if (queryParams == null) {
-            queryParams = new QueryParams();
-        }
         FlexQuery flexQuery = new FlexQuery(queryParams.getFilters(), queryParams.getOrders());
         flexQuery.setFields(queryParams.getFields());
         // Set the convert type to REFERENCE.

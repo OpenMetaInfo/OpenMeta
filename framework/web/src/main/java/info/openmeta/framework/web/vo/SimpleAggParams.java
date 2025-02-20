@@ -1,5 +1,7 @@
-package info.openmeta.framework.orm.domain;
+package info.openmeta.framework.web.vo;
 
+import info.openmeta.framework.orm.domain.AggFunctions;
+import info.openmeta.framework.orm.domain.Filters;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -11,9 +13,9 @@ import java.time.LocalDate;
  *      AggFunctions: ["MAX", "createdTime", "newestTime"],
  *      GroupBy: ["deptId"],
  */
-@Schema(name = "SimpleQueryParams")
+@Schema(name = "SimpleAggParams")
 @Data
-public class SimpleQueryParams {
+public class SimpleAggParams {
 
     @Schema(description = "Filters, support nested filters.")
     private Filters filters;

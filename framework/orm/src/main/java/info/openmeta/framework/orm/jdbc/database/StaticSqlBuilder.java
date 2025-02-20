@@ -93,7 +93,8 @@ public class StaticSqlBuilder {
      * @return SELECT SQL
      */
     public static SqlParams getSelectAllMetaSql(String modelName, String orderBy) {
-        String tableName = ModelManager.getModelTable(modelName);
+        // The table name metadata must be in underscore case.
+        String tableName = StringTools.toUnderscoreCase(modelName);
         StringBuilder sql = new StringBuilder("SELECT * FROM ").append(tableName);
         if (StringUtils.isNotBlank(orderBy) && StringTools.isTableOrColumn(orderBy)) {
             sql.append(" ORDER BY ").append(orderBy);
