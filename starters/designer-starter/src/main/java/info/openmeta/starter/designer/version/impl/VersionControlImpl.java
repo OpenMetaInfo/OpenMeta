@@ -3,6 +3,7 @@ package info.openmeta.starter.designer.version.impl;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.constant.TimeConstant;
 import info.openmeta.framework.base.enums.AccessType;
+import info.openmeta.framework.base.utils.DateUtils;
 import info.openmeta.framework.orm.changelog.message.dto.ChangeLog;
 import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
@@ -162,9 +163,9 @@ public class VersionControlImpl implements VersionControl {
         RowChangeDTO rowChangeDTO = new RowChangeDTO(modelName, (Serializable) row.get(ModelConstant.ID));
         rowChangeDTO.setAccessType(accessType);
         rowChangeDTO.setCurrentData(row);
-        rowChangeDTO.setLastChangedId((Long) row.get(ModelConstant.UPDATED_BY));
-        rowChangeDTO.setLastChangedBy(ModelConstant.UPDATED_ID);
-        rowChangeDTO.setLastChangedTime(ModelConstant.UPDATED_TIME);
+        rowChangeDTO.setLastChangedId((Long) row.get(ModelConstant.UPDATED_ID));
+        rowChangeDTO.setLastChangedBy((String) row.get(ModelConstant.UPDATED_BY));
+        rowChangeDTO.setLastChangedTime(DateUtils.dateTimeToString(row.get(ModelConstant.UPDATED_TIME)));
         return rowChangeDTO;
     }
 
