@@ -21,6 +21,7 @@ public class UploadFileDTO {
 
     private FileType fileType;
 
+    // The file size in KB
     private int fileSize;
 
     private FileSource fileSource;

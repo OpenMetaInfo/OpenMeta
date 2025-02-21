@@ -99,7 +99,8 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
             uploadFileDTO.setModelName(modelName);
             uploadFileDTO.setFileName(fileName);
             uploadFileDTO.setFileType(FileType.XLSX);
-            uploadFileDTO.setFileSize(excelBytes.length);
+            // bytes to KB
+            uploadFileDTO.setFileSize(excelBytes.length / 1024);
             uploadFileDTO.setFileSource(FileSource.DOWNLOAD);
             uploadFileDTO.setInputStream(resultStream);
             return this.uploadFile(uploadFileDTO);
@@ -153,7 +154,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileRecord.setOssKey(ossKey);
         fileRecord.setSource(uploadFileDTO.getFileSource());
         fileRecord.setChecksum(checksum);
-        fileRecord.setFileSize(uploadFileDTO.getFileSize() / 1024);
+        fileRecord.setFileSize(uploadFileDTO.getFileSize());
         fileRecord.setModelName(uploadFileDTO.getModelName());
         fileRecord.setRowId(uploadFileDTO.getRowId() == null ? null : uploadFileDTO.getRowId().toString());
         Long id = this.createOne(fileRecord);
@@ -217,6 +218,7 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileRecord.setOssKey(ossKey);
         fileRecord.setSource(FileSource.UPLOAD);
         fileRecord.setChecksum(checksum);
+        // bytes to KB
         fileRecord.setFileSize((int) file.getSize() / 1024);
         Long id = this.createOne(fileRecord);
         fileRecord.setId(id);
@@ -288,6 +290,8 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         fileInfo.setFileType(fileRecord.getFileType());
         String ossUrl = ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
         fileInfo.setUrl(ossUrl);
+        fileInfo.setSize(fileRecord.getFileSize());
+        fileInfo.setChecksum(fileRecord.getChecksum());
         return fileInfo;
     }
 

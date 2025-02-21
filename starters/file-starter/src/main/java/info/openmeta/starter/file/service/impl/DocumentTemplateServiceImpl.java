@@ -129,7 +129,8 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
                 uploadFileDTO.setModelName(template.getModelName());
                 uploadFileDTO.setFileName(template.getFileName());
                 uploadFileDTO.setFileType(fileType);
-                uploadFileDTO.setFileSize(docBytes.length);
+                // bytes to KB
+                uploadFileDTO.setFileSize(docBytes.length / 1024);
                 uploadFileDTO.setInputStream(docxInputStream);
                 return fileRecordService.uploadFileToDownload(uploadFileDTO);
             }

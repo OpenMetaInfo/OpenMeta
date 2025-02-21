@@ -9,11 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(name = "FileInfo")
-public class FileInfo {
-
-    @Schema(description = "File ID")
-    private Long fileId;
+@Schema(name = "FileObject")
+public class FileObject {
 
     @Schema(description = "File Name")
     private String fileName;
@@ -21,13 +18,7 @@ public class FileInfo {
     @Schema(description = "File Type")
     private FileType fileType;
 
-    @Schema(description = "Temporary Download URL")
-    private String url;
-
-    @Schema(description = "File Size (KB)")
-    private Integer size;
-
-    @Schema(description = "Checksum")
-    private String checksum;
+    @Schema(description = "File Content")
+    private String content;
 
 }

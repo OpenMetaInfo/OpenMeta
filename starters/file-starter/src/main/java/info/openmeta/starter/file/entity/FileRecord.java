@@ -38,9 +38,6 @@ public class FileRecord extends BaseModel {
     @Schema(description = "File Size(KB)")
     private Integer fileSize;
 
-    @Schema(description = "MimeType")
-    private String mimetype;
-
     @Schema(description = "Checksum")
     private String checksum;
 
