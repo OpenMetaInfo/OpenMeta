@@ -46,13 +46,15 @@ public class ToolkitServiceImpl implements ToolkitService {
         }
         // Get the dependent fields for stored cascaded and computed fields
         Set<String> dependedFields = new HashSet<>();
-        metaFields.stream().filter(metaField -> !metaField.isDynamic()).forEach(sysField -> {
-            if (StringUtils.isNotBlank(sysField.getCascadedField())) {
-                dependedFields.add(StringUtils.split(sysField.getCascadedField(), ".")[0]);
-            } else if (sysField.isComputed()) {
-                dependedFields.addAll(sysField.getDependentFields());
-            }
-        });
+        metaFields.stream()
+                .filter(metaField -> !metaField.isDynamic())
+                .forEach(metaField -> {
+                    if (StringUtils.isNotBlank(metaField.getCascadedField())) {
+                        dependedFields.add(metaField.getDependentFields().getFirst());
+                    } else if (metaField.isComputed()) {
+                        dependedFields.addAll(metaField.getDependentFields());
+                    }
+                });
         return dependedFields;
     }
 

@@ -14,10 +14,10 @@ import info.openmeta.framework.orm.jdbc.pipeline.processor.FieldProcessor;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.ManyToManyProcessor;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.OneToManyProcessor;
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.framework.orm.meta.MetaModel;
 import info.openmeta.framework.orm.meta.ModelManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -133,14 +133,15 @@ public class DataUpdatePipeline extends DataPipeline {
      * and add them to the list of fields to be processed.
      */
     private void updateEffectedFields() {
-        for (MetaField metaField : ModelManager.getModelCascadedFields(modelName, false)) {
+        MetaModel metaModel = ModelManager.getModel(modelName);
+        for (MetaField metaField : metaModel.getStoredCascadedFields()) {
             // For cascaded field, re-cascade it when the dependent ManyToOne field is modified.
-            String xToOneFieldName = StringUtils.split(metaField.getCascadedField(), ".")[0];
+            String xToOneFieldName = metaField.getDependentFields().getFirst();
             if (this.fields.contains(xToOneFieldName)) {
                 this.fields.add(metaField.getFieldName());
             }
         }
-        for (MetaField metaField : ModelManager.getModelComputedFields(modelName, false)) {
+        for (MetaField metaField : metaModel.getStoredComputedFields()) {
             // For computed field, re-calculate it when any of the dependent fields are modified.
             Set<String> dependentFields = new HashSet<>(metaField.getDependentFields());
             dependentFields.retainAll(this.fields);

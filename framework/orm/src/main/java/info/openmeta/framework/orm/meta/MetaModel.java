@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,7 +55,10 @@ public class MetaModel implements Serializable {
 
     private List<String> businessKey;
 
-    private List<MetaField> modelFields;
-
     private String partitionField;
+
+    private List<MetaField> storedComputedFields = new ArrayList<>();
+
+    private List<MetaField> storedCascadedFields = new ArrayList<>();
+
 }

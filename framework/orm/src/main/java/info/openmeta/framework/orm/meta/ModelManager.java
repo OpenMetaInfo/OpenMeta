@@ -79,23 +79,7 @@ public class ModelManager {
             Assert.notNull(field.getFieldType(), "The fieldType of field metadata is not supported: {0}", field);
             // Convert the string default value to the default value object
             field.setDefaultValueObject(FieldType.convertStringToObject(field.getFieldType(), field.getDefaultValue()));
-            if ((FieldType.TO_ONE_TYPES.contains(field.getFieldType()))) {
-                // For OneToOne/ManyToOne fields, the `relatedField` is default to id.
-                field.setRelatedField(ModelConstant.ID);
-            }
-            if (field.isComputed()) {
-                Assert.notBlank(field.getExpression(), "The formula of computed field {0}:{1} cannot be empty!",
-                        field.getModelName(), field.getFieldName());
-                try {
-                    // Extract and set `dependentFields` for computed fields
-                    List<String> dependentFields = ComputeUtils.compile(field.getExpression()).getVariableFullNames();
-                    field.setDependentFields(dependentFields);
-                } catch (ExpressionSyntaxErrorException e) {
-                    throw new IllegalArgumentException("Computed field {0}:{1}, formula syntax error: {2}\n{3}",
-                            field.getModelName(), field.getFieldName(), field.getExpression(), e.getMessage());
-                }
-            }
-            Assert.isTrue(MODEL_FIELDS.containsKey(field.getModelName()),
+            Assert.isTrue(MODEL_MAP.containsKey(field.getModelName()),
                     "Model for field does not exist in model metadata: {0}", field);
             MODEL_FIELDS.get(field.getModelName()).put(field.getFieldName(), field);
         });
@@ -114,7 +98,6 @@ public class ModelManager {
             Assert.isTrue(StringTools.isTableOrColumn(metaModel.getTableName()), 
                 "The table name `{0}` for model `{1}` does not meet the specification!",
                 metaModel.getTableName(), metaModel.getModelName());
-
             // Check if the soft delete model has a `disabled` field
             validateSoftDeleted(metaModel);
             // Check and complete the model-level displayName configuration.
@@ -155,13 +138,13 @@ public class ModelManager {
             if (FieldType.RELATED_TYPES.contains(metaField.getFieldType())) {
                 validateRelationalField(metaField);
             }
-            // Check if the cascaded field is valid
             if (StringUtils.isNotBlank(metaField.getCascadedField())) {
-                validateCascadedField(metaField);
+                // Verify the cascaded field and update the MetaModel object
+                verifyCascadedField(metaField);
             }
-            // Check if the computed field is valid
             if (metaField.isComputed()) {
-                validateComputedField(metaField);
+                // Verify the computed field and update the MetaModel object
+                verifyComputedField(metaField);
             }
             // Verify and update the `readonly` attribute of field
             verifyReadonlyAttribute(metaField);
@@ -310,7 +293,10 @@ public class ModelManager {
         Assert.isTrue(MODEL_MAP.containsKey(relatedModel),
                 "{0}:{1} field, the relatedModel `{2}` does not exist in the model metadata!",
                 metaField.getModelName(), metaField.getFieldName(), relatedModel);
-        if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
+        if ((FieldType.TO_ONE_TYPES.contains(metaField.getFieldType()))) {
+            // For OneToOne/ManyToOne fields, the `relatedField` is default to id.
+            metaField.setRelatedField(ModelConstant.ID);
+        } else if (FieldType.ONE_TO_MANY.equals(metaField.getFieldType())) {
             Assert.notBlank(metaField.getRelatedField(),
                     "{0}:{1} is a OneToMany field, the `relatedField` cannot be empty!",
                     metaField.getModelName(), metaField.getFieldName());
@@ -350,7 +336,7 @@ public class ModelManager {
      *
      * @param metaField field metadata object
      */
-    private static void validateCascadedField(MetaField metaField) {
+    private static void verifyCascadedField(MetaField metaField) {
         String modelName = metaField.getModelName();
         String fieldName = metaField.getFieldName();
         Assert.isTrue(!ModelConstant.AUDIT_FIELDS.contains(fieldName),
@@ -368,6 +354,12 @@ public class ModelManager {
         Assert.isTrue(isStored(leftField.getRelatedModel(), cascadedFields[1]),
                 "The `cascadedField` {0} of model {1} field {2} does not valid! The field `{3}` is a dynamic field of related model `{4}`.",
                 metaField.getCascadedField(), modelName, fieldName, cascadedFields[1], leftField.getRelatedModel());
+        metaField.setDependentFields(Arrays.asList(cascadedFields));
+        if (!metaField.isDynamic()) {
+            // Update the stored cascaded fields cache of the model
+            MetaModel metaModel = MODEL_MAP.get(modelName);
+            metaModel.getStoredCascadedFields().add(metaField);
+        }
     }
 
     /**
@@ -378,14 +370,28 @@ public class ModelManager {
      * @param metaField field metadata object
      */
 
-    private static void validateComputedField(MetaField metaField) {
+    private static void verifyComputedField(MetaField metaField) {
         Assert.isTrue(!ModelConstant.AUDIT_FIELDS.contains(metaField.getFieldName()),
                 "The field {0} of model {1} is an audit field and cannot be defined as a computed field!",
                 metaField.getFieldName(), metaField.getModelName());
-        validateModelFields(metaField.getModelName(), metaField.getDependentFields());
+        Assert.notBlank(metaField.getExpression(),
+                "The formula of computed field {0}:{1} cannot be empty!",
+                metaField.getModelName(), metaField.getFieldName());
+        try {
+            // Extract and set `dependentFields` for computed fields
+            List<String> dependentFields = ComputeUtils.compile(metaField.getExpression()).getVariableFullNames();
+            validateModelFields(metaField.getModelName(), dependentFields);
+            metaField.setDependentFields(dependentFields);
+        } catch (ExpressionSyntaxErrorException e) {
+            throw new IllegalArgumentException("Computed field {0}:{1}, formula syntax error: {2}\n{3}",
+                    metaField.getModelName(), metaField.getFieldName(), metaField.getExpression(), e.getMessage());
+        }
         if (!metaField.isDynamic()) {
             // Stored computed field, must depend on stored fields.
             validateStoredFields(metaField.getModelName(), metaField.getDependentFields());
+            // Update the stored computed fields cache of the model
+            MetaModel metaModel = MODEL_MAP.get(metaField.getModelName());
+            metaModel.getStoredComputedFields().add(metaField);
         }
     }
 
@@ -411,6 +417,7 @@ public class ModelManager {
      *     4. SliceId field of the timeline model.
      *     5. Computed fields, cascaded fields.
      *     6. `id` field of the model, except for EXTERNAL_ID strategy.
+     *     7. FILE and MULTI_FILE fields are readonly.
      *
      * @param metaField field metadata object
      */
@@ -429,6 +436,8 @@ public class ModelManager {
         } else if (ModelConstant.ID.equals(metaField.getFieldName())
                 && !IdStrategy.EXTERNAL_ID.equals(MODEL_MAP.get(model).getIdStrategy())) {
             metaField.setReadonly(true);
+        } else if (FieldType.FILE_TYPES.contains(metaField.getFieldType())) {
+            metaField.setReadonly(true);
         }
     }
 
@@ -441,7 +450,7 @@ public class ModelManager {
     private static void verifyDynamicAttribute(MetaField metaField) {
         if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
             metaField.setDynamic(true);
-        } else if (FieldType.FILE.equals(metaField.getFieldType()) || FieldType.MULTI_FILE.equals(metaField.getFieldType())) {
+        } else if (FieldType.FILE_TYPES.contains(metaField.getFieldType())) {
             metaField.setDynamic(true);
         }
     }
@@ -612,33 +621,6 @@ public class ModelManager {
     public static String getTranslationTableName(String modelName) {
         String transModel = getTranslationModelName(modelName);
         return getModelTable(transModel);
-    }
-
-    /**
-     * Get the cascaded fields of the model.
-     *
-     * @param modelName model name
-     * @param dynamic dynamic attribute
-     * @return cascaded fields
-     */
-    public static List<MetaField> getModelCascadedFields(String modelName, Boolean dynamic) {
-        return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> StringUtils.isNotBlank(metaField.getCascadedField())
-                        && Objects.equals(metaField.isDynamic(), dynamic))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Get the computed fields of the model.
-     *
-     * @param modelName model name
-     * @param dynamic dynamic attribute
-     * @return computed fields
-     */
-    public static List<MetaField> getModelComputedFields(String modelName, Boolean dynamic) {
-        return MODEL_FIELDS.get(modelName).values().stream()
-                .filter(metaField -> metaField.isComputed() && Objects.equals(metaField.isDynamic(), dynamic))
-                .collect(Collectors.toList());
     }
 
     /**

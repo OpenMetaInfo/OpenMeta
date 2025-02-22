@@ -82,7 +82,11 @@ public class MetaField implements Serializable {
 
     private String expression;
 
-    // Memory compute attribute: The dependent field of the expression.
+    /**
+     * Memory compute attribute: The fields in the expression or cascadedField.
+     * ComputedField scenario: field1 + field2 + field3 -> [field1, field2, field3]
+     * CascadedField scenario: field1.field2 -> [field1, field2]
+     */
     private List<String> dependentFields;
 
     private boolean dynamic;

@@ -9,6 +9,7 @@ import info.openmeta.framework.orm.jdbc.pipeline.chain.FieldProcessorFactoryChai
 import info.openmeta.framework.orm.jdbc.pipeline.factory.*;
 import info.openmeta.framework.orm.jdbc.pipeline.processor.IdProcessor;
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.framework.orm.meta.MetaModel;
 import info.openmeta.framework.orm.meta.ModelManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,8 +53,9 @@ public class DataCreatePipeline extends DataPipeline {
      * Add the stored cascaded fields and stored computed fields.
      */
     private void addEffectedFields() {
-        ModelManager.getModelCascadedFields(modelName, false).forEach(metaField -> this.fields.add(metaField.getFieldName()));
-        ModelManager.getModelComputedFields(modelName, false).forEach(metaField -> this.fields.add(metaField.getFieldName()));
+        MetaModel metaModel = ModelManager.getModel(modelName);
+        metaModel.getStoredCascadedFields().forEach(metaField -> this.fields.add(metaField.getFieldName()));
+        metaModel.getStoredComputedFields().forEach(metaField -> this.fields.add(metaField.getFieldName()));
     }
 
     /**

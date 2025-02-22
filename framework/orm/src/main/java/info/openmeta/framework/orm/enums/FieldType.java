@@ -88,6 +88,8 @@ public enum FieldType {
     public static final Set<FieldType> COMPARABLE_TYPES = Sets.immutableEnumSet(INTEGER, LONG, DOUBLE, BIG_DECIMAL, DATE, DATE_TIME, STRING, OPTION);
     // Expandable field type set
     public static final Set<FieldType> EXPANDABLE_TYPES = Sets.immutableEnumSet(BOOLEAN, MANY_TO_ONE, ONE_TO_ONE, OPTION, MULTI_OPTION);
+    // File type set
+    public static final Set<FieldType> FILE_TYPES = Sets.immutableEnumSet(FILE, MULTI_FILE);
 
     /**
      * type map

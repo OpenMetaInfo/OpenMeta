@@ -97,7 +97,7 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                 MetaField metaField = ModelManager.getModelField(mainModelName, field);
                 if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                     // The dependent fields of dynamic cascaded fields
-                    dependentFields.add(StringUtils.split(metaField.getCascadedField(), ".")[0]);
+                    dependentFields.add(metaField.getDependentFields().getFirst());
                 } else if (metaField.isComputed() && metaField.isDynamic()) {
                     // The dependent fields of computed fields
                     dependentFields.addAll(metaField.getDependentFields());
@@ -128,8 +128,8 @@ public class SelectBuilder extends BaseBuilder implements SqlClauseBuilder {
                         .forEach(displayField -> cascadedFields.add(field + "." + displayField));
             } else if (StringUtils.isNotBlank(metaField.getCascadedField()) && metaField.isDynamic()) {
                 // Get dynamic cascaded fields
-                String[] fieldArray = StringUtils.split(metaField.getCascadedField(), ".");
-                MetaField casMetaField = ModelManager.getModelField(mainModelName, fieldArray[0]);
+                String casFieldName = metaField.getDependentFields().getFirst();
+                MetaField casMetaField = ModelManager.getModelField(mainModelName, casFieldName);
                 if (ModelManager.isTimelineModel(casMetaField.getRelatedModel())) {
                     cascadedFields.add(metaField.getCascadedField());
                 }
