@@ -45,6 +45,12 @@
             <artifactId>flow-starter</artifactId>
             <version>${openmeta.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>info.openmeta</groupId>
+            <artifactId>designer-starter</artifactId>
+            <version>${openmeta.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

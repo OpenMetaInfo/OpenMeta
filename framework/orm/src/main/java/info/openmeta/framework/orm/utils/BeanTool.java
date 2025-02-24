@@ -61,6 +61,18 @@ public class BeanTool {
     }
 
     /**
+     * Convert an object to another object.
+     *
+     * @param object the object
+     * @param clazz the target class
+     * @param <T> the target class type
+     * @return the target object
+     */
+    public static <T> T objectToObject(Object object, Class<T> clazz) {
+        return JsonMapper.getMapper().convertValue(object, clazz);
+    }
+
+    /**
      * Convert a bean object to map. Null values are not ignored.
      *
      * @param object the bean object
