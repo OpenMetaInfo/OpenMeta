@@ -10,11 +10,14 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
+import info.openmeta.framework.orm.domain.DataFileInfo;
 import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.enums.FileType;
+import info.openmeta.framework.orm.service.FileService;
 import info.openmeta.framework.orm.service.PermissionService;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
+import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.file.constant.FileConstant;
 import info.openmeta.starter.file.dto.UploadFileDTO;
@@ -40,7 +43,8 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> implements FileRecordService {
+public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long>
+        implements FileRecordService, FileService {
 
     @Autowired
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -351,4 +355,28 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, Long> i
         return ossClientService.getPreSignedUrl(fileRecord.getOssKey(), fileRecord.getFileName());
     }
 
+    /**
+     * Get the fileInfos of the specified field of the specified model and rowId.
+     *
+     * @param model  the model name
+     * @param rowIds     the row IDs
+     * @param fieldNames the file field names, including File and MultiFile fields
+     * @return the list of DataFileInfo objects
+     */
+    @Override
+    public List<DataFileInfo> getRowFiles(String model, List<Serializable> rowIds, List<String> fieldNames) {
+        Filters filters = new Filters()
+                .eq(FileRecord::getModelName, model)
+                .in(FileRecord::getRowId, rowIds)
+                .in(FileRecord::getFieldName, fieldNames);
+        List<FileRecord> fileRecords = this.searchList(filters);
+        return fileRecords.stream().map(fileRecord -> {
+            DataFileInfo dataFileInfo = new DataFileInfo();
+            Serializable rowId = IdUtils.formatId(fileRecord.getModelName(), fileRecord.getRowId());
+            dataFileInfo.setRowId(rowId);
+            dataFileInfo.setFieldName(fileRecord.getFieldName());
+            dataFileInfo.setFileInfo(this.convertToFileInfo(fileRecord));
+            return dataFileInfo;
+        }).toList();
+    }
 }

@@ -23,7 +23,7 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
     private FlexQuery flexQuery;
 
     // THe mapping of ManyToOne/OneToOne fieldName to XToOneGroupProcessor
-    protected final Map<String, XToOneGroupProcessor> relatedFieldMap = new HashMap<>();
+    private final Map<String, XToOneGroupProcessor> relatedFieldMap = new HashMap<>();
 
     public XToOneGroupProcessorFactory() {}
 

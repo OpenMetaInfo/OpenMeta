@@ -1,5 +1,6 @@
 package info.openmeta.app.demo.entity;
 
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.orm.entity.BaseModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -36,6 +37,12 @@ public class EmpInfo extends BaseModel {
 
     @Schema(description = "Projects Involved")
     private List<Long> projectIds;
+
+    @Schema(description = "Employee Photo")
+    private FileInfo photo;
+
+    @Schema(description = "Employee Documents")
+    private List<FileInfo> documents;
 
     @Schema(description = "Description")
     private String description;

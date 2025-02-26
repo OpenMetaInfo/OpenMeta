@@ -3,13 +3,11 @@ package info.openmeta.framework.orm.utils;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.SpringContextUtils;
 import info.openmeta.framework.base.utils.StringTools;
-import info.openmeta.framework.orm.domain.Filters;
-import info.openmeta.framework.orm.domain.FlexQuery;
-import info.openmeta.framework.orm.domain.Page;
-import info.openmeta.framework.orm.domain.SubQueries;
+import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.entity.BaseModel;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.service.EntityService;
+import info.openmeta.framework.orm.service.FileService;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.service.impl.ModelServiceImpl;
 import org.springframework.util.CollectionUtils;
@@ -203,4 +201,16 @@ public abstract class ReflectTool {
         return ReflectionUtils.invokeMethod(method, entityService, params);
     }
 
+    /**
+     * Get the fileInfos of the specified field of the specified model and rowId.
+     *
+     * @param model  the model name
+     * @param rowIds     the row IDs
+     * @param fieldNames the file field names, including File and MultiFile fields
+     * @return the list of DataFileInfo objects
+     */
+    public static List<DataFileInfo> getRowFiles(String model, List<Serializable> rowIds, List<String> fieldNames) {
+        FileService fileService = SpringContextUtils.getBeanByClass(FileService.class);
+        return fileService.getRowFiles(model, rowIds, fieldNames);
+    }
 }

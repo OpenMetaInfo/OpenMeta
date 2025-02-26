@@ -67,6 +67,7 @@ public class DataReadPipeline extends DataPipeline {
                 // Expand processing for Boolean fields, after the processing of computed fields and cascaded fields.
                 .addFactory(new ExpandProcessorFactory(convertType))
                 .addFactory(new MaskingProcessorFactory())
+                .addFactory(new FilesGroupProcessorFactory())
                 .addFactory(new XToManyProcessorFactory(flexQuery));
         return factoryChain.generateProcessorChain(fields);
     }
