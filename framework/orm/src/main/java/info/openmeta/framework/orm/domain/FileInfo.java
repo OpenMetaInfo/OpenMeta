@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class FileInfo {
 
     @Schema(description = "File ID")
-    private Long fileId;
+    private String fileId;
 
     @Schema(description = "File Name")
     private String fileName;

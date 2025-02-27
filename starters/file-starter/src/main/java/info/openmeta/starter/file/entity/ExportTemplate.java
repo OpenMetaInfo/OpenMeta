@@ -35,8 +35,8 @@ public class ExportTemplate extends BaseModel {
     @Schema(description = "Model Name")
     private String modelName;
 
-    @Schema(description = "File Template")
-    private Long fileId;
+    @Schema(description = "File Template ID")
+    private String fileId;
 
     @Schema(description = "Filters")
     private Filters filters;

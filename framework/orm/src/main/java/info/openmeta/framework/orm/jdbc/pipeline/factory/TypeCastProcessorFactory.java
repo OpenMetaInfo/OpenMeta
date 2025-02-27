@@ -40,6 +40,9 @@ public class TypeCastProcessorFactory implements FieldProcessorFactory {
             // to convert the field value between List and String object.
             // But in the expand case, using `MultiOptionExpandProcessor` processor to expand the field value.
             return new MultiStringProcessor(metaField, accessType, convertType);
+        } else if (FieldType.MULTI_FILE.equals(fieldType)) {
+            // Similar to the MULTI_OPTION field
+            return new MultiStringProcessor(metaField, accessType, convertType);
         } else if (FieldType.FILTERS.equals(fieldType)) {
             return new FiltersProcessor(metaField, accessType);
         } else if (FieldType.ORDERS.equals(fieldType)) {

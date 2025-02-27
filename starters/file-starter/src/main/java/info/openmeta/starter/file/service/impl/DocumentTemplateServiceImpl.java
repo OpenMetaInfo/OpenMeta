@@ -100,7 +100,7 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
      */
     private void validateTemplate(DocumentTemplate template) {
         Assert.notBlank(template.getModelName(), "The modelName of `{0}` template is empty", template.getFileName());
-        Assert.notNull(template.getFileId(), "The document template file is empty");
+        Assert.notBlank(template.getFileId(), "The document template file is empty");
     }
 
     /**
@@ -132,7 +132,7 @@ public class DocumentTemplateServiceImpl extends EntityServiceImpl<DocumentTempl
                 // bytes to KB
                 uploadFileDTO.setFileSize(docBytes.length / 1024);
                 uploadFileDTO.setInputStream(docxInputStream);
-                return fileRecordService.uploadFileToDownload(uploadFileDTO);
+                return fileRecordService.uploadFile(uploadFileDTO);
             }
         } catch (Exception e) {
             throw new SystemException("Failed to generate the document", e);

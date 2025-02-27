@@ -61,7 +61,9 @@ public class MultiStringProcessor extends BaseProcessor {
     public void processOutputRow(Map<String, Object> row) {
         if (!row.containsKey(fieldName)) {
             return;
-        } else if (ConvertType.DISPLAY.equals(convertType) && FieldType.MULTI_STRING.equals(metaField.getFieldType())) {
+        } else if (ConvertType.DISPLAY.equals(convertType) &&
+                (FieldType.MULTI_STRING.equals(metaField.getFieldType()) ||
+                        FieldType.MULTI_FILE.equals(metaField.getFieldType()))) {
             return;
         }
         Object value = row.get(fieldName);

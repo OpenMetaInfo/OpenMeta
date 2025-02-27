@@ -1,18 +1,18 @@
 package info.openmeta.framework.orm.jdbc.pipeline.processor;
 
 import info.openmeta.framework.base.enums.AccessType;
-import info.openmeta.framework.orm.constant.ModelConstant;
-import info.openmeta.framework.orm.domain.DataFileInfo;
 import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.utils.ReflectTool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -58,41 +58,51 @@ public class FilesGroupProcessor extends BaseProcessor {
      * @param rows The list of output data
      */
     public void batchProcessOutputRows(List<Map<String, Object>> rows) {
-        List<String> fileFieldNames = fileFields.stream().map(MetaField::getFieldName).toList();
-        List<Serializable> ids = rows.stream()
-                .map(r -> (Serializable) r.get(ModelConstant.ID))
-                .toList();
-        List<DataFileInfo> dataFileInfos = ReflectTool.getRowFiles(modelName, ids, fileFieldNames);
-        Map<Serializable, Map<String, List<FileInfo>>> fileInfoMap = groupByIdAndField(dataFileInfos);
+        List<String> fileIds = getFileIds(rows);
+        if (CollectionUtils.isEmpty(fileIds)) {
+            return;
+        }
+        List<FileInfo> fileInfos = ReflectTool.getModelFiles(modelName, fileIds);
+        Map<String, FileInfo> fileInfoMap = fileInfos.stream()
+                .collect(Collectors.toMap(FileInfo::getFileId, fileInfo -> fileInfo));
         for (Map<String, Object> row : rows) {
-            Serializable id = (Serializable) row.get(ModelConstant.ID);
             for (MetaField fileField : fileFields) {
                 String fieldName = fileField.getFieldName();
-                if (!fileInfoMap.containsKey(id) || !fileInfoMap.get(id).containsKey(fieldName)) {
-                    row.put(fieldName, null);
-                    continue;
-                }
-                if (FieldType.FILE.equals(fileField.getFieldType())) {
-                    row.put(fieldName, fileInfoMap.get(id).get(fieldName).getFirst());
-                } else {
-                    row.put(fieldName, fileInfoMap.get(id).get(fieldName));
+                if (FieldType.FILE.equals(fileField.getFieldType()) &&
+                        StringUtils.isNotBlank((String) row.get(fieldName))) {
+                    row.put(fieldName, fileInfoMap.get((String) row.get(fieldName)));
+                } else if (FieldType.MULTI_FILE.equals(fileField.getFieldType()) &&
+                        row.get(fieldName) instanceof List<?> fileIdList) {
+                    List<FileInfo> fileInfoList = fileIdList.stream()
+                            .map(fileId -> fileInfoMap.get((String) fileId))
+                            .filter(Objects::nonNull)
+                            .toList();
+                    row.put(fieldName, fileInfoList);
                 }
             }
         }
     }
 
     /**
-     * Group the fileInfo by rowId and fieldName.
-     * One file field may have multiple files according to the fieldType.
+     * Get the fileIds from the rows.
      *
-     * @param dataFileInfos The list of dataFileInfos
-     * @return The map of fileInfo grouped by rowId and fieldName
+     * @param rows The list of rows
+     * @return The list of fileIds
      */
-    private Map<Serializable, Map<String, List<FileInfo>>> groupByIdAndField(List<DataFileInfo> dataFileInfos) {
-        return dataFileInfos.stream()
-                .collect(Collectors.groupingBy(DataFileInfo::getRowId,
-                        Collectors.groupingBy(DataFileInfo::getFieldName,
-                                Collectors.mapping(DataFileInfo::getFileInfo, Collectors.toList()))));
+    private List<String> getFileIds(List<Map<String, Object>> rows) {
+        List<String> fileIds = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            fileFields.forEach(fileField -> {
+                Object fileId = row.get(fileField.getFieldName());
+                if (FieldType.FILE.equals(fileField.getFieldType()) &&
+                        StringUtils.isNotBlank((String) fileId)) {
+                    fileIds.add((String) fileId);
+                } else if (FieldType.MULTI_FILE.equals(fileField.getFieldType()) &&
+                        fileId instanceof List<?> fileIdList) {
+                    fileIdList.forEach(id -> fileIds.add((String) id));
+                }
+            });
+        }
+        return fileIds;
     }
-
 }

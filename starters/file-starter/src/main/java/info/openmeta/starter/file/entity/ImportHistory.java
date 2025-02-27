@@ -28,8 +28,8 @@ public class ImportHistory extends BaseModel {
     @Schema(description = "Template ID")
     private Long templateId;
 
-    @Schema(description = "File ID")
-    private Long fileId;
+    @Schema(description = "Original File ID")
+    private String originalFileId;
 
     @Schema(description = "File Name")
     private String fileName;
@@ -38,7 +38,7 @@ public class ImportHistory extends BaseModel {
     private ImportStatus status;
 
     @Schema(description = "Failed File ID")
-    private Long failedFileId;
+    private String failedFileId;
 
     @Schema(description = "Total Rows")
     private Integer totalRows;

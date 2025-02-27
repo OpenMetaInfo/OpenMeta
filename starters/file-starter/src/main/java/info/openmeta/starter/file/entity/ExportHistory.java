@@ -27,8 +27,8 @@ public class ExportHistory extends BaseModel {
     @Schema(description = "Template ID")
     private Long templateId;
 
-    @Schema(description = "File ID")
-    private Long fileId;
+    @Schema(description = "Exported File ID")
+    private String exportedFileId;
 
     @Schema(description = "Disabled")
     private Boolean disabled;

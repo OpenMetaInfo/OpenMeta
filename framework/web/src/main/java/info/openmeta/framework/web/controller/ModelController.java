@@ -6,6 +6,7 @@ import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.orm.annotation.DataMask;
 import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.enums.ConvertType;
+import info.openmeta.framework.orm.service.FileService;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.web.response.ApiResponse;
@@ -18,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -42,6 +44,9 @@ public class ModelController<K extends Serializable> {
 
     @Autowired
     private ModelService<K> modelService;
+
+    @Autowired
+    private FileService fileService;
 
     /**
      * The size of operation data in a single API call cannot exceed the MAX_BATCH_SIZE.
@@ -584,6 +589,52 @@ public class ModelController<K extends Serializable> {
         } else {
             return ApiResponse.success(modelService.count(modelName, countParams.getFilters()));
         }
+    }
+
+    /**
+     * Get the fileInfo by modelName and rowId
+     */
+    @Operation(description = "Get the fileInfos by modelName and rowId")
+    @GetMapping(value = "/getRowFiles")
+    @Parameter(name = "rowId", description = "The row ID of the file belongs to")
+    public ApiResponse<List<FileInfo>> getRowFiles(@PathVariable String modelName,
+                                                   @RequestParam Serializable rowId) {
+        Assert.notNull(rowId, "rowId cannot be null.");
+        return ApiResponse.success(fileService.getRowFiles(modelName, rowId));
+    }
+
+    /**
+     * Upload a file to the specified model, and return the fileInfo.
+     *
+     * @param modelName The model name of the file belongs to
+     * @param file The file to be uploaded
+     * @return The fileInfo object
+     */
+    @Operation(description = "Upload a file to the specified model to bind with a field.")
+    @PostMapping("/uploadFile")
+    public ApiResponse<FileInfo> uploadFile(@PathVariable String modelName,
+                                            @RequestParam MultipartFile file) {
+        Assert.notTrue(file.isEmpty(), "The file to upload cannot be empty!");
+        return ApiResponse.success(fileService.uploadFileToRow(modelName, null, file));
+    }
+
+    /**
+     * Upload a file to the specified model and rowId, and return the fileInfo.
+     *
+     * @param modelName The model name of the file belongs to
+     * @param rowId The row ID of the file belongs to
+     * @param file The file to be uploaded
+     * @return The fileInfo of the uploaded file
+     */
+    @Operation(description = "Upload a file to the specified model and row, and return the fileInfo.")
+    @PostMapping("/uploadFileToRow")
+    @Parameter(name = "rowId", description = "The row ID of the file belongs to")
+    public ApiResponse<FileInfo> uploadFileToRow(@PathVariable String modelName,
+                                                 @RequestParam Serializable rowId,
+                                                 @RequestParam MultipartFile file) {
+        Assert.notNull(rowId, "rowId cannot be null.");
+        Assert.notTrue(file.isEmpty(), "The file to upload cannot be empty!");
+        return ApiResponse.success(fileService.uploadFileToRow(modelName, rowId, file));
     }
 
 }

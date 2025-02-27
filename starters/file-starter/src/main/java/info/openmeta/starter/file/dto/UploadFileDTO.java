@@ -17,6 +17,7 @@ public class UploadFileDTO {
 
     private Serializable rowId;
 
+    // Simple file name without extension
     private String fileName;
 
     private FileType fileType;

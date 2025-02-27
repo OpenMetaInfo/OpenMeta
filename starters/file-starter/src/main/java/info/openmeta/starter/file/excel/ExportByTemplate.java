@@ -5,16 +5,14 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.exception.BusinessException;
+import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.ExcelDataDTO;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.excel.handler.CustomExportStyleHandler;
-import info.openmeta.starter.file.service.FileRecordService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -29,9 +27,6 @@ import java.util.Map;
 @Slf4j
 @Component
 public class ExportByTemplate extends CommonExport {
-
-    @Autowired
-    private FileRecordService fileRecordService;
 
     /**
      * Export data by exportTemplate configured exported fields.
@@ -107,7 +102,7 @@ public class ExportByTemplate extends CommonExport {
             excelWriter.finish();
             // Upload the Excel stream to OSS
             byte[] excelBytes = outputStream.toByteArray();
-            fileInfo = fileRecordService.uploadExcelBytesToDownload(StringConstant.EMPTY_STRING, fileName, excelBytes);
+            fileInfo = this.uploadExcelBytes(StringConstant.EMPTY_STRING, fileName, excelBytes);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel {0} with the provided data.", fileName, e);
         }

@@ -436,8 +436,6 @@ public class ModelManager {
         } else if (ModelConstant.ID.equals(metaField.getFieldName())
                 && !IdStrategy.EXTERNAL_ID.equals(MODEL_MAP.get(model).getIdStrategy())) {
             metaField.setReadonly(true);
-        } else if (FieldType.FILE_TYPES.contains(metaField.getFieldType())) {
-            metaField.setReadonly(true);
         }
     }
 
@@ -449,8 +447,6 @@ public class ModelManager {
      */
     private static void verifyDynamicAttribute(MetaField metaField) {
         if (FieldType.TO_MANY_TYPES.contains(metaField.getFieldType())) {
-            metaField.setDynamic(true);
-        } else if (FieldType.FILE_TYPES.contains(metaField.getFieldType())) {
             metaField.setDynamic(true);
         }
     }

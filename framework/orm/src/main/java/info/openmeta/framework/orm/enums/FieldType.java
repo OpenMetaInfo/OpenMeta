@@ -59,8 +59,8 @@ public enum FieldType {
 
     // File, MultiFile, abstract fields, not stored in the business model, but
     // stored in the FileRecord model
-    FILE("File", "File", null, null, Types.NULL),
-    MULTI_FILE("MultiFile", "MultiFile", null, null, Types.NULL),
+    FILE("File", "File", null, null, Types.VARCHAR),
+    MULTI_FILE("MultiFile", "MultiFile", null, null, Types.VARCHAR),
 
     // Relational fields
     ONE_TO_ONE("OneToOne", "OneToOne", null, null, Types.BIGINT),

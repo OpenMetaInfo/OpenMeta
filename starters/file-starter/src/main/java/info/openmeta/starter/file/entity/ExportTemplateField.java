@@ -34,7 +34,7 @@ public class ExportTemplateField extends BaseModel {
     private Integer sequence;
 
     @Schema(description = "Ignored In File")
-    private Boolean ignore;
+    private Boolean ignored;
 
     @Schema(description = "Disabled")
     private Boolean disabled;
