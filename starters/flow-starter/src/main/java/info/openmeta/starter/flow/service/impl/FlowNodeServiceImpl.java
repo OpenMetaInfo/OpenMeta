@@ -246,17 +246,9 @@ public class FlowNodeServiceImpl extends EntityServiceImpl<FlowNode, String> imp
      */
     private void executeNodeActions(FlowNode flowNode, NodeContext nodeContext) {
         StopWatch stopWatch = new StopWatch("Executing the node " + flowNode.getName());
-        for (FlowNode child : flowNode.getChildNodes()) {
-            stopWatch.start(child.getNodeType().getName() + " - " + child.getName());
-            nodeFactory.executeNodeProcessor(flowNode, nodeContext);
-            stopWatch.stop();
-            if (nodeContext.getExceptionSignal() != null) {
-                // If an exception signal occurs in the node execution result,
-                // return directly without executing the following actions of the current node.
-                log.info(stopWatch.prettyPrint());
-                return;
-            }
-        }
+        stopWatch.start(flowNode.getNodeType().getName() + " - " + flowNode.getName());
+        nodeFactory.executeNodeProcessor(flowNode, nodeContext);
+        stopWatch.stop();
         log.info(stopWatch.prettyPrint());
     }
 }
