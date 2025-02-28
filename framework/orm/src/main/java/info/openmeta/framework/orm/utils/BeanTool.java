@@ -156,9 +156,7 @@ public class BeanTool {
         } else if (List.class.isAssignableFrom(fieldTypeClass)) {
             return StringUtils.isBlank(stringValue) ? FieldType.MULTI_STRING.getDefaultValue() : Arrays.asList(StringUtils.split(stringValue, ","));
         } else if (Enum.class.isAssignableFrom(fieldTypeClass)) {
-            // The Enum items are all in uppercase and separated by underscores.
-            String enumItem = StringTools.toUpperUnderscoreCase(stringValue);
-            return StringUtils.isBlank(stringValue) ? null : Enum.valueOf(Cast.of(fieldTypeClass), enumItem);
+            return formatEnumProperty((String) value, fieldTypeClass);
         } else if (JsonNode.class.isAssignableFrom(fieldTypeClass)) {
             return StringUtils.isBlank(stringValue) ? null : JsonMapper.stringToObject(stringValue, JsonNode.class);
         } else if (Filters.class.isAssignableFrom(fieldTypeClass)) {
@@ -166,7 +164,19 @@ public class BeanTool {
         }
         return stringValue;
     }
-
+    
+    /**
+     * Convert the original data Map to bean object, ignore non-existent properties.
+     *
+     * @param row original data map
+     * @param entityClass bean class
+     * @return bean object
+     * @param <T> the bean object type
+     */
+    public static <T> T originalMapToObject(@NotNull Map<String, Object> row, Class<T> entityClass) {
+        return originalMapToObject(row, entityClass, true);
+    }
+    
     /**
      * Convert the original data Map to bean object.
      *
@@ -247,7 +257,7 @@ public class BeanTool {
                 } else if (Enum.class.isAssignableFrom(fieldTypeClass)) {
                     value = formatEnumProperty((String) value, fieldTypeClass);
                 }
-            } else if (value instanceof List && !((List<?>) value).isEmpty()) {
+            } else if (value instanceof List<?> valueList && !valueList.isEmpty()) {
                 value = formatListProperty(field, (List<Map<String, Object>>) value, entityClass);
             }
             try {
