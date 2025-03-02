@@ -15,6 +15,6 @@ public class FlowEventVO {
     private Boolean rollbackOnFail;
     private String triggerId;
     private String sourceModel;
-    private Serializable triggerRowId;
+    private Serializable sourceRowId;
     private Map<String, Object> triggerParams;
 }

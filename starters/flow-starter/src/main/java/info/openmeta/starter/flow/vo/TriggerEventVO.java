@@ -20,8 +20,8 @@ public class TriggerEventVO {
     @NotBlank(message = "Model Name is required!")
     private String sourceModel;
 
-    @Schema(description = "Row ID")
-    private Serializable rowId;
+    @Schema(description = "Source Row ID")
+    private Serializable sourceRowId;
 
     @Schema(description = "Trigger ID")
     @NotEmpty(message = "Trigger ID is required!")

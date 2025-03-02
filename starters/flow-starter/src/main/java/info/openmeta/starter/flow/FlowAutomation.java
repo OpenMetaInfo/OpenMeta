@@ -44,16 +44,28 @@ public class FlowAutomation {
      * @param changeLogs The list of change logs.
      */
     @Transactional(rollbackFor = Exception.class)
-    public void triggerSyncFlows(List<ChangeLog> changeLogs) {
-        triggerFlowByChangeLog(changeLogs, true);
+    public void triggerSyncFlowByChangeLog(List<ChangeLog> changeLogs) {
+        if (CollectionUtils.isEmpty(changeLogs)) {
+            return;
+        }
+        List<FlowEventMessage> syncFlowEvents = this.generateFlowEventByChangeLog(changeLogs, true);
+        for (FlowEventMessage flowEventMessage : syncFlowEvents) {
+            triggerFlow(flowEventMessage);
+        }
     }
 
     /**
      * Trigger asynchronous flows by changeLogs, send to MQ.
      * @param changeLogs The list of change logs.
      */
-    public void triggerAsyncFlows(List<ChangeLog> changeLogs) {
-        triggerFlowByChangeLog(changeLogs, false);
+    public void triggerAsyncFlowByChangeLog(List<ChangeLog> changeLogs) {
+        if (CollectionUtils.isEmpty(changeLogs)) {
+            return;
+        }
+        List<FlowEventMessage> asyncFlowEvents = this.generateFlowEventByChangeLog(changeLogs, false);
+        for (FlowEventMessage flowEventMessage : asyncFlowEvents) {
+            triggerFlow(flowEventMessage);
+        }
     }
 
     /**
@@ -61,11 +73,10 @@ public class FlowAutomation {
      * @param changeLogs The list of change logs.
      * @param sync Whether to trigger synchronous flows.
      */
-    private List<FlowEventMessage> getEventMessagesByChangeLogs(List<ChangeLog> changeLogs, boolean sync) {
+    private List<FlowEventMessage> generateFlowEventByChangeLog(List<ChangeLog> changeLogs, boolean sync) {
         List<FlowEventMessage> flowEventMessages = new ArrayList<>();
         for (ChangeLog changeLog : changeLogs) {
             String sourceModel = changeLog.getModel();
-            Serializable triggerRowId = changeLog.getRowId();
             Set<String> updateFields = AccessType.UPDATE.equals(changeLog.getAccessType()) ? changeLog.getDataAfterChange().keySet() : Collections.emptySet();
             Map<String, Object> triggerParams = AccessType.DELETE.equals(changeLog.getAccessType()) ? changeLog.getDataBeforeChange() : changeLog.getDataAfterChange();
             // Get the triggers of the current model and event
@@ -79,7 +90,11 @@ public class FlowAutomation {
                 }
                 FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
                 Assert.notNull(flowConfig, "Trigger {0} is not yet bound to any flow!", flowTrigger.getId());
-                FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig, triggerRowId, triggerParams);
+                boolean flowSync = Boolean.TRUE.equals(flowConfig.getSync());
+                if (flowSync != sync) {
+                    return;
+                }
+                FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig, changeLog.getRowId(), triggerParams);
                 flowEventMessages.add(eventMessage);
             });
         }
@@ -90,45 +105,30 @@ public class FlowAutomation {
      * Encapsulate the FlowEventMessage object.
      * @param flowTrigger The flow trigger.
      * @param flowConfig The flow configuration.
-     * @param rowId The row ID.
+     * @param sourceRowId The source row ID.
      * @param params The trigger parameters.
      * @return The encapsulated FlowEventMessage object.
      */
     private FlowEventMessage wrapperFlowEventMessage(FlowTrigger flowTrigger, FlowConfig flowConfig,
-                                                     Serializable rowId, Map<String, Object> params) {
+                                                     Serializable sourceRowId, Map<String, Object> params) {
         FlowEventMessage eventMessage = new FlowEventMessage();
         eventMessage.setFlowId(flowConfig.getId());
+        eventMessage.setSync(flowConfig.getSync());
         eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
         eventMessage.setTriggerId(flowTrigger.getId());
         eventMessage.setSourceModel(flowTrigger.getSourceModel());
-        eventMessage.setTriggerRowId(rowId);
+        eventMessage.setSourceRowId(sourceRowId);
         eventMessage.setTriggerParams(params);
         eventMessage.setContext(ContextHolder.getContext());
         return eventMessage;
     }
 
     /**
-     * Trigger synchronous or asynchronous flows by changeLogs.
-     * @param changeLogs The list of change logs.
-     * @param isSync Whether to trigger synchronous flows.
-     */
-    private void triggerFlowByChangeLog(List<ChangeLog> changeLogs, boolean isSync) {
-        if (CollectionUtils.isEmpty(changeLogs)) {
-            return;
-        }
-        List<FlowEventMessage> flowEventMessages = this.getEventMessagesByChangeLogs(changeLogs, isSync);
-        for (FlowEventMessage flowEventMessage : flowEventMessages) {
-            triggerFlow(flowEventMessage, isSync);
-        }
-    }
-
-    /**
      * Trigger the flow, generate flow events one by one when an event triggers multiple flows.
      * @param eventMessage The trigger event.
-     * @param isSync Whether to trigger synchronous flows.
      */
-    public Object triggerFlow(FlowEventMessage eventMessage, Boolean isSync) {
-        if (Boolean.TRUE.equals(isSync)) {
+    public Object triggerFlow(FlowEventMessage eventMessage) {
+        if (Boolean.TRUE.equals(eventMessage.getSync())) {
             // Synchronous flow execution
             if (Boolean.TRUE.equals(eventMessage.getRollbackOnFail())) {
                 // Transactional flow
@@ -142,27 +142,6 @@ public class FlowAutomation {
             flowEventProducer.sendFlowEvent(eventMessage);
             return true;
         }
-    }
-
-    /**
-     * Button event, trigger the flow.
-     *
-     * @param triggerEventVO The button event parameters.
-     * @return The button event flow execution result Map.
-     */
-    public Object buttonEvent(TriggerEventVO triggerEventVO) {
-        TriggerEventType eventType = TriggerEventType.BUTTON_EVENT;
-        String sourceModel = triggerEventVO.getSourceModel();
-        String triggerId = triggerEventVO.getTriggerId();
-        FlowTrigger flowTrigger = FlowManager.getTriggerById(sourceModel, triggerId, eventType);
-        Assert.isTrue(this.validateTriggerCondition(flowTrigger, triggerEventVO.getEventParams()),
-                "The trigger condition {0} for Button Trigger {1} is not met; the flow will not be triggered!",
-                flowTrigger.getTriggerCondition(), triggerId);
-        FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
-        Assert.notNull(flowConfig, "Button Trigger {0} is not yet bound to any flow!", triggerId);
-        FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig,
-                triggerEventVO.getRowId(), triggerEventVO.getEventParams());
-        return this.triggerFlow(eventMessage, flowConfig.getSync());
     }
 
     /**
@@ -182,8 +161,8 @@ public class FlowAutomation {
         FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
         Assert.notNull(flowConfig, "API Trigger {0} is not yet bound to any flow!", triggerId);
         FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig,
-                triggerEventVO.getRowId(), triggerEventVO.getEventParams());
-        return this.triggerFlow(eventMessage, flowConfig.getSync());
+                triggerEventVO.getSourceRowId(), triggerEventVO.getEventParams());
+        return this.triggerFlow(eventMessage);
     }
 
     /**
@@ -234,14 +213,8 @@ public class FlowAutomation {
         }
         FlowConfig flowConfig = FlowManager.getById(flowTrigger.getFlowId());
         Assert.notNull(flowConfig, "Subflow Trigger {0} is not yet bound to any flow!", triggerId);
-        FlowEventMessage eventMessage = new FlowEventMessage();
-        eventMessage.setFlowId(flowConfig.getId());
-        eventMessage.setRollbackOnFail(flowConfig.getRollbackOnFail());
-        eventMessage.setTriggerId(flowTrigger.getId());
-        eventMessage.setSourceModel(flowTrigger.getSourceModel());
-        eventMessage.setTriggerParams(triggerParams);
-        eventMessage.setContext(ContextHolder.getContext());
-        return this.triggerFlow(eventMessage, flowConfig.getSync());
+        FlowEventMessage eventMessage = wrapperFlowEventMessage(flowTrigger, flowConfig, null, triggerParams);
+        return this.triggerFlow(eventMessage);
     }
 
     /**

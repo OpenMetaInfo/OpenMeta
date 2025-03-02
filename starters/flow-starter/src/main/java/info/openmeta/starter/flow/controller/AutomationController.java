@@ -34,12 +34,6 @@ public class AutomationController {
     @Autowired
     private FlowAutomation automation;
 
-    @Operation(summary = "Button Event", description = "Trigger the flow by button event. ")
-    @PostMapping("/buttonEvent")
-    public ApiResponse<Object> buttonEvent(@RequestBody @Valid TriggerEventVO triggerEventVO) {
-        return ApiResponse.success(automation.buttonEvent(triggerEventVO));
-    }
-
     @Operation(summary = "API Event", description = "Trigger the flow by API event. ")
     @PostMapping("/apiEvent")
     @DataMask
@@ -72,18 +66,19 @@ public class AutomationController {
             Simulate flow triggering by passing a FlowEventVO, suitable for scenarios such as ChangeLog, Cron, etc.
             For non-production environment testing only.""")
     @PostMapping("/simulateEvent")
-    public ApiResponse<Object> buttonEvent(@RequestBody FlowEventVO flowEventVO) {
+    public ApiResponse<Object> simulateEvent(@RequestBody FlowEventVO flowEventVO) {
         String[] profiles = env.getActiveProfiles();
         Assert.notTrue(Arrays.asList(profiles).contains("prod"),
                 "This API is only open to non-production environments!");
         FlowEventMessage message = new FlowEventMessage();
         message.setFlowId(flowEventVO.getFlowId());
         message.setFlowNodeId(flowEventVO.getFlowNodeId());
+        message.setSync(true);
         message.setRollbackOnFail(flowEventVO.getRollbackOnFail());
         message.setTriggerId(flowEventVO.getTriggerId());
         message.setSourceModel(flowEventVO.getSourceModel());
-        message.setTriggerRowId(flowEventVO.getTriggerRowId());
+        message.setSourceRowId(flowEventVO.getSourceRowId());
         message.setTriggerParams(flowEventVO.getTriggerParams());
-        return ApiResponse.success(automation.triggerFlow(message, true));
+        return ApiResponse.success(automation.triggerFlow(message));
     }
 }

@@ -150,7 +150,9 @@ public class FlowManager implements InitializingBean {
         if (CollectionUtils.isEmpty(flowTriggers)) {
             return Collections.emptyList();
         }
-        return flowTriggers.stream().filter(flowTrigger -> isTriggerMatch(flowTrigger, accessType, updateFields)).collect(Collectors.toList());
+        return flowTriggers.stream()
+                .filter(flowTrigger -> isTriggerMatch(flowTrigger, accessType, updateFields))
+                .toList();
     }
 
     /**

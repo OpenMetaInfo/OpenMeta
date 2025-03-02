@@ -34,7 +34,7 @@ public class TransactionListenerForFlow {
         if (context.isTriggerFlow()) {
             // Triggers data verification synchronously. The verification process cannot submit any data changes again.
             List<ChangeLog> changeLogs = ChangeLogHolder.get();
-            flowAutomation.triggerSyncFlows(changeLogs);
+            flowAutomation.triggerSyncFlowByChangeLog(changeLogs);
         }
     }
 }

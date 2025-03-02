@@ -89,7 +89,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, String>
         StopWatch stopWatch = new StopWatch("Executing flow：" + flowConfig.getName());
         // Add the row data that triggers the flow to the environment variables
         NodeContext nodeContext = new NodeContext(FlowEnv.getEnv());
-        nodeContext.put(FlowConstant.TRIGGER_ROW_ID, eventMessage.getTriggerRowId());
+        nodeContext.put(FlowConstant.SOURCE_ROW_ID, eventMessage.getSourceRowId());
         nodeContext.put(FlowConstant.TRIGGER_PARAMS, eventMessage.getTriggerParams());
         for (FlowNode flowNode : flowConfig.getNodeList()) {
             stopWatch.start(flowNode.getNodeType().getType() + " - " + flowNode.getName());
@@ -143,7 +143,7 @@ public class FlowConfigServiceImpl extends EntityServiceImpl<FlowConfig, String>
         FlowEvent flowEvent = new FlowEvent();
         flowEvent.setFlowId(eventMessage.getFlowId());
         flowEvent.setNodeId(eventMessage.getFlowNodeId());
-        String rowId = eventMessage.getTriggerRowId() == null ? null : eventMessage.getTriggerRowId().toString();
+        String rowId = eventMessage.getSourceRowId() == null ? null : eventMessage.getSourceRowId().toString();
         flowEvent.setRowId(rowId);
         flowEvent.setTriggerId(eventMessage.getTriggerId());
         flowEvent.setSourceModel(eventMessage.getSourceModel());

@@ -15,7 +15,6 @@ public enum TriggerEventType {
     CREATE_OR_UPDATE("CreateOrUpdate", "Create Or Update Event"),
     DELETE_EVENT("DeleteEvent", "Delete Event"),
     CHANGED_EVENT("ChangedEvent", "Changed Event(C/U/D)"),
-    BUTTON_EVENT("ButtonEvent", "Button Event"),
     ONCHANGE_EVENT("OnchangeEvent", "Onchange Event"),
     API_EVENT("ApiEvent", "API Event"),
     CRON_EVENT("CronEvent", "Cron Event"),
