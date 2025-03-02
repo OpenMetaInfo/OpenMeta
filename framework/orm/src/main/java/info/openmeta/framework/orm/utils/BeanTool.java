@@ -37,6 +37,23 @@ public class BeanTool {
     private BeanTool() {}
 
     /**
+     * Get the value of a field in an object.
+     *
+     * @param object the object
+     * @param fieldName the field name
+     * @return the field value
+     */
+    public static <T> Object getFieldValue(T object, String fieldName) {
+        try {
+            Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(object);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * Extract the element type of the collection, such as the Object type in List<Object>.
      *
      * @param entityClass entity class

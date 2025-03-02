@@ -3,7 +3,6 @@ package info.openmeta.framework.orm.jdbc.pipeline.processor;
 import com.google.common.collect.Sets;
 import info.openmeta.framework.base.enums.AccessType;
 import info.openmeta.framework.base.enums.Operator;
-import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.Cast;
 import info.openmeta.framework.orm.constant.ModelConstant;
@@ -12,6 +11,7 @@ import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.SubQuery;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
 import lombok.Getter;
@@ -75,11 +75,11 @@ public class OneToManyProcessor extends BaseProcessor {
             Object value = row.get(fieldName);
             if (value instanceof List<?> valueList && !valueList.isEmpty()) {
                 List<Map<String, Object>> subRows;
-                try {
+                if (valueList.getFirst() instanceof Map<?, ?>) {
                     subRows = Cast.of(value);
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("Failed to cast {0}:{1} value to List<Map<String, Object>>: {2}",
-                            metaField.getModelName(), fieldName, valueList, e);
+                } else {
+                    // Convert the list of objects to a list of maps
+                    subRows = BeanTool.objectsToMapList(valueList);
                 }
                 subRows.forEach(subRow -> subRow.put(metaField.getRelatedField(), id));
                 createRows.addAll(subRows);
@@ -112,11 +112,11 @@ public class OneToManyProcessor extends BaseProcessor {
                     deleteIds.addAll(existOneToManyIdsMap.get(id));
                 } else {
                     List<Map<String, Object>> subRows;
-                    try {
+                    if (valueList.getFirst() instanceof Map<?, ?>) {
                         subRows = Cast.of(value);
-                    } catch (Exception e) {
-                        throw new IllegalArgumentException("Failed to cast {0}:{1} value to List<Map<String, Object>>: {2}",
-                                modelName, fieldName, valueList, e);
+                    } else {
+                        // Convert the list of objects to a list of maps
+                        subRows = BeanTool.objectsToMapList(valueList);
                     }
                     if (existOneToManyIdsMap.containsKey(id)) {
                         // Process related model rows, when update the OneToMany field from old value to a new list.
