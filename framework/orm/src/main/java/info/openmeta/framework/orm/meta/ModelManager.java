@@ -1,11 +1,11 @@
 package info.openmeta.framework.orm.meta;
 
-import com.googlecode.aviator.exception.ExpressionSyntaxErrorException;
 import info.openmeta.framework.base.config.TenantConfig;
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.context.Context;
 import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.compute.ComputeUtils;
@@ -382,7 +382,7 @@ public class ModelManager {
             List<String> dependentFields = ComputeUtils.compile(metaField.getExpression()).getVariableFullNames();
             validateModelFields(metaField.getModelName(), dependentFields);
             metaField.setDependentFields(dependentFields);
-        } catch (ExpressionSyntaxErrorException e) {
+        } catch (ValidationException e) {
             throw new IllegalArgumentException("Computed field {0}:{1}, formula syntax error: {2}\n{3}",
                     metaField.getModelName(), metaField.getFieldName(), metaField.getExpression(), e.getMessage());
         }

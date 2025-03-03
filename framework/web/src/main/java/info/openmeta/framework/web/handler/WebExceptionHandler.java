@@ -5,6 +5,7 @@ import info.openmeta.framework.base.exception.BaseException;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.i18n.I18n;
 import info.openmeta.framework.web.response.ApiResponse;
+import info.openmeta.framework.web.response.ApiResponseErrorDetails;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class WebExceptionHandler {
      * @return ResponseEntity
      */
     private ResponseEntity<ApiResponse<String>> wrapResponse(ResponseCode responseCode, String exceptionMessage) {
-        ApiResponse<String> response = ApiResponse.exception(responseCode, exceptionMessage);
+        ApiResponse<String> response = ApiResponseErrorDetails.exception(responseCode, exceptionMessage);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -243,8 +244,7 @@ public class WebExceptionHandler {
      */
     @ExceptionHandler(value = BusinessException.class)
     public ResponseEntity<ApiResponse<String>> handleException(BusinessException e) {
-        ApiResponse<String> response;
-        response = ApiResponse.exception(e.getResponseCode(), e.getMessage());
+        ApiResponse<String> response = ApiResponseErrorDetails.exception(e.getResponseCode(), e.getMessage());
         log.warn("BusinessException: {}", e.getMessage(), e);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

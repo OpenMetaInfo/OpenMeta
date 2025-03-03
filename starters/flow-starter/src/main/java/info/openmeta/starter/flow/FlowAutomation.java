@@ -152,9 +152,9 @@ public class FlowAutomation {
      */
     public Object apiEvent(TriggerEventVO triggerEventVO) {
         TriggerEventType eventType = TriggerEventType.API_EVENT;
-        String triggerModel = triggerEventVO.getSourceModel();
+        String sourceModel = triggerEventVO.getSourceModel();
         String triggerId = triggerEventVO.getTriggerId();
-        FlowTrigger flowTrigger = FlowManager.getTriggerById(triggerModel, triggerId, eventType);
+        FlowTrigger flowTrigger = FlowManager.getTriggerById(sourceModel, triggerId, eventType);
         Assert.isTrue(this.validateTriggerCondition(flowTrigger, triggerEventVO.getEventParams()),
                 "The trigger condition {0} for API Trigger {1} is not met; the flow will not be triggered!",
                 flowTrigger.getTriggerCondition(), triggerId);

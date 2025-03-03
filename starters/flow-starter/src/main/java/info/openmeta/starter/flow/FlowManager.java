@@ -34,7 +34,7 @@ public class FlowManager implements InitializingBean {
     // { triggerId: FlowTrigger }
     private static final Map<String, FlowTrigger> TRIGGER_MAP = new ConcurrentHashMap<>();
 
-    // { triggerModel: [TriggerId] }
+    // { sourceModel: [TriggerId] }
     private static final Map<String, List<String>> MODEL_TRIGGER_MAP = new ConcurrentHashMap<>();
 
     // { cronId: TriggerId }
@@ -119,34 +119,34 @@ public class FlowManager implements InitializingBean {
     }
 
     /**
-     * Get FlowTrigger by triggerModel, triggerId and eventType
+     * Get FlowTrigger by sourceModel, triggerId and eventType
      *
-     * @param triggerModel triggerModel
+     * @param sourceModel sourceModel
      * @param triggerId triggerId
      * @param eventType eventType
      * @return FlowTrigger
      */
-    public static FlowTrigger getTriggerById(String triggerModel, @NotNull String triggerId, @NotNull TriggerEventType eventType) {
-        List<FlowTrigger> flowTriggers = getModelTriggers(triggerModel);
+    public static FlowTrigger getTriggerById(String sourceModel, @NotNull String triggerId, @NotNull TriggerEventType eventType) {
+        List<FlowTrigger> flowTriggers = getModelTriggers(sourceModel);
         for (FlowTrigger flowTrigger : flowTriggers) {
             if (triggerId.equals(flowTrigger.getId()) && eventType.equals(flowTrigger.getEventType())) {
                 return flowTrigger;
             }
         }
         throw new IllegalArgumentException("The model {0} does not define a {1} trigger with triggerId {2}!",
-                triggerModel, eventType.getType(), triggerId);
+                sourceModel, eventType.getType(), triggerId);
     }
 
     /**
-     * Get FlowTriggers by triggerModel, updateFields and AccessType
+     * Get FlowTriggers by sourceModel, updateFields and AccessType
      *
-     * @param triggerModel triggerModel
+     * @param sourceModel sourceModel
      * @param accessType accessType
      * @param updateFields updateFields
      * @return List of FlowTrigger
      */
-    public static List<FlowTrigger> getTriggersByChangeEvent(String triggerModel, @NotNull AccessType accessType, Set<String> updateFields) {
-        List<FlowTrigger> flowTriggers = getModelTriggers(triggerModel);
+    public static List<FlowTrigger> getTriggersByChangeEvent(String sourceModel, @NotNull AccessType accessType, Set<String> updateFields) {
+        List<FlowTrigger> flowTriggers = getModelTriggers(sourceModel);
         if (CollectionUtils.isEmpty(flowTriggers)) {
             return Collections.emptyList();
         }

@@ -62,7 +62,7 @@ public class FilesGroupProcessor extends BaseProcessor {
         if (CollectionUtils.isEmpty(fileIds)) {
             return;
         }
-        List<FileInfo> fileInfos = ReflectTool.getModelFiles(modelName, fileIds);
+        List<FileInfo> fileInfos = ReflectTool.getByFileIds(fileIds);
         Map<String, FileInfo> fileInfoMap = fileInfos.stream()
                 .collect(Collectors.toMap(FileInfo::getFileId, fileInfo -> fileInfo));
         for (Map<String, Object> row : rows) {
