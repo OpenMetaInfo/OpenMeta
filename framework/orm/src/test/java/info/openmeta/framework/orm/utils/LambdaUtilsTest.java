@@ -1,7 +1,6 @@
-package info.openmeta.framework.orm.domain.utils;
+package info.openmeta.framework.orm.utils;
 
 import info.openmeta.framework.orm.meta.MetaModel;
-import info.openmeta.framework.orm.utils.LambdaUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

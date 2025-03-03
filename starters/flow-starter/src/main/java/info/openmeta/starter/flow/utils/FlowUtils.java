@@ -1,6 +1,7 @@
 package info.openmeta.starter.flow.utils;
 
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.compute.ComputeUtils;
@@ -105,7 +106,12 @@ public class FlowUtils {
                                            NodeContext nodeContext) {
         String expression = expressionLabel.substring(2, expressionLabel.length() - 1);
         // Determine if the variables in the calculation formula exist in the node context.
-        List<String> dependentVariables = ComputeUtils.compile(expression).getVariableFullNames();
+        List<String> dependentVariables;
+        try {
+            dependentVariables = ComputeUtils.compile(expression).getVariableFullNames();
+        } catch (ValidationException e) {
+            throw new IllegalArgumentException("The expression `{0}` is invalid.", expressionLabel);
+        }
         dependentVariables.removeAll(nodeContext.keySet());
         Assert.isTrue(dependentVariables.isEmpty(), """
                         The variables {1} appear in the calculated expression for the data template parameter field {0},

@@ -1,8 +1,10 @@
-package info.openmeta.framework.orm.domain.utils;
+package info.openmeta.framework.orm.utils;
 
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.AviatorEvaluatorInstance;
 import com.googlecode.aviator.runtime.JavaMethodReflectionFunctionMissing;
+
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.orm.compute.ComputeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -137,4 +139,9 @@ class ComputeUtilsTest {
         Assertions.assertEquals(result1, result2);
     }
 
+    @Test
+    void validateFormula() {
+        String formula = " 1 / 3 , 3;";
+        Assertions.assertThrows(ValidationException.class, () -> ComputeUtils.compile(formula));
+    }
 }

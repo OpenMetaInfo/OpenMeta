@@ -2,8 +2,11 @@ package info.openmeta.framework.orm.compute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.googlecode.aviator.*;
+import com.googlecode.aviator.exception.ExpressionSyntaxErrorException;
+
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.enums.FieldType;
@@ -79,7 +82,11 @@ public abstract class ComputeUtils {
      * @return expression object
      */
     public static Expression compile(String expression) {
-        return ENGINE.compile(expression);
+        try {
+            return ENGINE.compile(expression);
+        } catch (ExpressionSyntaxErrorException e) {
+            throw new ValidationException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -88,7 +95,7 @@ public abstract class ComputeUtils {
      * @return calculation result
      */
     public static Object execute(String expression) {
-        return ENGINE.compile(expression).execute();
+        return compile(expression).execute();
     }
 
     /**
@@ -99,7 +106,7 @@ public abstract class ComputeUtils {
      */
     public static Object execute(String expression, Map<String, Object> env) {
         formatEnvValues(env);
-        return ENGINE.compile(expression).execute(env);
+        return compile(expression).execute(env);
     }
 
     /**
