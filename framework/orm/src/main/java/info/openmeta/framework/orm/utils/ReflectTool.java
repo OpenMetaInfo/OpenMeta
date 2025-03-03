@@ -202,14 +202,13 @@ public abstract class ReflectTool {
     }
 
     /**
-     * Get the fileInfos of the specified model and fileIds.
+     * Get the FileInfo object list by fileIds.
      *
-     * @param modelName  the model name
      * @param fileIds the file IDs
      * @return the list of FileInfo objects
      */
-    public static List<FileInfo> getModelFiles(String modelName, List<String> fileIds) {
+    public static List<FileInfo> getByFileIds(List<String> fileIds) {
         FileService fileService = SpringContextUtils.getBeanByClass(FileService.class);
-        return fileService.getModelFiles(modelName, fileIds);
+        return fileService.getByFileIds(fileIds);
     }
 }

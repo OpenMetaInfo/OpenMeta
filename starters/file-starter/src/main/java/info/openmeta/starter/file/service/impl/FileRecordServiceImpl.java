@@ -269,18 +269,14 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, String>
     }
 
     /**
-     * Get the fileInfos of the specified model and fileIds.
+     * Get the FileInfo object list by fileIds.
      *
-     * @param modelName the model name
      * @param fileIds the file IDs
-     * @return the list of fileInfo objects
+     * @return the list of FileInfo objects
      */
     @Override
-    public List<FileInfo> getModelFiles(String modelName, List<String> fileIds) {
-        Filters filters = new Filters()
-                .eq(FileRecord::getModelName, modelName)
-                .in(ModelConstant.ID, fileIds);
-        List<FileRecord> fileRecords = this.searchList(filters);
+    public List<FileInfo> getByFileIds(List<String> fileIds) {
+        List<FileRecord> fileRecords = this.getByIds(fileIds);
         return fileRecords.stream().map(this::convertToFileInfo).toList();
     }
 

@@ -31,13 +31,12 @@ public interface FileService {
     List<FileInfo> uploadFilesToRow(String modelName, Serializable rowId, MultipartFile[] files);
 
     /**
-     * Get the fileInfos of the specified model and fileIds.
+     * Get the FileInfo object list by fileIds.
      *
-     * @param modelName the model name
      * @param fileIds the file IDs
-     * @return the list of fileInfo objects
+     * @return the list of FileInfo objects
      */
-    List<FileInfo> getModelFiles(String modelName, List<String> fileIds);
+    public List<FileInfo> getByFileIds(List<String> fileIds);
 
     /**
      * Get the FileInfo object by modelName and rowId
