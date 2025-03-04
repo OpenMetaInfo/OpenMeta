@@ -364,7 +364,7 @@ public class ModelController<K extends Serializable> {
     @PostMapping(value = "/deleteBySliceId")
     @Operation(description = "Delete one slice of the timeline model by `sliceId`.")
     @Parameter(name = "sliceId", description = "`sliceId` of the timeline slice data to delete.", schema = @Schema(type = "number"))
-    public ApiResponse<Boolean> deleteBySliceId(@PathVariable String modelName, @RequestParam Long sliceId) {
+    public ApiResponse<Boolean> deleteBySliceId(@PathVariable String modelName, @RequestParam Serializable sliceId) {
         return ApiResponse.success(modelService.deleteBySliceId(modelName, sliceId));
     }
 

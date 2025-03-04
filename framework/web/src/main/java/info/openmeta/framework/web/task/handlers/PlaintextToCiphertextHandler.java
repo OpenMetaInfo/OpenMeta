@@ -79,7 +79,8 @@ public class PlaintextToCiphertextHandler implements AsyncTaskHandler<PlaintextT
     @SkipPermissionCheck
     public void execute(PlaintextToCiphertextParams taskParams) {
         // Construct the pagination query for reading dependent fields.
-        Set<String> readFields = ModelManager.isTimelineModel(taskParams.getModel()) ? Sets.newHashSet(ID, SLICE_ID) : Sets.newHashSet(ID);
+        Set<String> readFields = ModelManager.isTimelineModel(taskParams.getModel()) ?
+                Sets.newHashSet(ID, SLICE_ID) : Sets.newHashSet(ID);
         readFields.addAll(taskParams.getFields());
         Filters filters = new Filters().in(ID, taskParams.getIds());
         FlexQuery flexQuery = new FlexQuery(readFields, filters).acrossTimelineData();

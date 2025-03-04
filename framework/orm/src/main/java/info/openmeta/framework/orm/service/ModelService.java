@@ -311,7 +311,7 @@ public interface ModelService<K extends Serializable> {
      * @param sliceId the slice's unique ID
      * @return {@code true} if successful; otherwise an exception is thrown
      */
-    boolean deleteBySliceId(String modelName, Long sliceId);
+    boolean deleteBySliceId(String modelName, Serializable sliceId);
 
     /**
      * Deletes multiple rows by their IDs.

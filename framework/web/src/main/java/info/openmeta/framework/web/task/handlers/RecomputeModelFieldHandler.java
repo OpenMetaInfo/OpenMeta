@@ -81,7 +81,8 @@ public class RecomputeModelFieldHandler implements AsyncTaskHandler<RecomputeHan
         Set<String> dependedFields = this.getDependedFields(taskParams.getModel(), taskParams.getFields());
         Assert.notEmpty(dependedFields,
                 "No stored cascaded or computed fields need recalculation for model {0}!", taskParams.getModel());
-        dependedFields.addAll(ModelManager.isTimelineModel(taskParams.getModel()) ? Sets.newHashSet(ID, SLICE_ID) : Sets.newHashSet(ID));
+        dependedFields.addAll(ModelManager.isTimelineModel(taskParams.getModel()) ?
+                Sets.newHashSet(ID, SLICE_ID) : Sets.newHashSet(ID));
         // Construct FlexQuery to read dependent fields for pagination
         Filters filters = new Filters().in(ID, taskParams.getIds());
         FlexQuery flexQuery = new FlexQuery(dependedFields, filters).acrossTimelineData();

@@ -249,8 +249,10 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
             Assert.notTrue(sliceRow.containsKey(ModelConstant.SOFT_DELETED_FIELD),
                     "When update slice of timeline model {0}, cannot assign a value to `disabled` field! {1}",
                     modelName, sliceRow);
+            Serializable sliceId = (Serializable) sliceRow.get(ModelConstant.SLICE_ID);
             // When sliceId is of Integer type, convert it to Long type.
-            sliceRow.put(ModelConstant.SLICE_ID, IdUtils.convertIdToLong(sliceRow.get(ModelConstant.SLICE_ID)));
+            sliceId = IdUtils.formatId(modelName, ModelConstant.SLICE_ID, sliceId);
+            sliceRow.put(ModelConstant.SLICE_ID, sliceId);
             // When `effectiveStartDate` changes, update the `effectiveEndDate` of the affected slice.
             if (sliceRow.containsKey(ModelConstant.EFFECTIVE_START_DATE)) {
                 Object effectiveStartDate = sliceRow.get(ModelConstant.EFFECTIVE_START_DATE);

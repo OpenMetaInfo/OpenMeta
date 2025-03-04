@@ -70,7 +70,8 @@ public class ToolkitServiceImpl implements ToolkitService {
         // Get the dependent fields for stored cascaded and computed fields
         Set<String> dependedFields = this.getDependedFields(modelName, fields);
         Assert.notEmpty(dependedFields, "No stored cascaded or computed fields need recalculation for model {0}!", modelName);
-        dependedFields.addAll(ModelManager.isTimelineModel(modelName) ? Sets.newHashSet(ModelConstant.ID, ModelConstant.SLICE_ID) : Sets.newHashSet(ModelConstant.ID));
+        dependedFields.addAll(ModelManager.isTimelineModel(modelName) ?
+                Sets.newHashSet(ModelConstant.ID, ModelConstant.SLICE_ID) : Sets.newHashSet(ModelConstant.ID));
         // Construct FlexQuery to read dependent fields for pagination
         FlexQuery flexQuery = new FlexQuery(dependedFields).acrossTimelineData();
         Page<Map<String, Object>> page = Page.ofCursorPage(BaseConstant.DEFAULT_BATCH_SIZE);
@@ -100,7 +101,8 @@ public class ToolkitServiceImpl implements ToolkitService {
         Assert.isTrue(metaField.isEncrypted(), "The field {0} of model {1} is not an encrypted field!", fieldName, modelName);
         long fixedCount = 0L;
         // Construct query to read required fields for pagination
-        Set<String> readFields = ModelManager.isTimelineModel(modelName) ? Sets.newHashSet(ModelConstant.ID, ModelConstant.SLICE_ID) : Sets.newHashSet(ModelConstant.ID);
+        Set<String> readFields = ModelManager.isTimelineModel(modelName) ?
+                Sets.newHashSet(ModelConstant.ID, ModelConstant.SLICE_ID) : Sets.newHashSet(ModelConstant.ID);
         readFields.add(fieldName);
         FlexQuery flexQuery = new FlexQuery(readFields).acrossTimelineData();
         // Get the original data from database without expansion or conversion.

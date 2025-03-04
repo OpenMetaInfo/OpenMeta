@@ -537,7 +537,8 @@ public class ModelManager {
      * @return primary key field object
      */
     public static MetaField getModelPrimaryKeyField(String modelName) {
-        return MODEL_FIELDS.get(modelName).get(isTimelineModel(modelName) ? ModelConstant.SLICE_ID : ModelConstant.ID);
+        return MODEL_FIELDS.get(modelName).get(isTimelineModel(modelName) ?
+                ModelConstant.SLICE_ID : ModelConstant.ID);
     }
 
     /**

@@ -123,7 +123,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         } else {
             rows = jdbcService.insertList(modelName, rows);
         }
-        List<Serializable> ids = rows.stream().map(row -> (Serializable) row.get(ModelConstant.ID)).collect(Collectors.toList());
+        List<Serializable> ids = rows.stream()
+                .map(row -> (Serializable) row.get(ModelConstant.ID))
+                .collect(Collectors.toList());
         // Keep only updatable fields
         assignedFields.retainAll(ModelManager.getModelUpdatableFields(modelName));
         // Checks ids and assigned fields access
@@ -548,7 +550,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (ModelManager.isTimelineModel(modelName)) {
             FlexQuery flexQuery = new FlexQuery(Arrays.asList(ModelConstant.ID, ModelConstant.SLICE_ID), new Filters().in(ModelConstant.SLICE_ID, pks));
             List<Map<String, Object>> sliceList = jdbcService.selectByFilter(modelName, flexQuery);
-            Map<Serializable, Serializable> sliceMap = sliceList.stream().collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.SLICE_ID), row -> (Serializable) row.get(ModelConstant.ID)));
+            Map<Serializable, Serializable> sliceMap = sliceList.stream()
+                    .collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.SLICE_ID), row -> (Serializable) row.get(ModelConstant.ID)));
             // Fill timeline model business primary key `id`. The input id parameter is not reliable.
             rows.forEach(row -> {
                 Serializable sliceId = (Serializable) row.get(ModelConstant.SLICE_ID);
@@ -674,7 +677,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBySliceId(String modelName, Long sliceId) {
+    public boolean deleteBySliceId(String modelName, Serializable sliceId) {
         Assert.isTrue(ModelManager.isTimelineModel(modelName),
                 "Model {0} is not a timeline model, and cannot delete slice.", modelName);
         TimelineSlice timelineSlice = timelineService.getTimelineSlice(modelName, sliceId);
