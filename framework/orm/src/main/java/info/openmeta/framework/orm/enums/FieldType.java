@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,45 +34,42 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public enum FieldType {
     // String, including long text
-    STRING("String", "String", "", String.class, Types.VARCHAR),
+    STRING("String", "String", String.class, Types.VARCHAR),
 
     // Numeric
-    INTEGER("Integer", "Integer", 0, Integer.class, Types.INTEGER),
-    LONG("Long", "Long", 0L, Long.class, Types.BIGINT),
-    DOUBLE("Double", "Decimal", 0.00, Double.class, Types.DOUBLE),
-    BIG_DECIMAL("BigDecimal", "High-Precision Decimal", new BigDecimal("0"), BigDecimal.class, Types.DECIMAL),
+    INTEGER("Integer", "Integer", Integer.class, Types.INTEGER),
+    LONG("Long", "Long", Long.class, Types.BIGINT),
+    DOUBLE("Double", "Decimal", Double.class, Types.DOUBLE),
+    BIG_DECIMAL("BigDecimal", "High-Precision Decimal", BigDecimal.class, Types.DECIMAL),
 
     // bool
-    BOOLEAN("Boolean", "Yes/No", false, Boolean.class, Types.BOOLEAN),
+    BOOLEAN("Boolean", "Yes/No", Boolean.class, Types.BOOLEAN),
 
     // time
-    DATE("Date", "Date", null, LocalDate.class, Types.DATE),
-    DATE_TIME("DateTime", "DateTime", null, LocalDateTime.class, Types.TIMESTAMP),
+    DATE("Date", "Date", LocalDate.class, Types.DATE),
+    DATE_TIME("DateTime", "DateTime", LocalDateTime.class, Types.TIMESTAMP),
 
     // OptionList, MultiOption, MultiString, JSON, Filters, Orders
-    OPTION("Option", "Single Option", "", String.class, Types.VARCHAR),
-    MULTI_OPTION("MultiOption", "MultiOption", new ArrayList<>(0), List.class, Types.VARCHAR),
-    MULTI_STRING("MultiString", "MultiString", new ArrayList<>(0), List.class, Types.VARCHAR),
-    JSON("JSON", "JSON", null, JsonNode.class, Types.LONGVARCHAR),
-    FILTERS("Filters", "Filters", null, Filters.class, Types.VARCHAR),
-    ORDERS("Orders", "Orders", null, Orders.class, Types.VARCHAR),
+    OPTION("Option", "Single Option", String.class, Types.VARCHAR),
+    MULTI_OPTION("MultiOption", "MultiOption", List.class, Types.VARCHAR),
+    MULTI_STRING("MultiString", "MultiString", List.class, Types.VARCHAR),
+    JSON("JSON", "JSON", JsonNode.class, Types.LONGVARCHAR),
+    FILTERS("Filters", "Filters", Filters.class, Types.VARCHAR),
+    ORDERS("Orders", "Orders", Orders.class, Types.VARCHAR),
 
-    // File, MultiFile, abstract fields, not stored in the business model, but
-    // stored in the FileRecord model
-    FILE("File", "File", null, null, Types.VARCHAR),
-    MULTI_FILE("MultiFile", "MultiFile", null, null, Types.VARCHAR),
+    // File and MultiFile store the ids of FileRecord model
+    FILE("File", "File", null, Types.VARCHAR),
+    MULTI_FILE("MultiFile", "MultiFile", null, Types.VARCHAR),
 
     // Relational fields
-    ONE_TO_ONE("OneToOne", "OneToOne", null, null, Types.BIGINT),
-    MANY_TO_ONE("ManyToOne", "ManyToOne", null, null, Types.BIGINT),
-    ONE_TO_MANY("OneToMany", "OneToMany", new ArrayList<>(0), null, Types.NULL),
-    MANY_TO_MANY("ManyToMany", "ManyToMany", new ArrayList<>(0), null, Types.NULL);
+    ONE_TO_ONE("OneToOne", "OneToOne", null, Types.BIGINT),
+    MANY_TO_ONE("ManyToOne", "ManyToOne", null, Types.BIGINT),
+    ONE_TO_MANY("OneToMany", "OneToMany", null, Types.NULL),
+    MANY_TO_MANY("ManyToMany", "ManyToMany", null, Types.NULL);
 
     @JsonValue
     private final String type;
     private final String name;
-    // The default value when database value is null.
-    private final Object defaultValue;
     private final Class<?> javaType;
     private final int sqlType;
 
@@ -115,15 +111,15 @@ public enum FieldType {
      * @param value     string value
      * @return object value of field type
      */
-    public static Object convertStringToObject(FieldType fieldType, String value) {
+    public static Object convertStringToFieldValue(FieldType fieldType, String value) {
         if (StringUtils.isBlank(value)) {
-            return fieldType.getDefaultValue();
+            return null;
         }
+        // Remove the `'` and `"` at the beginning and end of the default value string.
         value = truncateDefaultValue(value);
         if (value.isBlank()) {
-            return fieldType.getDefaultValue();
-        } else if (value.equalsIgnoreCase(StringConstant.NULL_STRING)) {
-            return null;
+            // Compatible with "", '', " ", ' ' and other blank strings
+            return StringConstant.EMPTY_STRING;
         }
         try {
             return switch (fieldType) {
@@ -132,12 +128,12 @@ public enum FieldType {
                 case DOUBLE -> Double.valueOf(value);
                 case BIG_DECIMAL -> new BigDecimal(value);
                 case BOOLEAN -> value.equals("1") || value.equalsIgnoreCase(StringConstant.TRUE_STRING);
-                case DATE ->
-                        // The `now` parameter (for the current time) is instantiated when the value is taken.
-                        TimeConstant.NOW.equalsIgnoreCase(value) ? null : DateUtils.stringToDateObject(value, LocalDate.class);
-                case DATE_TIME ->
-                        TimeConstant.NOW.equalsIgnoreCase(value) ? null : DateUtils.stringToDateObject(value, LocalDateTime.class);
-                // Other cases are processed as strings.
+                // The `now` parameter (for the current time) is instantiated when the value is taken.
+                case DATE -> TimeConstant.NOW.equalsIgnoreCase(value) ?
+                        TimeConstant.NOW : DateUtils.stringToDateObject(value, LocalDate.class);
+                case DATE_TIME -> TimeConstant.NOW.equalsIgnoreCase(value) ?
+                        TimeConstant.NOW : DateUtils.stringToDateObject(value, LocalDateTime.class);
+                // Other cases are not converted
                 default -> value;
             };
         } catch (Exception e) {
@@ -146,12 +142,12 @@ public enum FieldType {
     }
 
     /**
-     * Remove the `'` and `"` at the beginning and end of the default value string.
+     * Remove the `'`, `"` and spaces at the beginning and end of the default value string.
      * <p>
      * This method could be removed when the default value does not have this flag bit.
      *
      * @param value default value string
-     * @return string after removing ' and " at the beginning and end
+     * @return string after removing the `'`, `"` and spaces at the beginning and end
      */
     private static String truncateDefaultValue(String value) {
         if (value.startsWith("'") || value.startsWith("\"")) {
@@ -160,6 +156,6 @@ public enum FieldType {
         if (value.endsWith("'") || value.endsWith("\"")) {
             value = value.substring(0, value.length() - 1);
         }
-        return value;
+        return value.trim();
     }
 }

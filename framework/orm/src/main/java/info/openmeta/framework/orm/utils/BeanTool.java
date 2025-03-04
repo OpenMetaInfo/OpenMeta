@@ -171,7 +171,7 @@ public class BeanTool {
         if (TimeConstant.DATE_TYPES.contains(fieldTypeClass)) {
             return DateUtils.stringToDateObject(stringValue, fieldTypeClass);
         } else if (List.class.isAssignableFrom(fieldTypeClass)) {
-            return StringUtils.isBlank(stringValue) ? FieldType.MULTI_STRING.getDefaultValue() : Arrays.asList(StringUtils.split(stringValue, ","));
+            return StringUtils.isBlank(stringValue) ? null : Arrays.asList(StringUtils.split(stringValue, ","));
         } else if (Enum.class.isAssignableFrom(fieldTypeClass)) {
             return formatEnumProperty((String) value, fieldTypeClass);
         } else if (JsonNode.class.isAssignableFrom(fieldTypeClass)) {

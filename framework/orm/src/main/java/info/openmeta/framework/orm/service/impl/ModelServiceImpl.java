@@ -14,7 +14,6 @@ import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.entity.TimelineSlice;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.jdbc.JdbcService;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
@@ -991,17 +990,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Override
     public PivotTable searchPivot(String modelName, FlexQuery flexQuery) {
         List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
-        // To perform aggregate calculation for numeric fields, remove the fields that appear in
-        // `groupBy` and `splitBy` parameters to avoid aggregate calculation of the group fields.
-        Set<String> numericFields = ModelManager.getModelNumericFields(modelName);
-        numericFields.removeAll(new HashSet<>(flexQuery.getGroupBy()));
-        numericFields.removeAll(new HashSet<>(flexQuery.getSplitBy()));
-        Map<String, FieldType> numericFieldsType = numericFields.stream().map(field -> ModelManager.getModelField(modelName, field))
-                .collect(Collectors.toMap(MetaField::getFieldName, MetaField::getFieldType));
-        // Total the 'count' calculation as part of the PivotTable aggregation calculation.
-        numericFieldsType.put("count", FieldType.LONG);
         // Aggregate operations into PivotTable structures
-        return PivotTable.aggregateOperation(rows, flexQuery.getGroupBy(), flexQuery.getSplitBy(), numericFieldsType);
+        return PivotTable.aggregateOperation(modelName, rows, flexQuery.getGroupBy(), flexQuery.getSplitBy());
     }
 
     /**

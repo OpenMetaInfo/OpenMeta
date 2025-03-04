@@ -149,16 +149,18 @@ public class XToOneGroupProcessor extends BaseProcessor {
         String cascadeModel = ModelManager.getModelField(modelName, xToOneFieldName).getRelatedModel();
         rows.forEach(row -> {
             Serializable id = (Serializable) row.get(xToOneFieldName);
-            id = IdUtils.formatId(cascadeModel, id);
             Object value;
-            if (relatedValueMap.containsKey(id)) {
-                value = relatedValueMap.get(id).get(casFields.get(1));
-            } else if (IdUtils.validId(id)) {
-                log.warn("Model {}, the {} field value does not exist in the related model {}: {}",
-                        metaField.getModelName(), casFields.getFirst(), metaField.getRelatedModel(), row);
-                value = cascadedField.getFieldType().getDefaultValue();
+            if (IdUtils.validId(id)) {
+                id = IdUtils.formatId(cascadeModel, id);
+                if (relatedValueMap.containsKey(id)) {
+                    value = relatedValueMap.get(id).get(casFields.get(1));
+                } else {
+                    log.warn("Model {}, the {} field value does not exist in the related model {}: {}",
+                            metaField.getModelName(), casFields.getFirst(), metaField.getRelatedModel(), row);
+                    value = null;
+                }
             } else {
-                value = cascadedField.getFieldType().getDefaultValue();
+                value = null;
             }
             row.put(cascadedField.getFieldName(), value);
         });

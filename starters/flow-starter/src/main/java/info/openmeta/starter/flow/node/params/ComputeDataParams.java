@@ -1,6 +1,6 @@
 package info.openmeta.starter.flow.node.params;
 
-import info.openmeta.framework.orm.enums.FieldType;
+import info.openmeta.framework.orm.enums.ValueType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,5 +25,5 @@ public class ComputeDataParams implements NodeParams {
     private String expression;
 
     @Schema(description = "Value Type of the Compute Result, refer to FieldType")
-    private FieldType valueType;
+    private ValueType valueType;
 }

@@ -80,7 +80,7 @@ public class ModelManager {
             Assert.isTrue(MODEL_MAP.containsKey(field.getModelName()),
                     "Model for field does not exist in model metadata: {0}", field);
             // Convert the string default value to the default value object
-            field.setDefaultValueObject(FieldType.convertStringToObject(field.getFieldType(), field.getDefaultValue()));
+            field.setDefaultValueObject(FieldType.convertStringToFieldValue(field.getFieldType(), field.getDefaultValue()));
             MODEL_FIELDS.get(field.getModelName()).put(field.getFieldName(), field);
         });
     }
@@ -721,7 +721,8 @@ public class ModelManager {
      * @return displayed field list
      */
     public static List<String> getModelDisplayName(String modelName) {
-        return getModel(modelName).getDisplayName();
+        List<String> displayName = getModel(modelName).getDisplayName();
+        return displayName == null ? Collections.emptyList() : displayName;
     }
 
     /**

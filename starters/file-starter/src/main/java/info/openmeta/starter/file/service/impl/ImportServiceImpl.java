@@ -314,7 +314,7 @@ public class ImportServiceImpl implements ImportService {
         if (StringTools.isVariable(defaultValue)) {
             return StringTools.extractVariable(defaultValue, env);
         } else {
-            return FieldType.convertStringToObject(fieldType, defaultValue);
+            return FieldType.convertStringToFieldValue(fieldType, defaultValue);
         }
     }
 

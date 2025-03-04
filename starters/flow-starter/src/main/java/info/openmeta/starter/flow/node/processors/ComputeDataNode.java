@@ -46,6 +46,8 @@ public class ComputeDataNode implements NodeProcessor<ComputeDataParams> {
     public void validateParams(FlowNode flowNode, ComputeDataParams nodeParams) {
         Assert.notBlank(nodeParams.getExpression(),
                 "The calculation formula for the ComputeDataNode {0} cannot be empty.", flowNode.getName());
+        Assert.notNull(nodeParams.getValueType(),
+                "The value type for the ComputeDataNode {0} cannot be empty.", flowNode.getName());
     }
 
     /**

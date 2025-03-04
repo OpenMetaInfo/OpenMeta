@@ -51,13 +51,10 @@ public class MetaField implements Serializable {
 
     private String cascadedField;
 
-    // Used when the current field is a relational field
-    private List<String> displayName;
-
     // Field level filters
     private String filters;
 
-    // Special values: null, now. Ignore case.
+    // Special values: `now` for Date and DateTime fields. Ignore case.
     private String defaultValue;
 
     // Memory compute attribute: Instantiated object of the default value.

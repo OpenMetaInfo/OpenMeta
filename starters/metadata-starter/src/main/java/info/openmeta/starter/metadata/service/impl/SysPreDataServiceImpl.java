@@ -170,7 +170,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
                     // Retain the preID of ID, ManyToOne, and OneToOne fields, which are String value.
                     rowData.put(fieldName, stringValue);
                 } else {
-                    Object fieldValue = FieldType.convertStringToObject(fieldType, stringValue);
+                    Object fieldValue = FieldType.convertStringToFieldValue(fieldType, stringValue);
                     rowData.put(fieldName, fieldValue);
                 }
             }

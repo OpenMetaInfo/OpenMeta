@@ -1,5 +1,7 @@
 package info.openmeta.framework.base.constant;
 
+import java.util.Set;
+
 public interface StringConstant {
     String EMPTY_STRING = "";
     String DISPLAY_NAME_SEPARATOR = " / ";
@@ -26,4 +28,5 @@ public interface StringConstant {
 
     String NULL_STRING = "null";
     String TRUE_STRING = "true";
+    Set<String> EMPTY_STRING_SET = Set.of("''", "\"\"");
 }

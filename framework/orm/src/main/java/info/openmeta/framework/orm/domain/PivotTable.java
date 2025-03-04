@@ -1,15 +1,14 @@
 package info.openmeta.framework.orm.domain;
 
-import info.openmeta.framework.orm.enums.FieldType;
+import info.openmeta.framework.orm.enums.ValueType;
+import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.orm.utils.NumberUtils;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -44,18 +43,32 @@ public class PivotTable {
 
     /**
      * Aggregate the searchMap query results
+     * @param modelName model name
      * @param rows original data list, which has been grouped by 'groupBy'
      * @param groupByFields row grouping field list
      * @param splitByFields column grouping field list
-     * @param numericFieldsType numeric fields and their data types for aggregation
      * @return PivotTable
      */
-    public static PivotTable aggregateOperation(List<Map<String, Object>> rows, List<String> groupByFields, List<String> splitByFields, Map<String, FieldType> numericFieldsType) {
+    public static PivotTable aggregateOperation(String modelName, List<Map<String, Object>> rows,
+                                                List<String> groupByFields, List<String> splitByFields) {
         PivotTable pivotTable = new PivotTable();
         if (CollectionUtils.isEmpty(rows)) {
             return pivotTable;
-        } else if (CollectionUtils.isEmpty(groupByFields) && CollectionUtils.isEmpty(splitByFields)) {
-            pivotTable.setSummary(NumberUtils.sumNumericFields(rows, numericFieldsType));
+        }
+        // To perform aggregate calculation for numeric fields, remove the fields that appear in
+        // `groupBy` and `splitBy` parameters to avoid aggregate calculation of the group fields.
+        Set<String> numericFields = ModelManager.getModelNumericFields(modelName);
+        numericFields.removeAll(new HashSet<>(groupByFields));
+        numericFields.removeAll(new HashSet<>(splitByFields));
+        Map<String, ValueType> numericFieldValueTypes = numericFields.stream()
+                .map(field -> ModelManager.getModelField(modelName, field))
+                .collect(Collectors.toMap(MetaField::getFieldName, f -> ValueType.of(f.getFieldType())));
+        // Total the 'count' calculation as part of the PivotTable aggregation calculation.
+        numericFieldValueTypes.put("count", ValueType.LONG);
+
+        // If the groupByFields and splitByFields are empty, the summary is the sum of all numeric fields
+        if (CollectionUtils.isEmpty(groupByFields) && CollectionUtils.isEmpty(splitByFields)) {
+            pivotTable.setSummary(NumberUtils.sumNumericFields(rows, numericFieldValueTypes));
         }
         // pivotTable.setRows(rows);
         // TODO: Transpose the row data according to the value of the splitByFields field

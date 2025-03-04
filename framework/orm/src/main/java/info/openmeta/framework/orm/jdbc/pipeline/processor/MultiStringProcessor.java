@@ -46,9 +46,9 @@ public class MultiStringProcessor extends BaseProcessor {
             row.put(fieldName, StringUtils.join((List<?>) value, ","));
         } else if (value instanceof String) {
             row.put(fieldName, value);
-        } else if (AccessType.CREATE.equals(accessType) || row.containsKey(fieldName)) {
+        } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
-            row.put(fieldName, "");
+            row.computeIfAbsent(fieldName, k -> metaField.getDefaultValueObject());
         }
     }
 
@@ -66,10 +66,9 @@ public class MultiStringProcessor extends BaseProcessor {
                         FieldType.MULTI_FILE.equals(metaField.getFieldType()))) {
             return;
         }
-        Object value = row.get(fieldName);
-        value = StringUtils.isBlank((String) value) ?
-                getFieldTypeDefaultValue() : Arrays.asList(StringUtils.split((String) value, ","));
-        row.put(fieldName, value);
+        String value = (String) row.get(fieldName);
+        Object result = StringUtils.isBlank(value) ? null : Arrays.asList(StringUtils.split(value, ","));
+        row.put(fieldName, result);
     }
 
 }
