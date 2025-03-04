@@ -3,6 +3,7 @@ package info.openmeta.framework.orm.enums;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import info.openmeta.framework.base.constant.StringConstant;
 import info.openmeta.framework.base.constant.TimeConstant;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
@@ -115,32 +116,33 @@ public enum FieldType {
      * @return object value of field type
      */
     public static Object convertStringToObject(FieldType fieldType, String value) {
-        Object result;
         if (StringUtils.isBlank(value)) {
-            result = fieldType.getDefaultValue();
-        } else {
-            try {
-                value = truncateDefaultValue(value);
-                // ManyToOne/OneToOne is processed as Long.
-                result = switch (fieldType) {
-                    case INTEGER -> Integer.valueOf(value);
-                    case LONG, MANY_TO_ONE, ONE_TO_ONE -> Long.valueOf(value);
-                    case DOUBLE -> Double.valueOf(value);
-                    case BIG_DECIMAL -> new BigDecimal(value);
-                    case BOOLEAN -> value.equals("1") || StringUtils.lowerCase(value).equals("true");
-                    case DATE ->
-                            // The `now` parameter (for the current time) is instantiated when the value is taken.
-                            TimeConstant.NOW.equalsIgnoreCase(value) ? null : DateUtils.stringToDateObject(value, LocalDate.class);
-                    case DATE_TIME ->
-                            TimeConstant.NOW.equalsIgnoreCase(value) ? null : DateUtils.stringToDateObject(value, LocalDateTime.class);
-                    // Other cases are processed as strings.
-                    default -> value;
-                };
-            } catch (Exception e) {
-                throw new IllegalArgumentException("field.default.value.incorrect.{0}.{1}", fieldType.getType(), value, e);
-            }
+            return fieldType.getDefaultValue();
         }
-        return result;
+        value = truncateDefaultValue(value);
+        if (value.isBlank()) {
+            return fieldType.getDefaultValue();
+        } else if (value.equalsIgnoreCase(StringConstant.NULL_STRING)) {
+            return null;
+        }
+        try {
+            return switch (fieldType) {
+                case INTEGER -> Integer.valueOf(value);
+                case LONG -> Long.valueOf(value);
+                case DOUBLE -> Double.valueOf(value);
+                case BIG_DECIMAL -> new BigDecimal(value);
+                case BOOLEAN -> value.equals("1") || value.equalsIgnoreCase(StringConstant.TRUE_STRING);
+                case DATE ->
+                        // The `now` parameter (for the current time) is instantiated when the value is taken.
+                        TimeConstant.NOW.equalsIgnoreCase(value) ? null : DateUtils.stringToDateObject(value, LocalDate.class);
+                case DATE_TIME ->
+                        TimeConstant.NOW.equalsIgnoreCase(value) ? null : DateUtils.stringToDateObject(value, LocalDateTime.class);
+                // Other cases are processed as strings.
+                default -> value;
+            };
+        } catch (Exception e) {
+            throw new IllegalArgumentException("field.default.value.incorrect.{0}.{1}", fieldType.getType(), value, e);
+        }
     }
 
     /**

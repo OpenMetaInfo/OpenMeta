@@ -57,6 +57,7 @@ public class MetaField implements Serializable {
     // Field level filters
     private String filters;
 
+    // Special values: null, now. Ignore case.
     private String defaultValue;
 
     // Memory compute attribute: Instantiated object of the default value.

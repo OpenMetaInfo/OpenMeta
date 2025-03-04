@@ -19,4 +19,11 @@ public interface StringConstant {
 
     // the prefix of formula
     String FORMULA_PREFIX = "${";
+
+    String UNDERLINE = "_";
+    String HYPHEN = "-";
+    String SLASH = "/";
+
+    String NULL_STRING = "null";
+    String TRUE_STRING = "true";
 }

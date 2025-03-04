@@ -77,10 +77,10 @@ public class ModelManager {
     private void initBasicFields(List<MetaField> fields) {
         fields.forEach(field -> {
             Assert.notNull(field.getFieldType(), "The fieldType of field metadata is not supported: {0}", field);
-            // Convert the string default value to the default value object
-            field.setDefaultValueObject(FieldType.convertStringToObject(field.getFieldType(), field.getDefaultValue()));
             Assert.isTrue(MODEL_MAP.containsKey(field.getModelName()),
                     "Model for field does not exist in model metadata: {0}", field);
+            // Convert the string default value to the default value object
+            field.setDefaultValueObject(FieldType.convertStringToObject(field.getFieldType(), field.getDefaultValue()));
             MODEL_FIELDS.get(field.getModelName()).put(field.getFieldName(), field);
         });
     }
