@@ -4,6 +4,10 @@ spring:
   web:
     resources:
       add-mappings: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   cache:
     redis:
       # Global default expiration period for redis cache
@@ -32,6 +36,7 @@ server:
     accept-count: 600
     relaxed-query-chars: "[,]"
     basedir: ./temp
+    max-swallow-size: 20MB
 
 management:
   endpoints:
