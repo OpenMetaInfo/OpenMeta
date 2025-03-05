@@ -9,7 +9,6 @@ import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.exception.SystemException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.DateUtils;
-import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.enums.FileType;
@@ -70,8 +69,8 @@ public class FileRecordServiceImpl extends EntityServiceImpl<FileRecord, String>
         }
         // Add tenantId as a subdirectory if multi-tenancy is enabled
         if (TenantConfig.isEnableMultiTenancy()) {
-            Long tenantId = ContextHolder.getContext().getTenantId();
-            if (tenantId != null) {
+            String tenantId = ContextHolder.getContext().getTenantId();
+            if (StringUtils.hasText(tenantId)) {
                 key.append(tenantId).append("/");
             }
         }

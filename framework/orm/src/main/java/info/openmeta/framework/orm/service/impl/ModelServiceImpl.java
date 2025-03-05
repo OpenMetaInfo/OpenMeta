@@ -59,8 +59,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (ModelManager.isMultiTenant(modelName)) {
             rows.forEach(row -> {
                 if (row.containsKey(ModelConstant.TENANT_ID)) {
-                    Long tenantId = (Long) row.get(ModelConstant.TENANT_ID);
-                    if (tenantId != null && !tenantId.equals(ContextHolder.getContext().getTenantId())) {
+                    String tenantId = (String) row.get(ModelConstant.TENANT_ID);
+                    if (StringUtils.isNotBlank(tenantId) && !tenantId.equals(ContextHolder.getContext().getTenantId())) {
                         throw new SecurityException("In a multi-tenancy environment, cross-tenant data access is not allowed: {0}", row);
                     }
                     row.remove(ModelConstant.TENANT_ID);

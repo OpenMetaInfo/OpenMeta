@@ -21,7 +21,7 @@ public class UserInfo implements Serializable {
     private Long empId;
     private Long deptId;
     private Long companyId;
-    private Long tenantId;
+    private String tenantId;
     private String datasourceKey;
 
 }

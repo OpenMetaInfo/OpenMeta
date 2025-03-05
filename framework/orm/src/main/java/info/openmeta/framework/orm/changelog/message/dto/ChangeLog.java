@@ -24,7 +24,7 @@ public class ChangeLog {
     private Map<String, Object> dataBeforeChange;
     private Map<String, Object> dataAfterChange;
 
-    private Long tenantId;
+    private String tenantId;
     private Long changedId;
     private String changedBy;
     private String changedTime;

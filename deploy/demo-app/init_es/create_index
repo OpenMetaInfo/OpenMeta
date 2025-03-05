@@ -27,7 +27,7 @@ PUT /test_xxxx_changelog
                 "enabled": false
             },
             "tenantId": {
-                "type": "long"
+                "type": "keyword"
             },
             "changedId": {
                 "type": "long"
