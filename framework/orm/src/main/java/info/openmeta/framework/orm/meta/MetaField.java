@@ -51,7 +51,7 @@ public class MetaField implements Serializable {
 
     private String cascadedField;
 
-    // Field level filters
+    // Field level filters used by frontend
     private String filters;
 
     // Special values: `now` for Date and DateTime fields. Ignore case.

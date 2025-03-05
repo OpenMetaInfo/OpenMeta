@@ -47,7 +47,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
     /**
      * Update filters based on the softDelete config of the model.
      * If the model is soft-deleted, and filters do not contain the `disabled` field,
-     * append the ["disable", "=", true] filtering condition to filters.
+     * append the ["disabled", "=", true] filtering condition to filters.
      *
      * @param filters original filters
      * @return processed filters
@@ -55,7 +55,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
     private Filters handleSoftDeleted(Filters filters) {
         if (ModelManager.isSoftDeleted(mainModelName) && !Filters.containsField(filters, ModelConstant.SOFT_DELETED_FIELD)) {
             Filters deletedFilters = new Filters().eq(ModelConstant.SOFT_DELETED_FIELD, false);
-            // Merge the original filters and the softDelete filters ["disable", "=", true]
+            // Merge the original filters and the softDelete filters ["disabled", "=", true]
             return Filters.and(filters, deletedFilters);
         }
         return filters;
