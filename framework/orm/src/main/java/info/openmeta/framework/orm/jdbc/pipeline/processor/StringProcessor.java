@@ -59,6 +59,7 @@ public class StringProcessor extends BaseProcessor {
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
             row.computeIfAbsent(fieldName, k -> metaField.getDefaultValueObject());
+            return;
         } else if (row.containsKey(fieldName)) {
             // If the field is set to null, check if it is a required field.
             checkRequired(row);
