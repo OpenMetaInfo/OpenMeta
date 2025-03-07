@@ -99,9 +99,6 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
     @Override
     public TimelineSlice getTimelineSlice(String modelName, Serializable sliceId) {
         Set<String> fields = new HashSet<>(ModelConstant.TIMELINE_FIELDS);
-        if (ModelManager.isSoftDeleted(modelName)) {
-            fields.add(ModelConstant.SOFT_DELETED_FIELD);
-        }
         FlexQuery flexQuery = new FlexQuery(fields, new Filters().eq(ModelConstant.SLICE_ID, sliceId)).acrossTimelineData();
         List<Map<String, Object>> rows = jdbcService.selectByFilter(modelName, flexQuery);
         Assert.notEmpty(rows, "Timeline model {0} does not exist data for sliceId={1}.", modelName, sliceId);
@@ -246,9 +243,6 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
     @Override
     public Integer updateSlices(String modelName, List<Map<String, Object>> rows) {
         rows.forEach(sliceRow -> {
-            Assert.notTrue(sliceRow.containsKey(ModelConstant.SOFT_DELETED_FIELD),
-                    "When update slice of timeline model {0}, cannot assign a value to `disabled` field! {1}",
-                    modelName, sliceRow);
             Serializable sliceId = (Serializable) sliceRow.get(ModelConstant.SLICE_ID);
             // When sliceId is of Integer type, convert it to Long type.
             sliceId = IdUtils.formatId(modelName, ModelConstant.SLICE_ID, sliceId);

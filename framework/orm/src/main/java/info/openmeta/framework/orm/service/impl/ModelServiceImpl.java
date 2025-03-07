@@ -700,9 +700,12 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         // Get the pre-delete data, to check whether the ids data have been deleted and collect changeLogs.
         List<Map<String, Object>> originalRows = jdbcService.selectByIds(modelName, ids, Collections.emptyList(), ConvertType.ORIGINAL);
         List<Map<String, Object>> deletableRows = originalRows.stream().filter(row -> {
-            if (ModelManager.isSoftDeleted(modelName) && Boolean.TRUE.equals(row.get(ModelConstant.SOFT_DELETED_FIELD))) {
-                log.warn("Data with model {}, id={} has been soft deleted, do not duplicate it.", modelName, row.get(ModelConstant.ID));
-                return false;
+            if (ModelManager.isSoftDeleted(modelName)) {
+                String softDeleteField = ModelManager.getSoftDeleteField(modelName);
+                if (Boolean.TRUE.equals(row.get(softDeleteField))) {
+                    log.warn("Data with model {}, id={} has been soft deleted, do not duplicate it.", modelName, row.get(ModelConstant.ID));
+                    return false;
+                }
             }
             return true;
         }).collect(Collectors.toList());

@@ -47,6 +47,11 @@ public class MetaModel implements Serializable {
 
     private boolean softDelete;
 
+    // Compatible with different soft delete field names of historical systems, such as "is_deleted"
+    private String softDeleteField;
+
+    private boolean enableActiveControl;
+
     private boolean versionLock;
 
     private boolean multiTenant;

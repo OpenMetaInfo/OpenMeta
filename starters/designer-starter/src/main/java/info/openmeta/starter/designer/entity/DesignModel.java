@@ -39,20 +39,26 @@ public class DesignModel extends BaseModel {
     @Schema(description = "Model Name")
     private String modelName;
 
-    @Schema(description = "Enable Soft Delete")
-    private Boolean softDelete;
-
-    @Schema(description = "Default Order")
-    private String defaultOrder;
-
     @Schema(description = "Display Name")
     private List<String> displayName;
 
     @Schema(description = "Search Name")
     private List<String> searchName;
 
+    @Schema(description = "Default Order")
+    private String defaultOrder;
+
     @Schema(description = "Table Name")
     private String tableName;
+
+    @Schema(description = "Enable Soft Delete")
+    private Boolean softDelete;
+
+    @Schema(description = "Soft Delete Field Name")
+    private String softDeleteField;
+
+    @Schema(description = "Enable Active Control")
+    private Boolean enableActiveControl;
 
     @Schema(description = "Is Timeline Model")
     private Boolean timeline;

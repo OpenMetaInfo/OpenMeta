@@ -98,8 +98,10 @@ public class ModelManager {
             Assert.isTrue(StringTools.isTableOrColumn(metaModel.getTableName()), 
                 "The table name `{0}` for model `{1}` does not meet the specification!",
                 metaModel.getTableName(), metaModel.getModelName());
-            // Check if the soft delete model has a `disabled` field
+            // Check if the soft delete model has a `deleted` field or specified flag
             validateSoftDeleted(metaModel);
+            // Check if the active control model has a `active` field
+            validateActiveControl(metaModel);
             // Check and complete the model-level displayName configuration.
             validateModelDisplayName(metaModel);
             // Check and complete the searchName configuration
@@ -162,8 +164,31 @@ public class ModelManager {
      */
     private static void validateSoftDeleted(MetaModel metaModel) {
         if (metaModel.isSoftDelete()) {
-            Assert.isTrue(existField(metaModel.getModelName(), ModelConstant.SOFT_DELETED_FIELD),
-                    "Model {0} `softDelete = true`, but field `disabled` does not exist!", metaModel.getLabelName());
+            String softDeleteField;
+            if (StringUtils.isBlank(metaModel.getSoftDeleteField())) {
+                softDeleteField = ModelConstant.SOFT_DELETED_FIELD;
+                metaModel.setSoftDeleteField(softDeleteField);
+            } else {
+                softDeleteField = metaModel.getSoftDeleteField();
+            }
+            Assert.isTrue(existField(metaModel.getModelName(), softDeleteField),
+                    "`{0}` model enable soft delete, but not exist `{1}` field!",
+                    metaModel.getModelName(), softDeleteField);
+        }
+    }
+
+    /**
+     * Check if the active control model has an `active` field.
+     * When the data of active control model is disabled, set `active=false`.
+     * The inactive data can be queried by filter `active=false`.
+     *
+     * @param metaModel model metadata object
+     */
+    private static void validateActiveControl(MetaModel metaModel) {
+        if (metaModel.isEnableActiveControl()) {
+            Assert.isTrue(existField(metaModel.getModelName(), ModelConstant.ACTIVE_CONTROL_FIELD),
+                    "`{0}` model enable active control, but not exist `active` field!",
+                    metaModel.getModelName());
         }
     }
 
@@ -831,6 +856,20 @@ public class ModelManager {
      */
     public static boolean isSoftDeleted(String modelName) {
         return ModelManager.getModel(modelName).isSoftDelete();
+    }
+
+    /**
+     * Get the soft delete field name of the model.
+     */
+    public static String getSoftDeleteField(String modelName) {
+        return ModelManager.getModel(modelName).getSoftDeleteField();
+    }
+
+    /**
+     * Determine whether the model has enabled active control.
+     */
+    public static boolean isEnableActiveControl(String modelName) {
+        return ModelManager.getModel(modelName).isEnableActiveControl();
     }
 
     /**
