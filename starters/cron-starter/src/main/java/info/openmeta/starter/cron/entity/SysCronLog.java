@@ -44,6 +44,4 @@ public class SysCronLog extends BaseModel {
     @Schema(description = "Error Message")
     private String errorMessage;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

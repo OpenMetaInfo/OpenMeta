@@ -44,6 +44,6 @@ public class FlowTrigger extends BaseModel {
     @Schema(description = "Cron Job ID")
     private Long cronId;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Active")
+    private Boolean active;
 }

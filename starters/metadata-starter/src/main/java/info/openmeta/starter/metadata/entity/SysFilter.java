@@ -33,7 +33,4 @@ public class SysFilter extends BaseModel {
 
     @Schema(description = "Query Text")
     private String query;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

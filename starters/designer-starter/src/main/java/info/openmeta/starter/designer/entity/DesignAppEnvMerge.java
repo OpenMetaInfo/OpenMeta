@@ -37,6 +37,6 @@ public class DesignAppEnvMerge extends BaseModel {
     @Schema(description = "Merge Content")
     private JsonNode mergeContent;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

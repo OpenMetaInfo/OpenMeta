@@ -53,7 +53,7 @@ public class CronScheduler {
     public void start() {
         List<SysCron> sysCronList = jdbcService.selectMetaEntityList(SysCron.class, null);
         for (SysCron sysCron : sysCronList) {
-            if (!Boolean.TRUE.equals(sysCron.getDisabled())) {
+            if (!Boolean.TRUE.equals(sysCron.getActive())) {
                 registerCron(sysCron);
             }
         }

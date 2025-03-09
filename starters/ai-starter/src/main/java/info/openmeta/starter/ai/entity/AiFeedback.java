@@ -30,6 +30,4 @@ public class AiFeedback extends BaseModel {
     @Schema(description = "Feedback Content")
     private String feedback;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

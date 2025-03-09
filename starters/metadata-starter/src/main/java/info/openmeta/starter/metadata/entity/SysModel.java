@@ -83,7 +83,4 @@ public class SysModel extends BaseModel {
 
     @Schema(description = "Model Fields")
     private List<SysField> modelFields;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

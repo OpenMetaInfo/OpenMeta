@@ -58,7 +58,4 @@ public class ImportTemplate extends BaseModel {
 
     @Schema(description = "Import Field List")
     private List<ImportTemplateField> importFields;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

@@ -59,7 +59,4 @@ public class FlowNode extends BaseModel {
 
     @Schema(description = "Description")
     private String description;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

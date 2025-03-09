@@ -49,6 +49,6 @@ public class ImportHistory extends BaseModel {
     @Schema(description = "Failed Rows")
     private Integer failedRows;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

@@ -49,7 +49,4 @@ public class EmpInfo extends BaseModel {
 
     @Schema(description = "TenantID")
     private String tenantId;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

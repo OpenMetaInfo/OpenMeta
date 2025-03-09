@@ -49,7 +49,4 @@ public class ExportTemplate extends BaseModel {
 
     @Schema(description = "Enable Transpose")
     private Boolean enableTranspose;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

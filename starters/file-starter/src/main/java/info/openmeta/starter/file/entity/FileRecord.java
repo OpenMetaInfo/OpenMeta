@@ -50,6 +50,6 @@ public class FileRecord extends BaseModel {
     @Schema(description = "Source")
     private FileSource source;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

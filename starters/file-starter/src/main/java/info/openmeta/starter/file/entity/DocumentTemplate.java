@@ -35,7 +35,4 @@ public class DocumentTemplate extends BaseModel {
 
     @Schema(description = "Convert To PDF")
     private Boolean convertToPdf;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

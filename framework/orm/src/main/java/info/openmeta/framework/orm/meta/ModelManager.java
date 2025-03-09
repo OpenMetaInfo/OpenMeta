@@ -156,9 +156,9 @@ public class ModelManager {
     }
 
     /**
-     * Check if the soft delete model has a `disabled` field.
-     * When the data of soft deleted model is deleted, set `disabled=true`.
-     * The active data can be queried by filter `disabled=false`.
+     * Check if the soft delete model has a `deleted` field.
+     * When the data of soft deleted model is deleted, set `deleted=true`.
+     * The active data can be queried by filter `deleted=false`.
      *
      * @param metaModel model metadata object
      */
@@ -179,7 +179,7 @@ public class ModelManager {
 
     /**
      * Check if the active control model has an `active` field.
-     * When the data of active control model is disabled, set `active=false`.
+     * When the data of active control model is inactive, set `active=false`.
      * The inactive data can be queried by filter `active=false`.
      *
      * @param metaModel model metadata object

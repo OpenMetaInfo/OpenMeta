@@ -51,6 +51,6 @@ public class DesignNavigation extends BaseModel {
     @Schema(description = "Default filters")
     private String filter;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

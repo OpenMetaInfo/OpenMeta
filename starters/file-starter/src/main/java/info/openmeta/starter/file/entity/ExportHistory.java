@@ -30,6 +30,6 @@ public class ExportHistory extends BaseModel {
     @Schema(description = "Exported File ID")
     private String exportedFileId;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

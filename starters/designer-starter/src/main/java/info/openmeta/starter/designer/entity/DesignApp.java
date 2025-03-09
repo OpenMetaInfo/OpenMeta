@@ -40,6 +40,6 @@ public class DesignApp extends BaseModel {
     @Schema(description = "Package Name")
     private String packageName;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

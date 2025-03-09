@@ -35,7 +35,4 @@ public class ExportTemplateField extends BaseModel {
 
     @Schema(description = "Ignored In File")
     private Boolean ignored;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

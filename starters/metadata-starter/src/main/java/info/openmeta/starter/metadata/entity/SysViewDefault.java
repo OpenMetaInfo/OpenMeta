@@ -32,7 +32,4 @@ public class SysViewDefault extends BaseModel {
 
     @Schema(description = "Model Name")
     private String modelName;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

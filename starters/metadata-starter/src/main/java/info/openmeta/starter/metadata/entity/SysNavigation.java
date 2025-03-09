@@ -44,7 +44,4 @@ public class SysNavigation extends BaseModel {
 
     @Schema(description = "Default filters")
     private String filter;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

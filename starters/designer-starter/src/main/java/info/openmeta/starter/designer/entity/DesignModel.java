@@ -93,6 +93,6 @@ public class DesignModel extends BaseModel {
     @Schema(description = "Model Indexes")
     private List<DesignModelIndex> modelIndexes;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }
