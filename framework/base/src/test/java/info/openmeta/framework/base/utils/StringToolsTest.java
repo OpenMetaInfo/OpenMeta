@@ -1,6 +1,5 @@
-package info.openmeta.framework.orm.domain.utils;
+package info.openmeta.framework.base.utils;
 
-import info.openmeta.framework.base.utils.StringTools;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

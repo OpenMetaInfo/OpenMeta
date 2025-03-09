@@ -43,7 +43,4 @@ public class FlowInstance extends BaseModel {
 
     @Schema(description = "Current Status")
     private FlowStatus currentStatus;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

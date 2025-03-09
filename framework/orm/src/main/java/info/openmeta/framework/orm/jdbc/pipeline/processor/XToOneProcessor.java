@@ -64,10 +64,9 @@ public class XToOneProcessor extends BaseProcessor {
             row.compute(fieldName, (k, id) -> IdUtils.formatId(metaField.getRelatedModel(), (Serializable) id));
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
-            row.put(fieldName, metaField.getDefaultValueObject());
+            row.computeIfAbsent(fieldName, k -> metaField.getDefaultValueObject());
         } else if (row.containsKey(fieldName)) {
             checkRequired(row);
-            row.put(fieldName, getFieldTypeDefaultValue());
         }
     }
 

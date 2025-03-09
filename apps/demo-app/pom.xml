@@ -18,7 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <openmeta.version>0.8.22</openmeta.version>
+        <openmeta.version>0.8.33</openmeta.version>
     </properties>
 
     <dependencies>
@@ -43,6 +43,12 @@
         <dependency>
             <groupId>info.openmeta</groupId>
             <artifactId>flow-starter</artifactId>
+            <version>${openmeta.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.openmeta</groupId>
+            <artifactId>designer-starter</artifactId>
             <version>${openmeta.version}</version>
         </dependency>
     </dependencies>

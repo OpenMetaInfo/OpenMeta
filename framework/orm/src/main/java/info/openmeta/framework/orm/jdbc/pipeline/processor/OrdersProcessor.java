@@ -40,9 +40,9 @@ public class OrdersProcessor extends BaseProcessor {
             row.put(fieldName,  value.toString());
         } else if (value instanceof String) {
             row.put(fieldName, value);
-        } else if (AccessType.CREATE.equals(accessType) || row.containsKey(fieldName)) {
+        } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
-            row.put(fieldName, "");
+            row.computeIfAbsent(fieldName, k -> metaField.getDefaultValueObject());
         }
     }
 

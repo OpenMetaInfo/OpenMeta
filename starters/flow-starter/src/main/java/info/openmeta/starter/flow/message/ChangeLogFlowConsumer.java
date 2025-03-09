@@ -22,7 +22,7 @@ public class ChangeLogFlowConsumer implements RocketMQListener<ChangeLogMessage>
     public void onMessage(ChangeLogMessage changeLogMessage) {
         ContextHolder.setContext(changeLogMessage.getContext());
         if (ContextHolder.getContext().isTriggerFlow()) {
-            flowAutomation.triggerAsyncFlows(changeLogMessage.getChangeLogs());
+            flowAutomation.triggerAsyncFlowByChangeLog(changeLogMessage.getChangeLogs());
         }
     }
 

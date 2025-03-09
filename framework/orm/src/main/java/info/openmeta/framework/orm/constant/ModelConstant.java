@@ -16,8 +16,9 @@ public interface ModelConstant {
     String EXTERNAL_ID = "externalId";
     String UUID = "uuid";
     String CODE = "code";
-    // Reversed field: When performing a soft deletion, the field being operated on is set to disabled=true.
-    String SOFT_DELETED_FIELD = "disabled";
+    // Reversed field: When performing a soft deletion, set deleted=true, active=false
+    String SOFT_DELETED_FIELD = "deleted";
+    String ACTIVE_CONTROL_FIELD = "active";
     // Reserved field: The display name composed of multiple fields, suitable for displaying the value of ManyToOne, OneToOne, OneToMany, ManyToMany.
     String DISPLAY_NAME = "displayName";
     // Reserved field: Multiple fields composed of OR search conditions, suitable for multiple fields of ManyToOne, OneToOne, etc. single search box for multi-field based search.

@@ -74,7 +74,7 @@ public class AutofillFields {
      * @param rows List data
      */
     public static void fillTenantFieldForInsert(List<Map<String, Object>> rows) {
-        Long tenantId = ContextHolder.getContext().getTenantId();
+        String tenantId = ContextHolder.getContext().getTenantId();
         rows.forEach(row -> row.put(ModelConstant.TENANT_ID, tenantId));
     }
 

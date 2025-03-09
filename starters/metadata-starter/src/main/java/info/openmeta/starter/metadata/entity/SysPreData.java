@@ -32,7 +32,4 @@ public class SysPreData extends BaseModel {
 
     @Schema(description = "Frozen")
     private Boolean frozen;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

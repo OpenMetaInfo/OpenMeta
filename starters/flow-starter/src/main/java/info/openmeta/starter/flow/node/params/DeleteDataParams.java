@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
  * <p>
  * {
  *     "modelName": "DemoModel",
- *     "pkVariable": "#{deptId}",
- *     "filters": ["disabled", "=", true]
+ *     "pkVariable": "#{ids}",
+ *     "filters": ["active", "=", true]
  * }
  * </p>
  */

@@ -1,5 +1,7 @@
 package info.openmeta.framework.base.constant;
 
+import java.util.Set;
+
 public interface StringConstant {
     String EMPTY_STRING = "";
     String DISPLAY_NAME_SEPARATOR = " / ";
@@ -19,4 +21,12 @@ public interface StringConstant {
 
     // the prefix of formula
     String FORMULA_PREFIX = "${";
+
+    String UNDERLINE = "_";
+    String HYPHEN = "-";
+    String SLASH = "/";
+
+    String NULL_STRING = "null";
+    String TRUE_STRING = "true";
+    Set<String> EMPTY_STRING_SET = Set.of("''", "\"\"");
 }

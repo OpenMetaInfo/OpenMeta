@@ -55,16 +55,18 @@ public class VersionControlImpl implements VersionControl {
     @Override
     public ModelChangesDTO getModelChanges(DesignAppEnv appEnv, String versionedModel, LocalDateTime startTime) {
         ModelChangesDTO modelChangesDTO = new ModelChangesDTO(versionedModel);
+        boolean isSoftDeleted = ModelManager.isSoftDeleted(versionedModel);
+        String softDeleteField = ModelManager.getSoftDeleteField(versionedModel);
         // Read unpublished ids of the current application and model, including deleted unpublished data
         List<Map<String, Object>> changedData = this.getChangedDataFromDB(appEnv, versionedModel, startTime);
         Map<Serializable, Map<String, Object>> updatedDataMap = new HashMap<>();
         for (Map<String, Object> row : changedData) {
             if (startTime == null || startTime.isBefore((LocalDateTime) row.get(ModelConstant.CREATED_TIME))) {
                 // Created data before the first publish, ignore deleted data before the first publish
-                if (!Boolean.TRUE.equals(row.get(ModelConstant.SOFT_DELETED_FIELD))) {
+                if (isSoftDeleted && !Boolean.TRUE.equals(row.get(softDeleteField))) {
                     modelChangesDTO.addCreatedRow(convertToRowChangeDTO(versionedModel, AccessType.CREATE, row));
                 }
-            } else if (Boolean.TRUE.equals(row.get(ModelConstant.SOFT_DELETED_FIELD))) {
+            } else if (isSoftDeleted && Boolean.TRUE.equals(row.get(softDeleteField))) {
                 // Deleted data after published
                 modelChangesDTO.addDeletedRow(convertToRowChangeDTO(versionedModel, AccessType.DELETE, row));
             } else {
@@ -103,8 +105,11 @@ public class VersionControlImpl implements VersionControl {
     private List<Map<String, Object>> getChangedDataFromDB(DesignAppEnv appEnv, String versionedModel, LocalDateTime startTime) {
         // Read unpublished data of the current app, env and model from the database
         Filters changedDataFilters = new Filters().eq(VersionConstant.APP_ID, appEnv.getAppId())
-                .eq(VersionConstant.ENV_ID, appEnv.getId())
-                .in(ModelConstant.SOFT_DELETED_FIELD, Arrays.asList(false, true, null));
+                .eq(VersionConstant.ENV_ID, appEnv.getId());
+        if (ModelManager.isSoftDeleted(versionedModel)) {
+            String softDeleteField = ModelManager.getSoftDeleteField(versionedModel);
+            changedDataFilters.in(softDeleteField, Arrays.asList(false, true, null));
+        }
         if (startTime != null) {
             changedDataFilters.ge(ModelConstant.UPDATED_TIME, startTime);
         }
@@ -113,8 +118,10 @@ public class VersionControlImpl implements VersionControl {
         FlexQuery flexQuery = new FlexQuery(fields, changedDataFilters);
         List<Map<String, Object>> changedData = modelService.searchList(versionedModel, flexQuery);
         // Remove unpublished data that has been deleted before the first publish
+        boolean isSoftDeleted = ModelManager.isSoftDeleted(versionedModel);
+        String softDeleteField = ModelManager.getSoftDeleteField(versionedModel);
         changedData.removeIf(row -> {
-            if (Boolean.TRUE.equals(row.get(ModelConstant.SOFT_DELETED_FIELD))) {
+            if (isSoftDeleted && Boolean.TRUE.equals(row.get(softDeleteField))) {
                 if (startTime == null) {
                     return true;
                 } else return ((LocalDateTime) row.get(ModelConstant.CREATED_TIME)).isAfter(startTime);

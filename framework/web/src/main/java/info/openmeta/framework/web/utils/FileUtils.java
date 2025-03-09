@@ -4,8 +4,8 @@ import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
 import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.AssertBusiness;
+import info.openmeta.framework.orm.domain.FileObject;
 import info.openmeta.framework.orm.enums.FileType;
-import info.openmeta.framework.orm.domain.FileInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
@@ -47,51 +47,51 @@ public class FileUtils {
     }
 
     /**
-     * Gets the fileInfo object by path.
+     * Gets the fileObject by path.
      *
      * @param path     The path of the file
      * @param fileName The name of the file
-     * @return The fileInfo object
+     * @return The fileObject with the file content
      */
-    public static FileInfo getFileInfoByPath(String path, String fileName) {
+    public static FileObject getFileObjectByPath(String path, String fileName) {
         Assert.notBlank(fileName, "Filename cannot be empty!");
         String fullName = path + fileName;
         ClassPathResource resource = new ClassPathResource(fullName);
         Assert.isTrue(resource.exists(), "File does not exist: {0}", fullName);
-        FileInfo fileInfo = new FileInfo();
+        FileObject fileObject = new FileObject();
         try (InputStream inputStream = resource.getInputStream()) {
             FileType actualFileType = getActualFileType(fullName, inputStream);
             FileType seemingFileType = getFileTypeByExtension(fullName);
             validateFileType(fullName, actualFileType, seemingFileType);
-            fileInfo.setFileName(fileName);
-            fileInfo.setFileType(actualFileType);
+            fileObject.setFileName(fileName);
+            fileObject.setFileType(actualFileType);
             String content = FileCopyUtils.copyToString(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
-            fileInfo.setContent(content);
+            fileObject.setContent(content);
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to read the content of file: {0}", fullName, e);
         }
-        return fileInfo;
+        return fileObject;
     }
 
     /**
      * Validates if the file type, determined by its real mimetype, is within the acceptable range.
      *
      * @param file The MultipartFile to validate
-     * @return The fileInfo object
+     * @return The fileObject object
      */
-    public static FileInfo getFileInfo(MultipartFile file) {
-        FileInfo fileInfo = new FileInfo();
+    public static FileObject getFileObject(MultipartFile file) {
+        FileObject fileObject = new FileObject();
         String fileName = file.getOriginalFilename();
         try (InputStream inputStream = file.getInputStream()) {
             FileType actualFileType = getActualFileType(fileName, inputStream);
             FileType seemingFileType = FileType.of(file.getContentType()).orElseThrow(() -> new BusinessException(
                     "The file {0} is not supported. Its content type is: {1}.", fileName, file.getContentType()));
             validateFileType(fileName, actualFileType, seemingFileType);
-            fileInfo.setFileName(fileName);
-            fileInfo.setFileType(actualFileType);
+            fileObject.setFileName(fileName);
+            fileObject.setFileType(actualFileType);
             String content = FileCopyUtils.copyToString(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
-            fileInfo.setContent(content);
-            return fileInfo;
+            fileObject.setContent(content);
+            return fileObject;
         } catch (IOException e) {
             throw new BusinessException("Failed to read the uploaded file!", e);
         }

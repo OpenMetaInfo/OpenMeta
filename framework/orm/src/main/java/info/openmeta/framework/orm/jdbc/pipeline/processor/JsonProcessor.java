@@ -35,11 +35,10 @@ public class JsonProcessor extends BaseProcessor {
             }
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
-            row.put(fieldName, metaField.getDefaultValueObject());
+            row.computeIfAbsent(fieldName, k -> metaField.getDefaultValueObject());
         } else if (row.containsKey(fieldName)) {
             // The field is set to null, check if it is a required field.
             checkRequired(row);
-            row.put(fieldName, getFieldTypeDefaultValue());
         }
     }
 
@@ -56,7 +55,7 @@ public class JsonProcessor extends BaseProcessor {
         try {
             String value = (String) row.get(fieldName);
             if (StringUtils.isBlank(value)) {
-                row.put(fieldName, getFieldTypeDefaultValue());
+                row.put(fieldName, null);
             } else {
                 row.put(fieldName, JsonMapper.stringToObject(value, JsonNode.class));
             }

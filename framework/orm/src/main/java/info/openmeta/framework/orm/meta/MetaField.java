@@ -51,12 +51,10 @@ public class MetaField implements Serializable {
 
     private String cascadedField;
 
-    // Used when the current field is a relational field
-    private List<String> displayName;
-
-    // Field level filters
+    // Field level filters used by frontend
     private String filters;
 
+    // Special values: `now` for Date and DateTime fields. Ignore case.
     private String defaultValue;
 
     // Memory compute attribute: Instantiated object of the default value.
@@ -82,7 +80,11 @@ public class MetaField implements Serializable {
 
     private String expression;
 
-    // Memory compute attribute: The dependent field of the expression.
+    /**
+     * Memory compute attribute: The fields in the expression or cascadedField.
+     * ComputedField scenario: field1 + field2 + field3 -> [field1, field2, field3]
+     * CascadedField scenario: field1.field2 -> [field1, field2]
+     */
     private List<String> dependentFields;
 
     private boolean dynamic;

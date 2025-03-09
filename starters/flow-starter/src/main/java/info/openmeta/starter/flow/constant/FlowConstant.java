@@ -9,7 +9,7 @@ public interface FlowConstant {
 
     // The key of the trigger data record in the node context environment variable
     String TRIGGER_PARAMS = "TriggerParams";
-    String TRIGGER_ROW_ID = "TriggerRowId";
+    String SOURCE_ROW_ID = "SourceRowId";
 
     /**
      * When it is not a verification flow, the event trigger model to be excluded,

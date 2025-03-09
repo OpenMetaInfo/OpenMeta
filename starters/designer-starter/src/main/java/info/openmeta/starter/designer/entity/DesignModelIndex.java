@@ -52,6 +52,6 @@ public class DesignModelIndex extends BaseModel {
     @Schema(description = "Is Unique Index")
     private Boolean uniqueIndex;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

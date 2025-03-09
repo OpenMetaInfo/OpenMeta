@@ -30,12 +30,9 @@ public class DocumentTemplate extends BaseModel {
     @Schema(description = "File Name")
     private String fileName;
 
-    @Schema(description = "File Template")
-    private Long fileId;
+    @Schema(description = "File Template ID")
+    private String fileId;
 
     @Schema(description = "Convert To PDF")
     private Boolean convertToPdf;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

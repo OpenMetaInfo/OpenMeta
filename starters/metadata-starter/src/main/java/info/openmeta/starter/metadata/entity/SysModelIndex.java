@@ -45,7 +45,4 @@ public class SysModelIndex extends BaseModel {
 
     @Schema(description = "Is Unique Index")
     private Boolean uniqueIndex;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

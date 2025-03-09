@@ -56,6 +56,6 @@ public class DesignAppVersion extends BaseModel {
     @Schema(description = "Locked")
     private Boolean locked;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

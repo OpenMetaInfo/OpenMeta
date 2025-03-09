@@ -13,15 +13,18 @@ import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.Orders;
 import info.openmeta.framework.orm.domain.Page;
+import info.openmeta.framework.orm.enums.FileType;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
 import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.utils.ListUtils;
 import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.starter.file.dto.ExcelDataDTO;
+import info.openmeta.starter.file.dto.UploadFileDTO;
 import info.openmeta.starter.file.entity.ExportHistory;
 import info.openmeta.starter.file.entity.ExportTemplate;
 import info.openmeta.starter.file.entity.ExportTemplateField;
+import info.openmeta.starter.file.enums.FileSource;
 import info.openmeta.starter.file.excel.handler.CustomExportHandler;
 import info.openmeta.starter.file.service.ExportHistoryService;
 import info.openmeta.starter.file.service.ExportTemplateFieldService;
@@ -32,7 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +79,7 @@ public class CommonExport {
         exportFields.forEach(exportField -> {
             fieldNames.add(exportField.getFieldName());
             // If the field is ignored, add it to the ignore list, otherwise add to the headers list
-            if (Boolean.TRUE.equals(exportField.getIgnore())) {
+            if (Boolean.TRUE.equals(exportField.getIgnored())) {
                 ignoreFields.add(exportField.getFieldName());
             } else if (StringUtils.hasText(exportField.getCustomHeader())) {
                 headers.add(exportField.getCustomHeader());
@@ -184,10 +190,33 @@ public class CommonExport {
             excelWriter.finish();
             // Upload the Excel bytes to the file storage
             byte[] excelBytes = outputStream.toByteArray();
-            return fileRecordService.uploadExcelBytesToDownload(modelName, excelDataDTO.getFileName(), excelBytes);
+            return this.uploadExcelBytes(modelName, excelDataDTO.getFileName(), excelBytes);
         } catch (Exception e) {
             throw new BusinessException("Error generating Excel from template {0} with the provided data.",
                     excelDataDTO.getFileName(), e);
+        }
+    }
+
+    /**
+     * Upload the Excel byte to the file storage, and return the file info object with download URL.
+     * @param modelName the model name
+     * @param fileName the file name
+     * @param excelBytes the byte array of the Excel file
+     * @return the file info object with download URL
+     */
+    public FileInfo uploadExcelBytes(String modelName, String fileName, byte[] excelBytes) {
+        try (InputStream resultStream = new ByteArrayInputStream(excelBytes)) {
+            UploadFileDTO uploadFileDTO = new UploadFileDTO();
+            uploadFileDTO.setModelName(modelName);
+            uploadFileDTO.setFileName(fileName);
+            uploadFileDTO.setFileType(FileType.XLSX);
+            // bytes to KB
+            uploadFileDTO.setFileSize(excelBytes.length / 1024);
+            uploadFileDTO.setFileSource(FileSource.DOWNLOAD);
+            uploadFileDTO.setInputStream(resultStream);
+            return fileRecordService.uploadFile(uploadFileDTO);
+        } catch (IOException e) {
+            throw new BusinessException("Error uploading Excel stream", e);
         }
     }
 
@@ -197,10 +226,10 @@ public class CommonExport {
      * @param exportTemplateId the ID of the export template
      * @param fileId the fileId of the exported file in FileRecord model
      */
-    protected void generateExportHistory(Long exportTemplateId, Long fileId) {
+    protected void generateExportHistory(Long exportTemplateId, String fileId) {
         ExportHistory exportHistory = new ExportHistory();
         exportHistory.setTemplateId(exportTemplateId);
-        exportHistory.setFileId(fileId);
+        exportHistory.setExportedFileId(fileId);
         exportHistoryService.createOne(exportHistory);
     }
 }

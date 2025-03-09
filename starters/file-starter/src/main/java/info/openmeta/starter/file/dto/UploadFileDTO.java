@@ -17,10 +17,12 @@ public class UploadFileDTO {
 
     private Serializable rowId;
 
+    // Simple file name without extension
     private String fileName;
 
     private FileType fileType;
 
+    // The file size in KB
     private int fileSize;
 
     private FileSource fileSource;

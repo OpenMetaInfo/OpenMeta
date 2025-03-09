@@ -101,8 +101,7 @@ public class DesignAppVersionServiceImpl extends EntityServiceImpl<DesignAppVers
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean reloadAppVersion(Long id) {
-        List<String> fields = ListUtils.getLambdaFields(DesignAppVersion::getAppId, DesignAppVersion::getLocked);
-        DesignAppVersion appVersion = this.getById(id, fields)
+        DesignAppVersion appVersion = this.getById(id)
                 .orElseThrow(() -> new IllegalArgumentException("The specified version does not exist! {0}", id));
         if (Boolean.TRUE.equals(appVersion.getLocked())) {
             throw new BusinessException("""

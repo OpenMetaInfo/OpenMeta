@@ -39,7 +39,4 @@ public class FlowEvent extends BaseModel {
 
     @Schema(description = "Row Data ID")
     private String rowId;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
 /**
  * Flexible query building utility class, used to build query conditions for model data.
  * Including the following parameters:
- *      fields, groupBy, filters, orders, convertType, pageNumber, pageSize, distinct, disabled
+ *      fields, groupBy, filters, orders, convertType, pageNumber, pageSize, distinct
  * The return value can be divided into four scenarios:
- *      1. Map list: fields + groupBy + [filters, orders] + convertType + disabled
- *      2. Map paginated list: fields + groupBy + [filters, orders] + convertType + disabled + [pageNumber, pageSize]
- *      3. Object list: [filters, orders] + disabled
- *      4. Object paginated list: [filters, orders] + disabled + [pageNumber, pageSize]
+ *      1. Map list: fields + groupBy + [filters, orders] + convertType
+ *      2. Map paginated list: fields + groupBy + [filters, orders] + convertType + [pageNumber, pageSize]
+ *      3. Object list: [filters, orders]
+ *      4. Object paginated list: [filters, orders] + [pageNumber, pageSize]
  * Among them, groupBy is an ordered field list. When the groupBy parameter has a value,
  * the `count(*) as count` return value will be automatically added,
  * and the `sum()` aggregation calculation will be automatically performed on the numerical fields.

@@ -34,10 +34,14 @@ public class DateTimeProcessor extends BaseProcessor {
         checkReadonly(row);
         if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
-            if (TimeConstant.NOW.equalsIgnoreCase(metaField.getDefaultValue())) {
-                // When creating, assign the current time default value.
-                row.computeIfAbsent(fieldName, k -> LocalDateTime.now());
-            }
+            row.computeIfAbsent(fieldName, k -> {
+                if (TimeConstant.NOW.equals(metaField.getDefaultValueObject())) {
+                    // Assign the current time as the default value.
+                    return LocalDateTime.now();
+                } else {
+                    return metaField.getDefaultValueObject();
+                }
+            });
         } else if (row.containsKey(fieldName) && row.get(fieldName) == null) {
             // Check if the required field is set to null.
             checkRequired(row);

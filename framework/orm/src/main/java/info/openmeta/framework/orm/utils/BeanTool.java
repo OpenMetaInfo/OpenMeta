@@ -37,6 +37,23 @@ public class BeanTool {
     private BeanTool() {}
 
     /**
+     * Get the value of a field in an object.
+     *
+     * @param object the object
+     * @param fieldName the field name
+     * @return the field value
+     */
+    public static <T> Object getFieldValue(T object, String fieldName) {
+        try {
+            Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(object);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * Extract the element type of the collection, such as the Object type in List<Object>.
      *
      * @param entityClass entity class
@@ -58,6 +75,18 @@ public class BeanTool {
         }
         throw new IllegalArgumentException("Cannot extract the element type of the model {0} field {1} in collection.",
                 entityClass.getSimpleName(), fieldName);
+    }
+
+    /**
+     * Convert an object to another object.
+     *
+     * @param object the object
+     * @param clazz the target class
+     * @param <T> the target class type
+     * @return the target object
+     */
+    public static <T> T objectToObject(Object object, Class<T> clazz) {
+        return JsonMapper.getMapper().convertValue(object, clazz);
     }
 
     /**
@@ -142,11 +171,9 @@ public class BeanTool {
         if (TimeConstant.DATE_TYPES.contains(fieldTypeClass)) {
             return DateUtils.stringToDateObject(stringValue, fieldTypeClass);
         } else if (List.class.isAssignableFrom(fieldTypeClass)) {
-            return StringUtils.isBlank(stringValue) ? FieldType.MULTI_STRING.getDefaultValue() : Arrays.asList(StringUtils.split(stringValue, ","));
+            return StringUtils.isBlank(stringValue) ? null : Arrays.asList(StringUtils.split(stringValue, ","));
         } else if (Enum.class.isAssignableFrom(fieldTypeClass)) {
-            // The Enum items are all in uppercase and separated by underscores.
-            String enumItem = StringTools.toUpperUnderscoreCase(stringValue);
-            return StringUtils.isBlank(stringValue) ? null : Enum.valueOf(Cast.of(fieldTypeClass), enumItem);
+            return formatEnumProperty((String) value, fieldTypeClass);
         } else if (JsonNode.class.isAssignableFrom(fieldTypeClass)) {
             return StringUtils.isBlank(stringValue) ? null : JsonMapper.stringToObject(stringValue, JsonNode.class);
         } else if (Filters.class.isAssignableFrom(fieldTypeClass)) {
@@ -154,7 +181,19 @@ public class BeanTool {
         }
         return stringValue;
     }
-
+    
+    /**
+     * Convert the original data Map to bean object, ignore non-existent properties.
+     *
+     * @param row original data map
+     * @param entityClass bean class
+     * @return bean object
+     * @param <T> the bean object type
+     */
+    public static <T> T originalMapToObject(@NotNull Map<String, Object> row, Class<T> entityClass) {
+        return originalMapToObject(row, entityClass, true);
+    }
+    
     /**
      * Convert the original data Map to bean object.
      *
@@ -235,7 +274,7 @@ public class BeanTool {
                 } else if (Enum.class.isAssignableFrom(fieldTypeClass)) {
                     value = formatEnumProperty((String) value, fieldTypeClass);
                 }
-            } else if (value instanceof List && !((List<?>) value).isEmpty()) {
+            } else if (value instanceof List<?> valueList && !valueList.isEmpty()) {
                 value = formatListProperty(field, (List<Map<String, Object>>) value, entityClass);
             }
             try {

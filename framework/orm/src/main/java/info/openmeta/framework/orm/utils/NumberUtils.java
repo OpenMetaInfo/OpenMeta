@@ -1,6 +1,6 @@
 package info.openmeta.framework.orm.utils;
 
-import info.openmeta.framework.orm.enums.FieldType;
+import info.openmeta.framework.orm.enums.ValueType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -52,19 +52,19 @@ public class NumberUtils {
      * Add two numbers with specified data type
      * @param v1 number 1
      * @param v2 number 2
-     * @param fieldType data type
+     * @param valueType value type
      * @return sum of two numbers
      */
-    private static Object sumNumber(Object v1, Object v2, FieldType fieldType) {
+    private static Object sumNumber(Object v1, Object v2, ValueType valueType) {
         Object value = null;
         // Compatible with null values
         if (v1 == null) {
-            v1 = fieldType.getDefaultValue();
+            v1 = valueType.getDefaultValue();
         }
         if (v2 == null) {
-            v2 = fieldType.getDefaultValue();
+            v2 = valueType.getDefaultValue();
         }
-        switch (fieldType) {
+        switch (valueType) {
             case INTEGER:
                 v2 = v2 instanceof BigDecimal ? ((BigDecimal) v2).intValue() : v2;
                 value = Integer.sum((Integer) v1, (Integer) v2); break;
@@ -85,13 +85,14 @@ public class NumberUtils {
      * Summarize the data list according to the specified numeric field name and data type
      *
      * @param rows data list
-     * @param numericFieldsType numeric fields and their data types
+     * @param fieldValueTypes numeric fields and their value types
      * @return Map after summing the numeric fields
      */
-    public static Map<String, Object> sumNumericFields(List<Map<String, Object>> rows, Map<String, FieldType> numericFieldsType) {
-        Map<String, Object> result = numericFieldsType.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getDefaultValue()));
+    public static Map<String, Object> sumNumericFields(List<Map<String, Object>> rows, Map<String, ValueType> fieldValueTypes) {
+        Map<String, Object> result = fieldValueTypes.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getDefaultValue()));
         for (Map<String, Object> row : rows) {
-            numericFieldsType.forEach((field, type) -> result.put(field, sumNumber(result.get(field), row.get(field), type)));
+            fieldValueTypes.forEach((field, type) -> result.put(field, sumNumber(result.get(field), row.get(field), type)));
         }
         return result;
     }

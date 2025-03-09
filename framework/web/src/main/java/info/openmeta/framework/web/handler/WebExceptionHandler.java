@@ -1,10 +1,12 @@
 package info.openmeta.framework.web.handler;
 
+import info.openmeta.framework.base.context.ContextHolder;
 import info.openmeta.framework.base.enums.ResponseCode;
 import info.openmeta.framework.base.exception.BaseException;
 import info.openmeta.framework.base.exception.BusinessException;
 import info.openmeta.framework.base.i18n.I18n;
 import info.openmeta.framework.web.response.ApiResponse;
+import info.openmeta.framework.web.response.ApiResponseErrorDetails;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
@@ -51,7 +54,7 @@ public class WebExceptionHandler {
      * @return ResponseEntity
      */
     private ResponseEntity<ApiResponse<String>> wrapResponse(ResponseCode responseCode, String exceptionMessage) {
-        ApiResponse<String> response = ApiResponse.exception(responseCode, exceptionMessage);
+        ApiResponse<String> response = ApiResponseErrorDetails.exception(responseCode, exceptionMessage);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -101,7 +104,12 @@ public class WebExceptionHandler {
      */
     @ExceptionHandler(value = Throwable.class)
     public ResponseEntity<ApiResponse<String>> handleException(Exception e) {
-        String clientExceptionMessage = "Unconfirmed exception";
+        String clientExceptionMessage;
+        if (ContextHolder.getContext().isDebug()) {
+            clientExceptionMessage = e.toString();
+        } else {
+            clientExceptionMessage = e.getMessage();
+        }
         return handler(ResponseCode.ERROR, e, clientExceptionMessage);
     }
 
@@ -136,6 +144,12 @@ public class WebExceptionHandler {
     @ExceptionHandler(value = HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse<String>> handleException(HttpRequestMethodNotSupportedException e) {
         return handler(ResponseCode.HTTP_BAD_METHOD, e);
+    }
+
+    @ExceptionHandler(value = MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<String>> handleException(MaxUploadSizeExceededException e) {
+        String message = "Maximum upload size exceeded";
+        return handler(ResponseCode.BAD_REQUEST, e, message);
     }
 
     /**
@@ -243,8 +257,7 @@ public class WebExceptionHandler {
      */
     @ExceptionHandler(value = BusinessException.class)
     public ResponseEntity<ApiResponse<String>> handleException(BusinessException e) {
-        ApiResponse<String> response;
-        response = ApiResponse.exception(e.getResponseCode(), e.getMessage());
+        ApiResponse<String> response = ApiResponseErrorDetails.exception(e.getResponseCode(), e.getMessage());
         log.warn("BusinessException: {}", e.getMessage(), e);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

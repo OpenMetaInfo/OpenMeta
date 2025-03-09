@@ -14,7 +14,6 @@ import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.*;
 import info.openmeta.framework.orm.entity.TimelineSlice;
 import info.openmeta.framework.orm.enums.ConvertType;
-import info.openmeta.framework.orm.enums.FieldType;
 import info.openmeta.framework.orm.jdbc.JdbcService;
 import info.openmeta.framework.orm.meta.MetaField;
 import info.openmeta.framework.orm.meta.ModelManager;
@@ -60,8 +59,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (ModelManager.isMultiTenant(modelName)) {
             rows.forEach(row -> {
                 if (row.containsKey(ModelConstant.TENANT_ID)) {
-                    Long tenantId = (Long) row.get(ModelConstant.TENANT_ID);
-                    if (tenantId != null && !tenantId.equals(ContextHolder.getContext().getTenantId())) {
+                    String tenantId = (String) row.get(ModelConstant.TENANT_ID);
+                    if (StringUtils.isNotBlank(tenantId) && !tenantId.equals(ContextHolder.getContext().getTenantId())) {
                         throw new SecurityException("In a multi-tenancy environment, cross-tenant data access is not allowed: {0}", row);
                     }
                     row.remove(ModelConstant.TENANT_ID);
@@ -124,7 +123,9 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         } else {
             rows = jdbcService.insertList(modelName, rows);
         }
-        List<Serializable> ids = rows.stream().map(row -> (Serializable) row.get(ModelConstant.ID)).collect(Collectors.toList());
+        List<Serializable> ids = rows.stream()
+                .map(row -> (Serializable) row.get(ModelConstant.ID))
+                .collect(Collectors.toList());
         // Keep only updatable fields
         assignedFields.retainAll(ModelManager.getModelUpdatableFields(modelName));
         // Checks ids and assigned fields access
@@ -549,7 +550,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         if (ModelManager.isTimelineModel(modelName)) {
             FlexQuery flexQuery = new FlexQuery(Arrays.asList(ModelConstant.ID, ModelConstant.SLICE_ID), new Filters().in(ModelConstant.SLICE_ID, pks));
             List<Map<String, Object>> sliceList = jdbcService.selectByFilter(modelName, flexQuery);
-            Map<Serializable, Serializable> sliceMap = sliceList.stream().collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.SLICE_ID), row -> (Serializable) row.get(ModelConstant.ID)));
+            Map<Serializable, Serializable> sliceMap = sliceList.stream()
+                    .collect(Collectors.toMap(row -> (Serializable) row.get(ModelConstant.SLICE_ID), row -> (Serializable) row.get(ModelConstant.ID)));
             // Fill timeline model business primary key `id`. The input id parameter is not reliable.
             rows.forEach(row -> {
                 Serializable sliceId = (Serializable) row.get(ModelConstant.SLICE_ID);
@@ -675,7 +677,7 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBySliceId(String modelName, Long sliceId) {
+    public boolean deleteBySliceId(String modelName, Serializable sliceId) {
         Assert.isTrue(ModelManager.isTimelineModel(modelName),
                 "Model {0} is not a timeline model, and cannot delete slice.", modelName);
         TimelineSlice timelineSlice = timelineService.getTimelineSlice(modelName, sliceId);
@@ -698,9 +700,12 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
         // Get the pre-delete data, to check whether the ids data have been deleted and collect changeLogs.
         List<Map<String, Object>> originalRows = jdbcService.selectByIds(modelName, ids, Collections.emptyList(), ConvertType.ORIGINAL);
         List<Map<String, Object>> deletableRows = originalRows.stream().filter(row -> {
-            if (ModelManager.isSoftDeleted(modelName) && Boolean.TRUE.equals(row.get(ModelConstant.SOFT_DELETED_FIELD))) {
-                log.warn("Data with model {}, id={} has been soft deleted, do not duplicate it.", modelName, row.get(ModelConstant.ID));
-                return false;
+            if (ModelManager.isSoftDeleted(modelName)) {
+                String softDeleteField = ModelManager.getSoftDeleteField(modelName);
+                if (Boolean.TRUE.equals(row.get(softDeleteField))) {
+                    log.warn("Data with model {}, id={} has been soft deleted, do not duplicate it.", modelName, row.get(ModelConstant.ID));
+                    return false;
+                }
             }
             return true;
         }).collect(Collectors.toList());
@@ -991,17 +996,8 @@ public class ModelServiceImpl<K extends Serializable> implements ModelService<K>
     @Override
     public PivotTable searchPivot(String modelName, FlexQuery flexQuery) {
         List<Map<String, Object>> rows = this.searchList(modelName, flexQuery);
-        // To perform aggregate calculation for numeric fields, remove the fields that appear in
-        // `groupBy` and `splitBy` parameters to avoid aggregate calculation of the group fields.
-        Set<String> numericFields = ModelManager.getModelNumericFields(modelName);
-        numericFields.removeAll(new HashSet<>(flexQuery.getGroupBy()));
-        numericFields.removeAll(new HashSet<>(flexQuery.getSplitBy()));
-        Map<String, FieldType> numericFieldsType = numericFields.stream().map(field -> ModelManager.getModelField(modelName, field))
-                .collect(Collectors.toMap(MetaField::getFieldName, MetaField::getFieldType));
-        // Total the 'count' calculation as part of the PivotTable aggregation calculation.
-        numericFieldsType.put("count", FieldType.LONG);
         // Aggregate operations into PivotTable structures
-        return PivotTable.aggregateOperation(rows, flexQuery.getGroupBy(), flexQuery.getSplitBy(), numericFieldsType);
+        return PivotTable.aggregateOperation(modelName, rows, flexQuery.getGroupBy(), flexQuery.getSplitBy());
     }
 
     /**

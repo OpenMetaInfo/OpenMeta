@@ -7,8 +7,10 @@ import info.openmeta.framework.orm.constant.ModelConstant;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.domain.SubQuery;
+import info.openmeta.framework.orm.entity.BaseModel;
 import info.openmeta.framework.orm.enums.ConvertType;
 import info.openmeta.framework.orm.meta.MetaField;
+import info.openmeta.framework.orm.utils.BeanTool;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.ReflectTool;
 import info.openmeta.framework.orm.vo.ModelReference;
@@ -69,6 +71,18 @@ public class ManyToManyProcessor extends BaseProcessor {
     }
 
     /**
+     * Extract the ids of the related model objects.
+     *
+     * @param valueList
+     * @return List of ids
+     */
+    private List<?> extractObjectsIds(List<?> valueList) {
+        return valueList.stream()
+                .map(v -> BeanTool.getFieldValue((BaseModel) v, ModelConstant.ID))
+                .toList();
+    }
+
+    /**
      * Batch CREATE mapping relationships, which is to create new rows in the joint model directly.
      *
      * @param rows Data list
@@ -79,6 +93,9 @@ public class ManyToManyProcessor extends BaseProcessor {
             Serializable id = (Serializable) row.get(ModelConstant.ID);
             Object value = row.get(fieldName);
             if (value instanceof List<?> valueList && !valueList.isEmpty()) {
+                if (valueList.getFirst() instanceof BaseModel) {
+                    valueList = extractObjectsIds(valueList);
+                }
                 List<Serializable> rightIds = IdUtils.formatIds(metaField.getJointModel(), metaField.getJointRight(), valueList);
                 rightIds.forEach(i -> mappingRows.add(
                         new HashMap<>(Map.of(metaField.getJointLeft(), id, metaField.getJointRight(), i))
@@ -112,6 +129,9 @@ public class ManyToManyProcessor extends BaseProcessor {
                     // When the ManyToMany field value is an empty list, it means to clear the mapping table data
                     deleteJointIds.addAll(mToMIdsMapping.get(id).values());
                 } else {
+                    if (valueList.getFirst() instanceof BaseModel) {
+                        valueList = extractObjectsIds(valueList);
+                    }
                     List<Serializable> rightIds = IdUtils.formatIds(metaField.getJointModel(), metaField.getJointRight(), valueList);
                     if (mToMIdsMapping.containsKey(id)) {
                         // Remove the existing ids of the relatedModel to obtain the newRightIds to be jointed.

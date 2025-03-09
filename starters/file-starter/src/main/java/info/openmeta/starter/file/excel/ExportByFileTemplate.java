@@ -78,7 +78,7 @@ public class ExportByFileTemplate extends CommonExport {
             excelWriter.finish();
             // Upload the Excel stream to OSS
             byte[] excelBytes = outputStream.toByteArray();
-            return fileRecordService.uploadExcelBytesToDownload(exportTemplate.getModelName(), fileName, excelBytes);
+            return this.uploadExcelBytes(exportTemplate.getModelName(), fileName, excelBytes);
         } catch (Exception e) {
             throw new BusinessException("Failed to fill data into the file template {}.", fileName, e);
         }
@@ -90,7 +90,7 @@ public class ExportByFileTemplate extends CommonExport {
      * @param fileId the ID of the file template
      * @return all variables in the template
      */
-    private Set<String> extractVariablesOfFileTemplate(Long fileId) {
+    private Set<String> extractVariablesOfFileTemplate(String fileId) {
         try (InputStream inputStream = fileRecordService.downloadStream(fileId);
              Workbook workbook = new XSSFWorkbook(inputStream)) {
             return getVariablesInWorkbook(workbook);

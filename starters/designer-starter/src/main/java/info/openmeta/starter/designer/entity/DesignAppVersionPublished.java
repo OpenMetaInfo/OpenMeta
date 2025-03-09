@@ -41,6 +41,6 @@ public class DesignAppVersionPublished extends BaseModel {
     @Schema(description = "Publish Content")
     private JsonNode publishContent;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

@@ -345,11 +345,16 @@ public class JdbcServiceImpl<K extends Serializable> implements JdbcService<K> {
         int count;
         LocalDateTime deleteTime = LocalDateTime.now();
         if (ModelManager.isSoftDeleted(modelName)) {
+            String softDeleteField = ModelManager.getSoftDeleteField(modelName);
             // Soft delete data, assemble the update data list according to the ids list, and fill in the audit fields.
             List<Map<String, Object>> rows = ids.stream().map(id -> {
                 Map<String, Object> row = new HashMap<>();
                 row.put(ModelConstant.ID, id);
-                row.put(ModelConstant.SOFT_DELETED_FIELD, true);
+                row.put(softDeleteField, true);
+                // If the model has an active control field, set it to false when soft deleting
+                if (ModelManager.isEnableActiveControl(modelName)) {
+                    row.put(ModelConstant.ACTIVE_CONTROL_FIELD, false);
+                }
                 return row;
             }).collect(Collectors.toList());
             AutofillFields.fillAuditFieldsForUpdate(rows, deleteTime);

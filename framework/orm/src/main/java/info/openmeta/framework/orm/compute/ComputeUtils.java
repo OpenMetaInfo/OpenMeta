@@ -2,11 +2,16 @@ package info.openmeta.framework.orm.compute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.googlecode.aviator.*;
+import com.googlecode.aviator.exception.ExpressionSyntaxErrorException;
+
 import info.openmeta.framework.base.constant.BaseConstant;
 import info.openmeta.framework.base.exception.IllegalArgumentException;
+import info.openmeta.framework.base.exception.ValidationException;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.base.utils.StringTools;
 import info.openmeta.framework.orm.enums.FieldType;
+import info.openmeta.framework.orm.enums.ValueType;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -79,7 +84,11 @@ public abstract class ComputeUtils {
      * @return expression object
      */
     public static Expression compile(String expression) {
-        return ENGINE.compile(expression);
+        try {
+            return ENGINE.compile(expression);
+        } catch (ExpressionSyntaxErrorException e) {
+            throw new ValidationException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -88,7 +97,7 @@ public abstract class ComputeUtils {
      * @return calculation result
      */
     public static Object execute(String expression) {
-        return ENGINE.compile(expression).execute();
+        return compile(expression).execute();
     }
 
     /**
@@ -99,7 +108,7 @@ public abstract class ComputeUtils {
      */
     public static Object execute(String expression, Map<String, Object> env) {
         formatEnvValues(env);
-        return ENGINE.compile(expression).execute(env);
+        return compile(expression).execute(env);
     }
 
     /**
@@ -144,21 +153,23 @@ public abstract class ComputeUtils {
      * For number fields, convert the BigDecimal calculation result to the corresponding field type
      * @param result calculation result
      * @param scale number precision
-     * @param clazz result value type
+     * @param valueType value type of the result
      * @return formatted calculation result
      */
-    private static Object formatResultValue(Object result, Integer scale, Class<?> clazz) {
-        if (result == null || clazz == null || clazz.isInstance(result)) {
+    private static Object formatResultValue(Object result, Integer scale, ValueType valueType) {
+        if (result == null) {
+            return valueType == null ? null : valueType.getDefaultValue();
+        } else if (valueType.getFieldType().getJavaType().isInstance(result)) {
             return result;
-        } else if (clazz == Long.class && result instanceof BigDecimal) {
+        } else if (ValueType.LONG.equals(valueType) && result instanceof BigDecimal) {
             return ((BigDecimal) result).longValue();
-        } else if (clazz == Double.class && result instanceof BigDecimal) {
+        } else if (ValueType.DOUBLE.equals(valueType) && result instanceof BigDecimal) {
             return ((BigDecimal) result).setScale(scale, RoundingMode.HALF_UP).doubleValue();
-        } else if (clazz == Integer.class && result instanceof BigDecimal) {
+        } else if (ValueType.INTEGER.equals(valueType) && result instanceof BigDecimal) {
             return ((BigDecimal) result).intValue();
-        } else if (clazz == Integer.class && result instanceof Long) {
+        } else if (ValueType.INTEGER.equals(valueType) && result instanceof Long) {
             return ((Long) result).intValue();
-        } else if (clazz == BigDecimal.class && !(result instanceof BigDecimal)) {
+        } else if (ValueType.BIG_DECIMAL.equals(valueType) && !(result instanceof BigDecimal)) {
             return new BigDecimal(result.toString()).setScale(scale, RoundingMode.HALF_UP);
         } else {
             return result;
@@ -170,30 +181,24 @@ public abstract class ComputeUtils {
      * @param expression calculation expression
      * @param env environment variables
      * @param scale number precision
-     * @param clazz data type
+     * @param valueType value type of the result
      * @return calculation result
      */
-    public static Object execute(String expression, Map<String, Object> env, Integer scale, Class<?> clazz) {
+    public static Object execute(String expression, Map<String, Object> env, Integer scale, ValueType valueType) {
         formatEnvValues(env);
         Object result = execute(expression, env);
-        return formatResultValue(result, scale, clazz);
+        return formatResultValue(result, scale, valueType);
     }
 
     /**
      * Return the calculation result of the specified field type fieldType, using the default value for number precision
      * @param expression calculation expression
      * @param env environment variables
-     * @param fieldType field type
+     * @param valueType value type of the result
      * @return calculation result
      */
-    public static Object execute(String expression, Map<String, Object> env, FieldType fieldType) {
-        Object result;
-        if (fieldType == null) {
-            return execute(expression, env);
-        } else {
-            result = execute(expression, env, BaseConstant.DEFAULT_SCALE, fieldType.getJavaType());
-            return result == null ? fieldType.getDefaultValue() : result;
-        }
+    public static Object execute(String expression, Map<String, Object> env, @NotNull  ValueType valueType) {
+        return execute(expression, env, BaseConstant.DEFAULT_SCALE, valueType);
     }
 
     /**
@@ -205,8 +210,8 @@ public abstract class ComputeUtils {
      * @return calculation result
      */
     public static Object execute(String expression, Map<String, Object> env, Integer scale, FieldType fieldType) {
-        Object result = execute(expression, env, scale, fieldType.getJavaType());
-        return result == null ? fieldType.getDefaultValue() : result;
+        ValueType valueType = ValueType.of(fieldType);
+        return execute(expression, env, scale, valueType);
     }
 
     /**

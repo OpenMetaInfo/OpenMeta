@@ -28,8 +28,5 @@ public class EmpProjectRel extends BaseModel {
     private Long projectId;
 
     @Schema(description = "Tenant ID")
-    private Long tenantId;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    private String tenantId;
 }

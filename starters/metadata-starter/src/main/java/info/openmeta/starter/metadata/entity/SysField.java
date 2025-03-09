@@ -112,7 +112,4 @@ public class SysField extends BaseModel {
 
     @Schema(description = "Masking Type")
     private MaskingType maskingType;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

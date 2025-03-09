@@ -39,6 +39,4 @@ public class AiMessage extends BaseModel {
     @Schema(description = "Total Tokens")
     private Integer totalTokens;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

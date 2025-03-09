@@ -36,6 +36,8 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
     public void build() {
         // SoftDelete filter processing
         Filters filters = this.handleSoftDeleted(flexQuery.getFilters());
+        // Access control filter processing
+        filters = this.handleActiveControl(filters);
         // Multi-tenant model, add tenant filtering conditions
         filters = this.handleMultiTenant(filters);
         // filters
@@ -46,19 +48,47 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
 
     /**
      * Update filters based on the softDelete config of the model.
-     * If the model is soft-deleted, and filters do not contain the `disabled` field,
-     * append the ["disable", "=", true] filtering condition to filters.
+     * If the model is soft-deleted, and filters do not contain the `deleted` field,
+     * append the ["deleted", "=", true] filtering condition to filters.
      *
      * @param filters original filters
      * @return processed filters
      */
     private Filters handleSoftDeleted(Filters filters) {
-        if (ModelManager.isSoftDeleted(mainModelName) && !Filters.containsField(filters, ModelConstant.SOFT_DELETED_FIELD)) {
-            Filters deletedFilters = new Filters().eq(ModelConstant.SOFT_DELETED_FIELD, false);
-            // Merge the original filters and the softDelete filters ["disable", "=", true]
-            return Filters.and(filters, deletedFilters);
+        if (!ModelManager.isSoftDeleted(mainModelName)) {
+            // The model is not soft-deleted, return directly
+            return filters;
         }
-        return filters;
+        String softDeleteField = ModelManager.getSoftDeleteField(mainModelName);
+        if (Filters.containsField(filters, softDeleteField)) {
+            // The filters already contain the softDelete field, return directly
+            return filters;
+        }
+        Filters deletedFilters = new Filters().eq(softDeleteField, false);
+        // Merge the original filters and the softDelete filters ["deleted", "=", true]
+        return Filters.and(filters, deletedFilters);
+    }
+
+    /**
+     * Update filters based on the active control config of the model.
+     * If the model is active-controlled, and filters do not contain the `active` field,
+     * append the ["active", "=", true] filtering condition to filters.
+     *
+     * @param filters original filters
+     * @return processed filters
+     */
+    private Filters handleActiveControl(Filters filters) {
+        if (!ModelManager.isEnableActiveControl(mainModelName)) {
+            // The model does not enable active control, return directly
+            return filters;
+        }
+        if (Filters.containsField(filters, ModelConstant.ACTIVE_CONTROL_FIELD)) {
+            // The filters already contain the `active` field, return directly
+            return filters;
+        }
+        // Add active control filtering conditions
+        Filters activeControlFilter = new Filters().eq(ModelConstant.ACTIVE_CONTROL_FIELD, true);
+        return Filters.and(filters, activeControlFilter);
     }
 
     /**
@@ -73,7 +103,7 @@ public class WhereBuilder extends BaseBuilder implements SqlClauseBuilder {
             return filters;
         }
         // Add tenant filtering conditions
-        Long tenantId = ContextHolder.getContext().getTenantId();
+        String tenantId = ContextHolder.getContext().getTenantId();
         Filters tenantFilter = new Filters().eq(ModelConstant.TENANT_ID, tenantId);
         return Filters.and(filters, tenantFilter);
     }

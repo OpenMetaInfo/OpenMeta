@@ -31,7 +31,7 @@ public class ImportTemplateDTO {
 
     // file info
     private Long templateId;
-    private Long fileId;
+    private String fileId;
     private Long historyId;
     private String fileName;
 

@@ -65,6 +65,6 @@ public class DesignView extends BaseModel {
     @Schema(description = "Default View")
     private Boolean defaultView;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

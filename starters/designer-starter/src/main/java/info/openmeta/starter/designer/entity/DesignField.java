@@ -119,6 +119,6 @@ public class DesignField extends BaseModel {
     @Schema(description = "Masking Type")
     private MaskingType maskingType;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

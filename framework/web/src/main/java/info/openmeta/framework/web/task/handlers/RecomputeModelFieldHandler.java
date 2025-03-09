@@ -81,7 +81,8 @@ public class RecomputeModelFieldHandler implements AsyncTaskHandler<RecomputeHan
         Set<String> dependedFields = this.getDependedFields(taskParams.getModel(), taskParams.getFields());
         Assert.notEmpty(dependedFields,
                 "No stored cascaded or computed fields need recalculation for model {0}!", taskParams.getModel());
-        dependedFields.addAll(ModelManager.isTimelineModel(taskParams.getModel()) ? Sets.newHashSet(ID, SLICE_ID) : Sets.newHashSet(ID));
+        dependedFields.addAll(ModelManager.isTimelineModel(taskParams.getModel()) ?
+                Sets.newHashSet(ID, SLICE_ID) : Sets.newHashSet(ID));
         // Construct FlexQuery to read dependent fields for pagination
         Filters filters = new Filters().in(ID, taskParams.getIds());
         FlexQuery flexQuery = new FlexQuery(dependedFields, filters).acrossTimelineData();
@@ -110,13 +111,15 @@ public class RecomputeModelFieldHandler implements AsyncTaskHandler<RecomputeHan
         }
         // Get the dependent fields for stored cascaded and computed fields
         Set<String> dependedFields = new HashSet<>();
-        metaFields.stream().filter(metaField -> !metaField.isDynamic()).forEach(sysField -> {
-            if (StringUtils.isNotBlank(sysField.getCascadedField())) {
-                dependedFields.add(StringUtils.split(sysField.getCascadedField(), ".")[0]);
-            } else if (sysField.isComputed()) {
-                dependedFields.addAll(sysField.getDependentFields());
-            }
-        });
+        metaFields.stream()
+                .filter(metaField -> !metaField.isDynamic())
+                .forEach(metaField -> {
+                    if (StringUtils.isNotBlank(metaField.getCascadedField())) {
+                        dependedFields.add(metaField.getDependentFields().getFirst());
+                    } else if (metaField.isComputed()) {
+                        dependedFields.addAll(metaField.getDependentFields());
+                    }
+                });
         return dependedFields;
     }
 }

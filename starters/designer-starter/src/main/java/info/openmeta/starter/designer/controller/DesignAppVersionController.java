@@ -7,12 +7,11 @@ import info.openmeta.framework.web.controller.EntityController;
 import info.openmeta.framework.web.response.ApiResponse;
 import info.openmeta.starter.designer.entity.DesignAppVersion;
 import info.openmeta.starter.designer.service.DesignAppVersionService;
+import info.openmeta.starter.designer.vo.DesignAppVersionVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 /**
  * DesignAppVersion Model Controller
@@ -25,20 +24,19 @@ public class DesignAppVersionController extends EntityController<DesignAppVersio
     /**
      * Create a new App version.
      *
-     * @param row       data row to be created
+     * @param appVersionVO App version object
      * @return id
      */
     @PostMapping(value = "/createOne")
     @Operation(description = "Create one row and return the id.")
     @DataMask
-    public ApiResponse<Long> createOne(@RequestBody Map<String, Object> row) {
-        DesignAppVersion appVersion = BeanTool.mapToObject(row, DesignAppVersion.class);
-        appVersion.setId(null);
-        Assert.notBlank(appVersion.getName(), "Version name is required.");
-        Assert.notNull(appVersion.getEnvId(), "Env ID is required.");
+    public ApiResponse<Long> createOne(@RequestBody DesignAppVersionVO appVersionVO) {
+        Assert.notBlank(appVersionVO.getName(), "Version name is required.");
+        Assert.notNull(appVersionVO.getEnvId(), "Env ID is required.");
+        DesignAppVersion appVersion = BeanTool.objectToObject(appVersionVO, DesignAppVersion.class);
         return ApiResponse.success(service.createOne(appVersion));
     }
-
+    
     /**
      * Reload App env changes to current version.
      *

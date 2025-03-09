@@ -15,10 +15,11 @@ public class FlowEventMessage {
 
     private String flowId;
     private String flowNodeId;
+    private Boolean sync;
     private Boolean rollbackOnFail;
     private String triggerId;
     private String sourceModel;
-    private Serializable triggerRowId;
+    private Serializable sourceRowId;
     private Map<String, Object> triggerParams;
 
     private LocalDateTime eventTime;

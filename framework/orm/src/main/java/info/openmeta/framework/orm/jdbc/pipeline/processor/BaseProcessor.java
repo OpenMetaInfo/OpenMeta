@@ -31,15 +31,6 @@ public abstract class BaseProcessor implements FieldProcessor {
     }
 
     /**
-     * Get the default value of the field processor, used to replace null value.
-     *
-     * @return default value
-     */
-    protected Object getFieldTypeDefaultValue() {
-        return metaField.getFieldType().getDefaultValue();
-    }
-
-    /**
      * The readonly field cannot be assigned a value.
      */
     protected void checkReadonly(Map<String, Object> row) {
@@ -76,8 +67,6 @@ public abstract class BaseProcessor implements FieldProcessor {
         } else if (row.containsKey(fieldName) && row.get(fieldName) == null) {
             // Check if the required field is set to null.
             checkRequired(row);
-            // Set the default value of the fieldType when the field is null.
-            row.put(fieldName, getFieldTypeDefaultValue());
         }
     }
 
@@ -97,11 +86,7 @@ public abstract class BaseProcessor implements FieldProcessor {
      * @param row The single-row output data
      */
     @Override
-    public void processOutputRow(Map<String, Object> row) {
-        if (row.containsKey(fieldName) && row.get(fieldName) == null) {
-            row.put(fieldName, getFieldTypeDefaultValue());
-        }
-    }
+    public void processOutputRow(Map<String, Object> row) {}
 
     /**
      * Batch process output data

@@ -64,6 +64,6 @@ public class FlowConfig extends BaseModel {
     @Schema(description = "Data Scope")
     private Filters dataScope;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Active")
+    private Boolean active;
 }

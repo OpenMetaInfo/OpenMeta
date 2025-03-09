@@ -23,7 +23,7 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
     private FlexQuery flexQuery;
 
     // THe mapping of ManyToOne/OneToOne fieldName to XToOneGroupProcessor
-    protected final Map<String, XToOneGroupProcessor> relatedFieldMap = new HashMap<>();
+    private final Map<String, XToOneGroupProcessor> relatedFieldMap = new HashMap<>();
 
     public XToOneGroupProcessorFactory() {}
 
@@ -72,8 +72,7 @@ public class XToOneGroupProcessorFactory implements FieldProcessorFactory {
      * @return XToOneGroupProcessor
      */
     private XToOneGroupProcessor updateRelatedFields(MetaField cascadedField, AccessType accessType) {
-        String[] fieldsArray = StringUtils.split(cascadedField.getCascadedField(), ".", 2);
-        String xToOneFieldName = fieldsArray[0];
+        String xToOneFieldName = cascadedField.getDependentFields().getFirst();
         if (this.relatedFieldMap.containsKey(xToOneFieldName)) {
             // Add the cascaded field to the existing XToOneGroupProcessor
             XToOneGroupProcessor xToOneGroupProcessor = this.relatedFieldMap.get(xToOneFieldName);

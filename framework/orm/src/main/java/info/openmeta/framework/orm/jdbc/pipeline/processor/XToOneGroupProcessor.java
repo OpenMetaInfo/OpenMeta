@@ -70,10 +70,7 @@ public class XToOneGroupProcessor extends BaseProcessor {
      */
     public void addCascadedField(MetaField cascadedField) {
         this.cascadedFields.add(cascadedField);
-        // Cascaded field, split by `.` into 2 groups. If there are more than 2 cascading levels, the remaining levels
-        // continue to cascade as a whole in the nested query.
-        String[] fieldsArray = StringUtils.split(cascadedField.getCascadedField(), ".", 2);
-        this.expandFields.add(fieldsArray[1]);
+        this.expandFields.add(cascadedField.getDependentFields().get(1));
     }
 
     /**
@@ -147,21 +144,23 @@ public class XToOneGroupProcessor extends BaseProcessor {
      * @param relatedValueMap related model data: {relatedModelId: {related model row}}
      */
     private void batchProcessOutputRowsCascaded(MetaField cascadedField, List<Map<String, Object>> rows, Map<Serializable, Map<String, Object>> relatedValueMap) {
-        String[] fieldsArray = StringUtils.split(cascadedField.getCascadedField(), ".", 2);
-        String xToOneFieldName = fieldsArray[0];
+        List<String> casFields = cascadedField.getDependentFields();
+        String xToOneFieldName = casFields.getFirst();
         String cascadeModel = ModelManager.getModelField(modelName, xToOneFieldName).getRelatedModel();
         rows.forEach(row -> {
             Serializable id = (Serializable) row.get(xToOneFieldName);
-            id = IdUtils.formatId(cascadeModel, id);
             Object value;
-            if (relatedValueMap.containsKey(id)) {
-                value = relatedValueMap.get(id).get(fieldsArray[1]);
-            } else if (IdUtils.validId(id)) {
-                log.warn("Model {}, the {} field value does not exist in the related model {}: {}",
-                        metaField.getModelName(), fieldsArray[0], metaField.getRelatedModel(), row);
-                value = cascadedField.getFieldType().getDefaultValue();
+            if (IdUtils.validId(id)) {
+                id = IdUtils.formatId(cascadeModel, id);
+                if (relatedValueMap.containsKey(id)) {
+                    value = relatedValueMap.get(id).get(casFields.get(1));
+                } else {
+                    log.warn("Model {}, the {} field value does not exist in the related model {}: {}",
+                            metaField.getModelName(), casFields.getFirst(), metaField.getRelatedModel(), row);
+                    value = null;
+                }
             } else {
-                value = cascadedField.getFieldType().getDefaultValue();
+                value = null;
             }
             row.put(cascadedField.getFieldName(), value);
         });

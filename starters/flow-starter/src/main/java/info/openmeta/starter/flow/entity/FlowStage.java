@@ -29,7 +29,4 @@ public class FlowStage extends BaseModel {
 
     @Schema(description = "Stage Description")
     private String description;
-
-    @Schema(description = "Disabled")
-    private Boolean disabled;
 }

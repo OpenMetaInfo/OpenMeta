@@ -148,7 +148,7 @@ public class ExportServiceImpl implements ExportService {
         ExportTemplate exportTemplate = exportTemplateService.getById(exportTemplateId)
                 .orElseThrow(() -> new IllegalArgumentException("The export template does not exist."));
         this.validateExportTemplate(exportTemplate);
-        Assert.notNull(exportTemplate.getFileId(), "The export template does not have a file template.");
+        Assert.notBlank(exportTemplate.getFileId(), "The export template does not have a file template.");
         return exportByFileTemplate.export(exportTemplate, flexQuery);
     }
 }

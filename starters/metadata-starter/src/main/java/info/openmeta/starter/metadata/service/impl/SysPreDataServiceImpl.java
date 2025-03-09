@@ -8,6 +8,7 @@ import info.openmeta.framework.base.utils.Assert;
 import info.openmeta.framework.base.utils.Cast;
 import info.openmeta.framework.base.utils.JsonMapper;
 import info.openmeta.framework.orm.constant.ModelConstant;
+import info.openmeta.framework.orm.domain.FileObject;
 import info.openmeta.framework.orm.domain.Filters;
 import info.openmeta.framework.orm.domain.FlexQuery;
 import info.openmeta.framework.orm.enums.FieldType;
@@ -18,7 +19,6 @@ import info.openmeta.framework.orm.service.ModelService;
 import info.openmeta.framework.orm.service.impl.EntityServiceImpl;
 import info.openmeta.framework.orm.utils.IdUtils;
 import info.openmeta.framework.orm.utils.LambdaUtils;
-import info.openmeta.framework.orm.domain.FileInfo;
 import info.openmeta.framework.web.utils.FileUtils;
 import info.openmeta.starter.metadata.entity.SysPreData;
 import info.openmeta.starter.metadata.service.SysPreDataService;
@@ -66,8 +66,8 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
     public void loadPredefinedData(List<String> fileNames) {
         String dataDir = BaseConstant.PREDEFINED_DATA_DIR;
         for (String fileName : fileNames) {
-            FileInfo fileInfo = FileUtils.getFileInfoByPath(dataDir, fileName);
-            loadFileInfo(fileInfo);
+            FileObject fileObject = FileUtils.getFileObjectByPath(dataDir, fileName);
+            loadFileObject(fileObject);
         }
     }
 
@@ -82,32 +82,32 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void loadPredefinedData(MultipartFile file) {
-        FileInfo fileInfo = FileUtils.getFileInfo(file);
-        loadFileInfo(fileInfo);
+        FileObject fileObject = FileUtils.getFileObject(file);
+        loadFileObject(fileObject);
     }
 
     /**
-     * Load file information and process different data formats based on the file type.
+     * Load fileObject and process different data formats based on the file type.
      *
-     * @param fileInfo File information object
+     * @param fileObject fileObject with the file content
      */
-    private void loadFileInfo(FileInfo fileInfo) {
-        if (StringUtils.isBlank(fileInfo.getContent())) {
+    private void loadFileObject(FileObject fileObject) {
+        if (StringUtils.isBlank(fileObject.getContent())) {
             return;
         }
-        if (FileType.JSON.equals(fileInfo.getFileType())) {
-            processJson(fileInfo.getContent());
-        } else if (FileType.XML.equals(fileInfo.getFileType())) {
-            processXml(fileInfo.getContent());
-        } else if (FileType.CSV.equals(fileInfo.getFileType())) {
+        if (FileType.JSON.equals(fileObject.getFileType())) {
+            processJson(fileObject.getContent());
+        } else if (FileType.XML.equals(fileObject.getFileType())) {
+            processXml(fileObject.getContent());
+        } else if (FileType.CSV.equals(fileObject.getFileType())) {
             // Treats the first part of the file name as the model name
-            String fileName = fileInfo.getFileName();
+            String fileName = fileObject.getFileName();
             String modelName = fileName.substring(0, fileName.indexOf('.')).trim();
             Assert.isTrue(ModelManager.existModel(modelName),
                     "Model {0} specified in the fileName `{1}` does not exist!", modelName, fileName);
-            processCsv(modelName, fileInfo.getContent());
+            processCsv(modelName, fileObject.getContent());
         } else {
-            throw new IllegalArgumentException("Unsupported file type for predefined data: {0}", fileInfo.getFileType());
+            throw new IllegalArgumentException("Unsupported file type for predefined data: {0}", fileObject.getFileType());
         }
     }
 
@@ -170,7 +170,7 @@ public class SysPreDataServiceImpl extends EntityServiceImpl<SysPreData, Long> i
                     // Retain the preID of ID, ManyToOne, and OneToOne fields, which are String value.
                     rowData.put(fieldName, stringValue);
                 } else {
-                    Object fieldValue = FieldType.convertStringToObject(fieldType, stringValue);
+                    Object fieldValue = FieldType.convertStringToFieldValue(fieldType, stringValue);
                     rowData.put(fieldName, fieldValue);
                 }
             }

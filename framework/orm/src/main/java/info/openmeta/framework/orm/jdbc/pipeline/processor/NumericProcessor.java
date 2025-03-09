@@ -40,10 +40,9 @@ public class NumericProcessor extends BaseProcessor {
             row.put(fieldName, formatInputNumeric(row.get(fieldName)));
         } else if (AccessType.CREATE.equals(accessType)) {
             checkRequired(row);
-            row.put(fieldName, metaField.getDefaultValueObject());
+            row.computeIfAbsent(fieldName, k -> metaField.getDefaultValueObject());
         } else if (row.containsKey(fieldName)) {
             checkRequired(row);
-            row.put(fieldName, getFieldTypeDefaultValue());
         }
     }
 

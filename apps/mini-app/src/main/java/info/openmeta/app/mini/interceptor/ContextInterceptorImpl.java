@@ -200,7 +200,7 @@ public class ContextInterceptorImpl implements ContextInterceptor {
      * @param userInfo the user info
      */
     private void setMultiTenancyEnv(Context context, UserInfo userInfo) {
-        Assert.notNull(userInfo.getTenantId(), "User tenantId cannot be null in multi-tenancy mode.");
+        Assert.notBlank(userInfo.getTenantId(), "User tenantId cannot be null in multi-tenancy mode.");
         context.setTenantId(userInfo.getTenantId());
         if (DynamicDataSourceMode.MULTI_TENANCY_ISOLATED.equals(dynamicDataSourceMode)) {
             Assert.notBlank(userInfo.getDatasourceKey(),

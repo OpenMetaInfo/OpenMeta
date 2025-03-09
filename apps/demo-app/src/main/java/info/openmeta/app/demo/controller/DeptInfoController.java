@@ -43,7 +43,8 @@ public class DeptInfoController extends EntityController<DeptInfoService, DeptIn
                                          @RequestParam(required = false) List<String> fields,
                                          @RequestParam(required = false) LocalDate effectiveDate) {
         ContextHolder.getContext().setEffectiveDate(effectiveDate);
-        return ApiResponse.success(deptInfoService.getById(id, fields).orElse(null));
+        DeptInfo deptInfo = deptInfoService.getById(id, fields).orElse(null);
+        return ApiResponse.success(deptInfo);
     }
 
 }

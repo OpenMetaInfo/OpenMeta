@@ -64,6 +64,6 @@ public class AiRobot extends BaseModel {
     @Schema(description = "Description")
     private String description;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Active")
+    private Boolean active;
 }

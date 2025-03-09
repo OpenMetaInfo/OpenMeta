@@ -21,7 +21,7 @@ public class FileRecord extends BaseModel {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
-    private Long id;
+    private String id;
 
     @Schema(description = "Tenant ID")
     private String tenantId;
@@ -38,9 +38,6 @@ public class FileRecord extends BaseModel {
     @Schema(description = "File Size(KB)")
     private Integer fileSize;
 
-    @Schema(description = "MimeType")
-    private String mimetype;
-
     @Schema(description = "Checksum")
     private String checksum;
 
@@ -50,12 +47,9 @@ public class FileRecord extends BaseModel {
     @Schema(description = "Row ID")
     private String rowId;
 
-    @Schema(description = "Field Name")
-    private String fieldName;
-
     @Schema(description = "Source")
     private FileSource source;
 
-    @Schema(description = "Disabled")
-    private Boolean disabled;
+    @Schema(description = "Deleted")
+    private Boolean deleted;
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,6 +47,11 @@ public class MetaModel implements Serializable {
 
     private boolean softDelete;
 
+    // Compatible with different soft delete field names of historical systems, such as "is_deleted"
+    private String softDeleteField;
+
+    private boolean enableActiveControl;
+
     private boolean versionLock;
 
     private boolean multiTenant;
@@ -54,7 +60,10 @@ public class MetaModel implements Serializable {
 
     private List<String> businessKey;
 
-    private List<MetaField> modelFields;
-
     private String partitionField;
+
+    private List<MetaField> storedComputedFields = new ArrayList<>();
+
+    private List<MetaField> storedCascadedFields = new ArrayList<>();
+
 }

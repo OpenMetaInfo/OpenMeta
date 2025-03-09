@@ -99,13 +99,10 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
     @Override
     public TimelineSlice getTimelineSlice(String modelName, Serializable sliceId) {
         Set<String> fields = new HashSet<>(ModelConstant.TIMELINE_FIELDS);
-        if (ModelManager.isSoftDeleted(modelName)) {
-            fields.add(ModelConstant.SOFT_DELETED_FIELD);
-        }
         FlexQuery flexQuery = new FlexQuery(fields, new Filters().eq(ModelConstant.SLICE_ID, sliceId)).acrossTimelineData();
         List<Map<String, Object>> rows = jdbcService.selectByFilter(modelName, flexQuery);
         Assert.notEmpty(rows, "Timeline model {0} does not exist data for sliceId={1}.", modelName, sliceId);
-        return BeanTool.mapToObject(rows.getFirst(), TimelineSlice.class);
+        return BeanTool.originalMapToObject(rows.getFirst(), TimelineSlice.class);
     }
 
     /**
@@ -155,7 +152,7 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
      * @param sliceRow the slice data
      */
     private void createSlice(String modelName, Map<String, Object> sliceRow) {
-        TimelineSlice currentSlice = BeanTool.mapToObject(sliceRow, TimelineSlice.class);
+        TimelineSlice currentSlice = BeanTool.originalMapToObject(sliceRow, TimelineSlice.class);
         // Get the slice that overlaps with the current timeline slice.
         Set<String> copyFields = ModelManager.getModelUpdatableFields(modelName);
         copyFields.removeAll(sliceRow.keySet());
@@ -181,7 +178,7 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
      * @param currentSlice the current slice object
      */
     private void createSliceWithOverlapped(String modelName, Map<String, Object> sliceRow, Map<String, Object> overlappedRow, TimelineSlice currentSlice) {
-        TimelineSlice overlappedSlice = BeanTool.mapToObject(overlappedRow, TimelineSlice.class);
+        TimelineSlice overlappedSlice = BeanTool.originalMapToObject(overlappedRow, TimelineSlice.class);
         if (currentSlice.getEffectiveStartDate().equals(overlappedSlice.getEffectiveStartDate())) {
             // When the `effectiveStartDate` dates are the same, update the existing slice.
             // In integration scenarios where 'sliceId' is not provided, perform a `Correct` operation on the slice
@@ -246,11 +243,10 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
     @Override
     public Integer updateSlices(String modelName, List<Map<String, Object>> rows) {
         rows.forEach(sliceRow -> {
-            Assert.notTrue(sliceRow.containsKey(ModelConstant.SOFT_DELETED_FIELD),
-                    "When update slice of timeline model {0}, cannot assign a value to `disabled` field! {1}",
-                    modelName, sliceRow);
+            Serializable sliceId = (Serializable) sliceRow.get(ModelConstant.SLICE_ID);
             // When sliceId is of Integer type, convert it to Long type.
-            sliceRow.put(ModelConstant.SLICE_ID, IdUtils.convertIdToLong(sliceRow.get(ModelConstant.SLICE_ID)));
+            sliceId = IdUtils.formatId(modelName, ModelConstant.SLICE_ID, sliceId);
+            sliceRow.put(ModelConstant.SLICE_ID, sliceId);
             // When `effectiveStartDate` changes, update the `effectiveEndDate` of the affected slice.
             if (sliceRow.containsKey(ModelConstant.EFFECTIVE_START_DATE)) {
                 Object effectiveStartDate = sliceRow.get(ModelConstant.EFFECTIVE_START_DATE);
@@ -271,12 +267,12 @@ public class TimelineServiceImpl<K extends Serializable> implements TimelineServ
      * @param sliceRow the slice data to be updated
      */
     private void updateSliceAndCorrectDate(String modelName, Map<String, Object> sliceRow) {
-        TimelineSlice currentSlice = BeanTool.mapToObject(sliceRow, TimelineSlice.class);
+        TimelineSlice currentSlice = BeanTool.originalMapToObject(sliceRow, TimelineSlice.class);
         TimelineSlice originalSlice = this.getTimelineSlice(modelName, currentSlice.getSliceId());
         Map<String, Object> overlappedRow = this.getOverlappedSlice(modelName, currentSlice, ModelConstant.TIMELINE_FIELDS);
         if (!overlappedRow.isEmpty()) {
             // Update the `effectiveEndDate` of the current slice based on the overlapped slice.
-            TimelineSlice overlappedSlice = BeanTool.mapToObject(overlappedRow, TimelineSlice.class);
+            TimelineSlice overlappedSlice = BeanTool.originalMapToObject(overlappedRow, TimelineSlice.class);
             this.updateSliceByOverlapped(modelName, sliceRow, currentSlice, originalSlice, overlappedSlice);
         } else {
             // Update the `effectiveEndDate` of the current slice based on the next slice.
